@@ -149,28 +149,33 @@ def create_planfile(mask_table,rawdir):
 #####################################################    
 #####################################################    
 #####################################################    
+def main():
 
 
-# RUN IN PRESENT DIRECTORY
-rawdir = os.path.basename(os.getcwd())
-rawfiles = glob.glob('DE*.fits*')
+    # RUN IN PRESENT DIRECTORY
+    rawdir = os.path.basename(os.getcwd())
+    rawfiles = glob.glob('DE*.fits*')
 
 
-nf=0
-for file in rawfiles:
-    print(file)
-    hdu    = fits.open(file)
-    header = hdu[0].header
-    exp_info = parse_header(header,file)
+    nf=0
+    for file in rawfiles:
+        print(file)
+        hdu    = fits.open(file)
+        header = hdu[0].header
+        exp_info = parse_header(header,file)
 
-    if nf==0: allexp = exp_info
-    if nf>0:  allexp = vstack([allexp,exp_info])
-    nf=nf+1
-    
-# SORT MASKS AND CREATE PLAN FILES
-masks = np.unique(allexp['MASK'])
-print(masks)
-for mask in masks:
-    nmsk = allexp['MASK'] == mask
-    create_planfile(allexp[nmsk],rawdir)
+        if nf==0: allexp = exp_info
+        if nf>0:  allexp = vstack([allexp,exp_info])
+        nf=nf+1
+
+    # SORT MASKS AND CREATE PLAN FILES
+    masks = np.unique(allexp['MASK'])
+    print(masks)
+    for mask in masks:
+        nmsk = allexp['MASK'] == mask
+        create_planfile(allexp[nmsk],rawdir)
+
+
+if __name__ == "__main__":
+    main()
 
