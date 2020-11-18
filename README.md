@@ -13,5 +13,7 @@ All rawdata goes into a folder rawdata_2020/
 
 7. Run flexure:  `dmost_flexure` which generates file
 8. Run telluric: `dmost_telluric` which generates telluric spectrum
+9. Run co-add, dmost_create_marz and marz
+10. Read in marz and run MCMC
 
 
