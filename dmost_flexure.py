@@ -24,14 +24,6 @@ DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 #   4.  Update individual slits using surface
 #
 
-########################################################
-# NAME TO READ SPEC1d FILES
-def get_slit_name(slits,i):
-    
-    rname = 'SPAT{:04d}-SLIT{:04d}-DET{:02d}'.format(slits['rspat'][i],slits['rslit'][i],slits['rdet'][i])
-    bname = 'SPAT{:04d}-SLIT{:04d}-DET{:02d}'.format(slits['bspat'][i],slits['bslit'][i],slits['bdet'][i])
-    
-    return rname, bname
 
 #####################################################
 # CALCULATE SKY EMISSION LINE 
@@ -90,7 +82,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,fit_slope, fit_b, fi
 
          if (slits['reduce_flag'][arg,nexp] == 1):
                 
-            r,b = get_slit_name(slits[arg],nexp)
+            r,b = dmost_utils.get_slit_name(slits[arg],nexp)
  
 
             # SKY LINES FIRST
@@ -301,7 +293,7 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
 
          if (slits['reduce_flag'][arg,ii] == 1):
                 
-            r,b = get_slit_name(slits[arg],ii)
+            r,b = dmost_utils.get_slit_name(slits[arg],ii)
             
             try:
                 # MEASURE SKY LINE DIFFERENCES
