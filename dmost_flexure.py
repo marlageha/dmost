@@ -276,9 +276,10 @@ def update_flexure_fit(slits, ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los,sky)
             dwave,diff,diff_err,los,elos       = sky_em_residuals(all_wave,all_sky,all_ivar,sky,plot=0)
             
             m=np.isfinite(diff)
-            sky_mean = np.average(np.abs(diff[m]), weights = 1./diff_err[m]**2)
-            slits['rms_sky'][arg,ii] = sky_mean
-            slits['rSN'][arg,ii]     = np.median(all_flux*np.sqrt(all_ivar))
+            if np.sum(m) > 0:
+                 sky_mean = np.average(np.abs(diff[m]), weights = 1./diff_err[m]**2)
+                 slits['rms_sky'][arg,ii] = sky_mean
+                 slits['rSN'][arg,ii]     = np.median(all_flux*np.sqrt(all_ivar))
 
     return slits
 
