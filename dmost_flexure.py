@@ -70,13 +70,10 @@ def sky_em_residuals(wave,flux,ivar,sky,plot=0):
 
 #######################################################
 # CREATE QUALITY PLOTS
-def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,fit_slope, fit_b, fit_los, x, y):
+def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_b, fit_los, x, y):
 
-    header = hdu[0].header
-    mask   = header['TARGET'].strip()
-    fnames = header['FILENAME'].split('.')
-
-    pdf2 = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_slits_'+mask+'_'+fnames[2]+'.pdf')
+  
+    pdf2 = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_slits_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf')
     plt.rcParams.update({'figure.max_open_warning': 0})
     for arg in np.arange(0,nslits,1,dtype='int'):
 
@@ -138,7 +135,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,fit_slope, fit_b, fi
 
     #########################################################################
     # CREATE FULL MASK FITS
-    pdf = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_mask_'+mask+'_'+fnames[2]+'.pdf')
+    pdf = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_mask_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf')
  
     t=1.5
     
@@ -356,7 +353,7 @@ def run_flexure(data_dir,slits,mask):
         slits = update_flexure_fit(slits, ii, nslits, hdu, pmodel_m, pmodel_b,pmodel_los,sky)
   
         # REFIT FOR QA PLOTS
-        qa_flexure_plots(data_dir,nslits,slits,ii,sky,hdu,fslope, fb, flos, x, y)
+        qa_flexure_plots(data_dir,nslits,slits,ii,sky,hdu,mask,fslope, fb, flos, x, y)
 
         mask['flag_flexure'][ii] = 1
         
