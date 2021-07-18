@@ -199,3 +199,14 @@ def vignetting_limits(slits,nexp,wave):
     
     return wave_lims
 
+
+####################################################
+def read_dmost(outfile):
+    
+    hdu   = fits.open(outfile)
+    mask  = hdu[1].data
+    slits = hdu[2].data
+    hdu.close()
+    
+    return slits, mask
+
