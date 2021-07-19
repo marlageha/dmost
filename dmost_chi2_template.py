@@ -44,10 +44,11 @@ def create_chi2_masks(data_wave):
     # DETERMINE CHI2 NEAR STRONG LINES
     cmask1 = (data_wave > 6475) & (data_wave < 6750) 
     cmask4 = (data_wave > 6950) & (data_wave < 7140) 
+    cmask5 = (data_wave > 7350) & (data_wave < 7550) 
     cmask2 = (data_wave > 7800) & (data_wave < 8125) 
     cmask3 = (data_wave > 8350) & (data_wave < 8850) 
 
-    chi2_mask = cmask1 | cmask2 | cmask3 | cmask4
+    chi2_mask = cmask1 | cmask2 | cmask3 | cmask4 | cmask5
 
     return continuum_mask, chi2_mask
 
