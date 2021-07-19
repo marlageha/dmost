@@ -213,7 +213,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
 
             # MAKE BEST MODEL 
             model = mk_single_model(theta, wave, flux, ivar, telluric['wave'],sm_tell, \
-                                    sm_pflux,plogwave, losvd_pix)
+                                    sm_pflux,plogwave, npoly,losvd_pix)
                      
 
             # SAVE QUALITY OF FIT INFO
