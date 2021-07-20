@@ -509,7 +509,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
         # CHECK IF THIS HAS ALREADY BEEN DONE
         if (np.size(tfile) > 0) & (clobber == 0):
             print('{} {} Telluric already done'.format(mask['maskname'][ii],mask['fname'][ii]))
-            o2,h2o = parse_tfile(tfile):        
+            o2,h2o = parse_tfile(tfile)        
             mask['telluric_h2o'][ii] = h2o
             mask['telluric_o2'][ii]  = o2
 
