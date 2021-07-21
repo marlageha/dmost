@@ -474,10 +474,10 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     round_h2o = 2. * round(final_h2o/2)
     round_o2  = 0.05*round(final_o2/0.05) 
     
-    print('{} {}          H2O = {:0.0f}, O2 = {:0.1f}'.format(mask['maskname'][0],\
+    print('{} {}          H2O = {:0.0f}, O2 = {:0.2f}'.format(mask['maskname'][0],\
                                                         mask['fname'][nexp],round_h2o,round_o2))
     
-    str = '_h{:0.0f}_o{:0.1f}'.format(round_h2o, round_o2)
+    str = '_h{:0.0f}_o{:0.2}'.format(round_h2o, round_o2)
     tfile = data_dir+'/dmost/telluric_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+str+'.fits'
     tfine = DEIMOS_RAW + '/templates/fine_tellurics/telluric_0.01A_h2o_{}_o2_{:2.2f}_.fits'.format(int(round_h2o),round_o2)
         
