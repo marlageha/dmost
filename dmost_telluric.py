@@ -508,11 +508,12 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
 
         # CHECK IF THIS HAS ALREADY BEEN DONE
         if (np.size(tfile) > 0) & (clobber == 0):
-            print('{} {} Telluric already done'.format(mask['maskname'][ii],mask['fname'][ii]))
-            t = tfile[0].split('_')
-            o2,h2o = parse_tfile(t[1])        
-            mask['telluric_h2o'][ii] = h2o
-            mask['telluric_o2'][ii]  = o2
+            thdu  = fits.open(tfile[0])
+            thdr  =  hdu[1].header
+            mask['telluric_h2o'][ii] = thdr['h2o']
+            mask['telluric_o2'][ii]  = thdr['o2']
+            print('{} {} Telluric already done, adding to header {} {}'.format(mask['maskname'][ii],mask['fname'][ii],\
+                                                                               thdr['h2o'],thdr['o2']))
 
 
         if (np.size(tfile) == 0) | (clobber == 1):
