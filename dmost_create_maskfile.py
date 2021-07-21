@@ -491,7 +491,7 @@ def run_many_masks(masknames,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
 
 
 #####################################################    
-def main(*args,clobber=0):
+def main(*args):
 
 
     mask = sys.argv[1]
