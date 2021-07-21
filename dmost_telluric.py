@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-# new comment
 import numpy as np
 import os,sys
 
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
-
 
 from astropy.table import Table
 from astropy.io import ascii,fits
@@ -19,6 +17,7 @@ from astropy import  convolution
 from astropy.convolution import Gaussian1DKernel, convolve
 
 import dmost_utils
+
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 
 
