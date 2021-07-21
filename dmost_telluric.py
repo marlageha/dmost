@@ -121,6 +121,8 @@ def chi_interp_1d(chi,x,y):
     if (best_chi < 15) & (best_chi > 0):
         err = solve_for_y(p_x, best_chi+0.1)
         err_x = (err[0]-err[1])/2.
+        if err_x < 5:
+            err_x=5
         r = r_x.real[0]
     
     return r,err_x
