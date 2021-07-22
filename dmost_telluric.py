@@ -517,7 +517,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
             mask['telluric_h2o'][ii] = thdr['h2o']
             mask['telluric_o2'][ii]  = thdr['o2']/1e5
             print('{} {} Telluric already done, adding to header {} {}'.format(mask['maskname'][ii],mask['fname'][ii],\
-                                                                               thdr['h2o'],thdr['o2']))
+                                                                               thdr['h2o'],thdr['o2']/1e5))
 
 
         if (np.size(tfile) == 0) | (clobber == 1):
