@@ -382,10 +382,10 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
          (np.abs(fslits2['telluric_w'][:,nexp]) < 50) 
     
     # REJECT OUTLIERS (MUST BE A BETTER WAY TO DO THIS!)
-    std = np.std(fslits2['telluric_h2o'][[m1,nexp]])
-    md  = np.median(fslits2['telluric_h2o'][[m1,nexp]])
-    std2= np.std(fslits2['telluric_o2'][[m1,nexp]])
-    md2 = np.median(fslits2['telluric_o2'][[m1,nexp]])
+    std = np.std(fslits2['telluric_h2o'][m1,nexp])
+    md  = np.median(fslits2['telluric_h2o'][m1,nexp])
+    std2= np.std(fslits2['telluric_o2'][m1,nexp])
+    md2 = np.median(fslits2['telluric_o2'][m1,nexp])
 
     
     m= (fslits2['telluric_chi2'][:,nexp] < 25) & (fslits2['telluric_chi2'][:,nexp] > 0)& \
@@ -396,7 +396,10 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
          (fslits2['telluric_h2o'][:,nexp] > md-3*std) & (fslits2['telluric_h2o'][:,nexp] < md+3*std) &\
          (fslits2['telluric_o2'][:,nexp] > md2-3*std2) & (fslits2['telluric_o2'][:,nexp] < md2+3*std2)
         
-
+    # FIX PROBLEM WITH SMALL H2O VALUES
+    mh20 = fslits['telluric_h2o'][:,nexp] < 10
+    fslits['telluric_h2o_err'][mh20,nexp] = fslits['telluric_h2o_err'][mh20,nexp]+10
+        
     # DETERMINE FINAL VALUES BASED ON WEIGHTED MEANS
     if np.sum(m) > 1:
         final_h2o = np.average(fslits2['telluric_h2o'][m,nexp],\
