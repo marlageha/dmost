@@ -121,8 +121,6 @@ def chi_interp_1d(chi,x,y):
     if (best_chi < 15) & (best_chi > 0):
         err = solve_for_y(p_x, best_chi+0.1)
         err_x = (err[0]-err[1])/2.
-        if err_x < 5:
-            err_x=10
         r = r_x.real[0]
     
     return r,err_x
@@ -305,7 +303,8 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             # NEEDED TO CATCH EDGE CASES
             if (bh2o > 130) | (bh2o < 1):
                 slits['telluric_chi2'][arg,nexp] = 999
-
+            if bh2o < 5:
+                berr_h2o=10
 
             slits['telluric_o2'][arg,nexp]      = bo2
             slits['telluric_h2o'][arg,nexp]     = bh2o
