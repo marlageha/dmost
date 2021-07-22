@@ -128,20 +128,21 @@ def read_best_template(pfile):
 
 def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
     
+    SNmin = 20
 
     file  = data_dir+'QA/emcee_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf'
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
    
 
-    m = (slits['collate1d_SN'] > 3) & (slits['marz_flag'] < 3)
+    m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
     nslits = np.sum(m)
-    print('{} {} Emcee with {} slits w/SN > 3'.format(mask['maskname'][0],\
-                                                                mask['fname'][nexp],nslits))
+    print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
+                                                                mask['fname'][nexp],SNmin,nslits))
     
     # LOOP OVER EACH SLIT
     for arg in np.arange(0,nslits,1,dtype='int'):
 
-        if (slits['collate1d_SN'][arg] > 3) & (slits['marz_flag'][arg] < 3) & \
+        if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3) & \
            (bool(slits['chi2_tfile'][arg].strip())) & (slits['reduce_flag'][arg,nexp] == 1):
             
             # READ STELLAR TEMPLATE 
