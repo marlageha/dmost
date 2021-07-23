@@ -448,7 +448,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
 
     ax2.set_title('O2 = {:0.3f}'.format(final_o2))
     ax2.axhline(final_o2)
-    ax2.set_ylim(0.6,2.4)
+    ax2.set_ylim(0.6,2.1)
 
 
     ax4.plot(fslits2['rSN'][:,nexp],fslits2['telluric_o2'][:,nexp],'.')
