@@ -188,7 +188,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
 
             pos, prob, state = sampler.run_mcmc(p0, 100)
             sampler.reset()  
-            sampler.run_mcmc(p0, 1000)
+            sampler.run_mcmc(p0, 1500)
 
             t1=time.time()
             print('mcmc run = {:0.3f}'.format(t1-t0))
