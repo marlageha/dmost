@@ -186,9 +186,9 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
             # FIRST BURN-IN AND RUN EMCEE
             t0=time.time()
 
-            pos, prob, state = sampler.run_mcmc(p0, 100)
+            pos, prob, state = sampler.run_mcmc(p0, 200)
             sampler.reset()  
-            sampler.run_mcmc(p0, 1500)
+            sampler.run_mcmc(p0, 1000)
 
             t1=time.time()
             print('mcmc run = {:0.3f}'.format(t1-t0))
