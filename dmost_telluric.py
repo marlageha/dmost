@@ -263,7 +263,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
     
     #ncount = 0
     for arg in np.arange(0,nslits,1,dtype='int'):
-        if (slits['rSN'][arg,nexp] > min_SN):
+        if (slits['rSN'][arg,nexp] > min_SN) & (slits['rSN'][arg,nexp] < 155):
 
             losvd_pix =  slits['fit_los'][arg,nexp]/ 0.01
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
