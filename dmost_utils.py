@@ -142,16 +142,17 @@ def load_coadd_collate1d(hdu,vacuum=0,vignetted = 0):
         all_flux=all_flux[5:-15]
         all_ivar=all_ivar[5:-15]
 
-        # REMOVE CRAZY 500-SIGMA VALUES
-        cmask = (all_flux > np.percentile(all_flux,0.1)) & (all_flux < np.percentile(all_flux,99.9))
+        # REMOVE CRAZY  VALUES
+        sn = all_flux*np.sqrt(all_ivar)
+        cmask = (sn > np.percentile(sn,0.1)) & (sn < np.percentile(sn,99.9))
 
-        m=np.median(all_flux[cmask])
-        s=np.std(all_flux[cmask])
-        mm = (all_flux > 500.*s + m) | (all_flux < m-50.*s)
-        all_flux[mm] = m
-        all_ivar[mm] = 1e6
-        if (np.sum(mm) > 20):
-            print('Removing more than 20 pixels of data')
+        m=np.median(sn[cmask])
+        s=np.std(sn[cmask])
+        mm = (sn > 25.*s + m) | (sn < m-20.*s)
+        all_flux[mm] = np.median(all_flux)
+        all_ivar[mm] = 1e-6
+        if (np.sum(mm) > 50):
+            print('  Removing more than 50 pixels of data')
         
         SN = np.median(all_flux*np.sqrt(all_ivar))
 
