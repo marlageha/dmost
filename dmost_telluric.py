@@ -132,8 +132,11 @@ def find_chi2_roots(values, chi2):
     p = np.poly1d(z)
 
     p2 = np.roots(p)
-    min_w    = p2[0].real
-    min_chi2 = p(min_w)
+    min_w = 99
+    min_chi2=99
+    if np.size(p2) > 0:
+        min_w    = p2[0].real
+        min_chi2 = p(min_w)
     
     return min_w,min_chi2
 
