@@ -128,7 +128,7 @@ def read_best_template(pfile):
 
 def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
     
-    SNmin = 50
+    SNmin = 15
 
     file  = data_dir+'QA/emcee_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf'
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
