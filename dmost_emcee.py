@@ -186,21 +186,23 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
             # FIRST BURN-IN AND RUN EMCEE
             t0=time.time()
 
-            pos, prob, state = sampler.run_mcmc(p0, 200)
+            pos, prob, state = sampler.run_mcmc(p0, 100)
             sampler.reset()  
-            sampler.run_mcmc(p0, 1000)
+            sampler.run_mcmc(p0, 1800)
 
             t1=time.time()
             print('mcmc run = {:0.3f}'.format(t1-t0))
             
+            # Samples to burn
+            d = 200
             
             #tau = sampler.get_autocorr_time()
             #print('tau = ',tau)
-            theta = [np.mean(sampler.chain[:, 50:, i])  for i in [0,1]]
+            theta = [np.mean(sampler.chain[:, d:, i])  for i in [0,1]]
             print(arg,theta)
             
             for ii in [0,1]:
-                mcmc = np.percentile(sampler.chain[:,50:, ii], [16, 50, 84])
+                mcmc = np.percentile(sampler.chain[:,d:, ii], [16, 50, 84])
                 if (ii==0):
                     slits['emcee_v'][arg,nexp] = mcmc[1]
                     slits['emcee_v_err16'][arg,nexp] = mcmc[0]
@@ -225,14 +227,16 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
             
             fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
 
-            d=0
+            
             for ii in range(20):
-                ax1.plot(sampler.chain[ii,d:,0], color="k",linewidth=0.5)
+                ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
+                ax1.axvline(d)
             ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
 
 
             for ii in range(20):
-                ax2.plot(sampler.chain[ii,d:,1], color="k",linewidth=0.5)
+                ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
+                ax2.axvline(d)
             ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
 
             pdf.savefig()
@@ -254,7 +258,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
 
             # PLOT CORNER
             labels=['v','w']
-            samples   = sampler.chain[:, 50:, :].reshape((-1, ndim))
+            samples   = sampler.chain[:, d:, :].reshape((-1, ndim))
             fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
 
             pdf.savefig()
