@@ -194,7 +194,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
             print('mcmc run = {:0.3f}'.format(t1-t0))
             
             # Samples to burn
-            d = 200
+            d = 100
             
             #tau = sampler.get_autocorr_time()
             #print('tau = ',tau)
