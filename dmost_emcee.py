@@ -137,7 +137,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
     m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
     nslits = np.sum(m)
     print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
-                                                                mask['fname'][nexp],SNmin,nslits))
+                                                                mask['fname'][nexp],nslits,SNmin))
     
     # LOOP OVER EACH SLIT
     for arg in np.arange(0,nslits,1,dtype='int'):
