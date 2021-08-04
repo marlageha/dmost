@@ -72,12 +72,14 @@ def filled_column(name, fill_value, size):
 # CREATE MASK STRUCTURE
 def create_mask(nexp):
 
-    cols = [filled_column('spec1d_filename','                                                                        ',nexp),
-            filled_column('rawfilename','                          ',nexp), 
-            filled_column('deimos_maskname','           ',nexp), 
-            filled_column('maskname','       ',nexp), 
+    cols = ['spec1d_filename','                                                                       ',
+            'rawfilename','                          ', 
+            'deimos_maskname','           ', 
+            'maskname','       ', 
             filled_column('fname','        ',nexp),
             filled_column('mjd',-1.,nexp),
+            filled_column('mask_ra',-1.,nexp),
+            filled_column('mask_dec',-1.,nexp),
             filled_column('year','    ',nexp),
             filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
