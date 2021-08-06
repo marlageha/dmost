@@ -121,12 +121,18 @@ def create_slits(nslits,nexp):
             filled_column('rms_arc_r',np.zeros(nexp),nslits),
             filled_column('rms_arc_b',np.zeros(nexp),nslits),
             filled_column('opt_fwhm',np.zeros(nexp),nslits),
+            filled_column('xpos',-1.,nslits),
+            filled_column('ypos',-1.,nslits),
+
             
             # COLLATE1D
             filled_column('collate1d_filename','                                         ',nslits),
             filled_column('collate1d_SN',-1.,nslits),
-            filled_column('xpos',-1.,nslits),
-            filled_column('ypos',-1.,nslits),
+            filled_column('collate1d_v',-1.,nslits),
+            filled_column('collate1d_v_err',-1.,nslits),
+            filled_column('collate1d_v_err16',-1.,nslits),
+            filled_column('collate1d_v_err84',-1.,nslits),
+            filled_column('collate1d_f_acc',-1.,nslits),
 
             # MARZ
             filled_column('marz_flag',-1,nslits),
