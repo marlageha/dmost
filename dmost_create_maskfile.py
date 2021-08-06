@@ -72,15 +72,16 @@ def filled_column(name, fill_value, size):
 # CREATE MASK STRUCTURE
 def create_mask(nexp):
 
-    cols = ['spec1d_filename','                                                                       ',
-            'rawfilename','                          ', 
-            'deimos_maskname','           ', 
+    cols = ['deimos_maskname','           ', 
             'maskname','       ', 
+            'year','    ',
+            'nexp',0,
+            filled_column('spec1d_filename','                                                                       ',nexp),
+            filled_column('rawfilename','                          ',nexp), 
             filled_column('fname','        ',nexp),
             filled_column('mjd',-1.,nexp),
             filled_column('mask_ra',-1.,nexp),
             filled_column('mask_dec',-1.,nexp),
-            filled_column('year','    ',nexp),
             filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
             filled_column('vhelio',-1.,nexp),
@@ -89,8 +90,7 @@ def create_mask(nexp):
             filled_column('flag_flexure',0,nexp),
             filled_column('flag_telluric',0,nexp),
             filled_column('flag_template',0,nexp),
-            filled_column('flag_emcee',0,nexp),
-            filled_column('nexp',-1,nexp)]
+            filled_column('flag_emcee',0,nexp)]
  
     mask = Table(cols)
 
@@ -119,6 +119,7 @@ def create_slits(nslits,nexp):
             filled_column('bslit',np.zeros(nexp,dtype='int'),nslits),
             filled_column('rms_arc_r',np.zeros(nexp),nslits),
             filled_column('rms_arc_b',np.zeros(nexp),nslits),
+            filled_column('opt_fwhm',np.zeros(nexp),nslits),
             
             # COLLATE1D
             filled_column('collate1d_filename','                                         ',nslits),
@@ -213,18 +214,22 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
         hdr      = hdu[0].header
         fnames   = hdr['FILENAME'].split('.')
 
+        if (i == 0):
+            mask['maskname']       = maskname
+            mask['year']           = parse_year(hdr['mjd'])
+            mask['deimos_maskname']= hdr['TARGET'].strip()
+            mask['nexp']           = nexp
+
 
         mask['spec1d_filename'][i]= spec1d.split('Science')[1]
         mask['rawfilename'][i]    = hdr['FILENAME']
-        mask['maskname'][i]       = maskname
-        mask['deimos_maskname'][i]= hdr['TARGET'].strip()
         mask['fname'][i]          = fnames[2]
-        mask['year'][i]           = parse_year(hdr['mjd'])
 
         # AIRMASS, EXP FOR EACH EXPOSURE
         mask['airmass'][i] = hdr['AIRMASS']
         mask['exptime'][i] = hdr['EXPTIME']
-        mask['nexp'][i]    = nexp
+        mask['mask_ra'][i] = hdr['RA']
+        mask['mask_dec'][i]= hdr['DEC']
         mask['mjd'][i]     = hdr['MJD']
 
         # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
@@ -357,12 +362,12 @@ def add_spec1d_fileinfo(data_dir,slits,mask,nexp):
         header      = hdu[0].header
         nspec       = header['NSPEC']
         
-        # SLIT HEADERS START AT ONE, 
+        # SLIT HEADERS START AT ONE (NOT ZERO!)
         for i in np.arange(1,nspec+1,1,dtype='int'):
 
             slit_header = hdu[i].header
     
-            m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],                [slit_header['RA']],[slit_header['DEC']],2./3600)
+            m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],[slit_header['RA']],[slit_header['DEC']],2./3600)
             
             
             if (np.size(m1) > 0) & (slit_header['DET'] < 5):
@@ -378,7 +383,8 @@ def add_spec1d_fileinfo(data_dir,slits,mask,nexp):
                 slits['rslit'][arg,ii]      = slit_header['SLITID']
                 slits['rspat'][arg,ii]      = round(slit_header['HIERARCH SPAT_PIXPOS'])
                 slits['rms_arc_r'][arg,ii]  = slit_header['WAVE_RMS']
-                
+                slits['opt_fwhm'][arg,ii]   = slit_header['FWHM']*0.12  # DEIMOS SPATIAL PIXEL SCALE
+
             if (np.size(m1) == 0) & (slit_header['HIERARCH MASKDEF_OBJNAME'] != 'SERENDIP'):
                 print('MISSING SLITS',slit_header['NAME'])
                 print(slit_header['HIERARCH MASKDEF_OBJNAME'])
