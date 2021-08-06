@@ -72,16 +72,13 @@ def filled_column(name, fill_value, size):
 # CREATE MASK STRUCTURE
 def create_mask(nexp):
 
-    cols = ['deimos_maskname','           ', 
-            'maskname','       ', 
-            'year','    ',
-            'nexp',0,
-            filled_column('spec1d_filename','                                                                       ',nexp),
+    cols = [filled_column('spec1d_filename','                                                                        ',nexp),
             filled_column('rawfilename','                          ',nexp), 
+            filled_column('deimos_maskname','           ',nexp), 
+            filled_column('maskname','       ',nexp), 
             filled_column('fname','        ',nexp),
             filled_column('mjd',-1.,nexp),
-            filled_column('mask_ra',-1.,nexp),
-            filled_column('mask_dec',-1.,nexp),
+            filled_column('year','    ',nexp),
             filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
             filled_column('vhelio',-1.,nexp),
@@ -90,7 +87,11 @@ def create_mask(nexp):
             filled_column('flag_flexure',0,nexp),
             filled_column('flag_telluric',0,nexp),
             filled_column('flag_template',0,nexp),
-            filled_column('flag_emcee',0,nexp)]
+            filled_column('flag_emcee',0,nexp),
+            filled_column('nexp',-1,nexp),
+            filled_column('mask_ra',-1.,nexp),
+            filled_column('mask_dec',-1.,nexp),]
+
  
     mask = Table(cols)
 
@@ -124,7 +125,9 @@ def create_slits(nslits,nexp):
             # COLLATE1D
             filled_column('collate1d_filename','                                         ',nslits),
             filled_column('collate1d_SN',-1.,nslits),
-            
+            filled_column('xpos',-1.,nslits),
+            filled_column('ypos',-1.,nslits),
+
             # MARZ
             filled_column('marz_flag',-1,nslits),
             filled_column('marz_z',-1.,nslits),
@@ -136,6 +139,7 @@ def create_slits(nslits,nexp):
             filled_column('fit_b',np.zeros(nexp),nslits),
             filled_column('fit_los',np.zeros(nexp),nslits),
             filled_column('rms_sky',np.zeros(nexp),nslits),
+ 
 
             # TELLURIC
             filled_column('telluric_h2o',np.zeros(nexp),nslits),
@@ -214,11 +218,10 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
         hdr      = hdu[0].header
         fnames   = hdr['FILENAME'].split('.')
 
-        if (i == 0):
-            mask['maskname']       = maskname
-            mask['year']           = parse_year(hdr['mjd'])
-            mask['deimos_maskname']= hdr['TARGET'].strip()
-            mask['nexp']           = nexp
+        mask['maskname'][i]       = maskname
+        mask['year'][i]           = parse_year(hdr['mjd'])
+        mask['deimos_maskname'][i]= hdr['TARGET'].strip()
+        mask['nexp'][i]           = nexp
 
 
         mask['spec1d_filename'][i]= spec1d.split('Science')[1]
