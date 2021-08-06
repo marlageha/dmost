@@ -305,13 +305,16 @@ def create_slits_from_bintab(data_dir,mask,nexp):
 
     
     # CREATE TABLE USING BINTABS
-    rhdu   = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][0]+'/'+mask['rawfilename'][0])
-    bintab = rhdu['ObjectCat'].data
-    m      = bintab['ObjClass'] == 'Program_Target'
-    bintab = bintab[m]
-    nslits = np.sum(m)
+    # BluSlits contains mask design x/y positions
+    rhdu     = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][0]+'/'+mask['rawfilename'][0])
+    bintab   = rhdu['ObjectCat'].data
+    bluslits = rhdu['BluSlits'].data       
+    m        = bintab['ObjClass'] == 'Program_Target'
 
-    
+    bintab   = bintab[m]
+    bluslits = bluslits[m]
+    nslits   = np.sum(m)
+
     # CREATE SLITS TABLE USING BINTABS
     slits = create_slits(nslits,nexp)
 
@@ -322,11 +325,14 @@ def create_slits_from_bintab(data_dir,mask,nexp):
 
     # POPULATE USING BINTABS AND COLLATE1D DATA
     ncol1d = 0
-    for i,obj in enumerate(bintab):
+    for i,obj,bsl in enumerate(zip(bintab,bluslits):
         slits['RA'][i]         = obj['RA_OBJ']
         slits['DEC'][i]        = obj['DEC_OBJ']
         slits['slitname'][i]   = obj['OBJECT']
         slits['maskdef_id'][i] = obj['OBJECTID']
+        slits['xpos'][i]       = (bsl['slitX1']+bsl['slitX2'])/2.
+        slits['ypos'][i]       = bls['slitY1']
+
 
         # GENERAL REDUCE FLAG
         slits['reduce_flag'][i,:] = 1
