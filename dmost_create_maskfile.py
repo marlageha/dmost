@@ -325,13 +325,13 @@ def create_slits_from_bintab(data_dir,mask,nexp):
 
     # POPULATE USING BINTABS AND COLLATE1D DATA
     ncol1d = 0
-    for i,obj,bsl in enumerate(zip(bintab,bluslits):
+    for i,(obj,bsl) in enumerate(zip(bintab,bluslits)):
         slits['RA'][i]         = obj['RA_OBJ']
         slits['DEC'][i]        = obj['DEC_OBJ']
         slits['slitname'][i]   = obj['OBJECT']
         slits['maskdef_id'][i] = obj['OBJECTID']
         slits['xpos'][i]       = (bsl['slitX1']+bsl['slitX2'])/2.
-        slits['ypos'][i]       = bls['slitY1']
+        slits['ypos'][i]       = bsl['slitY1']
 
 
         # GENERAL REDUCE FLAG
