@@ -166,8 +166,11 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
             
             # CONTINUUM POLYNOMIAL SET BY SN LIMITS
             npoly = 5
-            if (slits['rSN'][arg][nexp]) > 100:
+            if (slits['rSN'][arg][nexp]) > 75:
                 npoly=7
+                if (slits['rSN'][arg][nexp]) > 150:
+                    npoly=9
+
 
 
             # INITIALIZEWALKERS
