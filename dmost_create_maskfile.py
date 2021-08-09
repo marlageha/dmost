@@ -89,8 +89,14 @@ def create_mask(nexp):
             filled_column('flag_template',0,nexp),
             filled_column('flag_emcee',0,nexp),
             filled_column('nexp',-1,nexp),
+            
+            # TELESCOPE DATA
             filled_column('mask_ra',-1.,nexp),
-            filled_column('mask_dec',-1.,nexp),]
+            filled_column('mask_dec',-1.,nexp),
+            filled_column('mask_el',-1.,nexp),
+            filled_column('mask_az',-1.,nexp)
+
+           ]
 
  
     mask = Table(cols)
@@ -239,6 +245,9 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
         mask['exptime'][i] = hdr['EXPTIME']
         mask['mask_ra'][i] = hdr['RA']
         mask['mask_dec'][i]= hdr['DEC']
+        mask['mask_el'][i]= hdr['EL']
+        mask['mask_az'][i]= hdr['AZ']
+
         mask['mjd'][i]     = hdr['MJD']
 
         # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
