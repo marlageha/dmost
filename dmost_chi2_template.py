@@ -261,9 +261,9 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
         
         fig,ax = plt.subplots(figsize=(20,5))
         cmask, chi2_mask = create_chi2_masks(data_wave)
-        plt.plot(data_wave,data_flux,'k',label='full spectrum',linewidth=0.9)
+        plt.plot(data_wave,data_flux,'grey',label='full spectrum',linewidth=0.9)
 
-        plt.plot(data_wave[chi2_mask],data_flux[chi2_mask],'grey',label='fitted region',linewidth=0.8)
+        plt.plot(data_wave[chi2_mask],data_flux[chi2_mask],'k',label='fitted region',linewidth=0.8)
         model = single_stellar_template(final_file,data_wave,data_flux,data_ivar,losvd_pix,f['chi2_v'])
         plt.plot(data_wave,model,'r',label='Model',linewidth=0.8,alpha=0.8)
         plt.title('SN = {:0.1f}   chi2 = {:0.1f}   v = {:0.1f}'.format(f['collate1d_SN'],f['chi2_tchi2'],f['chi2_v']))
