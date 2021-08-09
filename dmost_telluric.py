@@ -436,6 +436,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
 
     ax1.set_title('H2O = {:0.3f}'.format(final_h2o))
     ax1.set_ylim(0,105)
+    ax1.set_xlim(0,150)
 
     ax3.plot(fslits2['rSN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
     ax3.plot(fslits2['rSN'][m,nexp],fslits2['telluric_h2o'][m,nexp],'r.')
@@ -454,7 +455,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     ax2.set_title('O2 = {:0.3f}'.format(final_o2))
     ax2.axhline(final_o2)
     ax2.set_ylim(0.6,2.05)
-
+    ax2.set_xlim(0,150)
 
     ax4.plot(fslits2['rSN'][:,nexp],fslits2['telluric_o2'][:,nexp],'.')
     ax4.errorbar(fslits2['rSN'][m,nexp],fslits2['telluric_o2'][m,nexp],\
