@@ -337,7 +337,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             pdf.savefig()
 
 
-            fig, (ax1, ax2, ax3,ax4) = plt.subplots(1, 4,figsize=(20,5))
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3,figsize=(20,5))
             ax1.plot(tmp_h2o,tmp_chi,'.')
             ax2.plot(tmp_o2,tmp_chi,'.')
             ax3.plot(tmp_w,tmp_chi,'.')
