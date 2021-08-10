@@ -134,12 +134,7 @@ def create_slits(nslits,nexp):
             # COLLATE1D
             filled_column('collate1d_filename','                                         ',nslits),
             filled_column('collate1d_SN',-1.,nslits),
-            filled_column('collate1d_v',-1.,nslits),
-            filled_column('collate1d_v_err',-1.,nslits),
-            filled_column('collate1d_v_err16',-1.,nslits),
-            filled_column('collate1d_v_err84',-1.,nslits),
-            filled_column('collate1d_f_acc',-1.,nslits),
-
+         
             # MARZ
             filled_column('marz_flag',-1,nslits),
             filled_column('marz_z',-1.,nslits),
@@ -180,6 +175,13 @@ def create_slits(nslits,nexp):
             filled_column('emcee_w_err84',np.zeros(nexp),nslits),
             filled_column('emcee_f_acc',np.zeros(nexp),nslits),
             filled_column('emcee_lnprob',np.zeros(nexp),nslits),
+   
+            # LOW SN V
+            filled_column('coadd_v',-1.,nslits),
+            filled_column('coadd_v_err',-1.,nslits),
+            filled_column('coadd_v_err16',-1.,nslits),
+            filled_column('coadd_v_err84',-1.,nslits),
+            filled_column('coadd_f_acc',-1.,nslits),
 
             # COMBINED VELOCITIES
             filled_column('dmost_v',-1.,nslits),
