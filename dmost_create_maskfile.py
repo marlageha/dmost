@@ -178,10 +178,13 @@ def create_slits(nslits,nexp):
    
             # LOW SN V
             filled_column('coadd_v',-1.,nslits),
+            filled_column('coadd_w',-1.,nslits),
             filled_column('coadd_v_err',-1.,nslits),
+            filled_column('coadd_w_err',-1.,nslits),
             filled_column('coadd_v_err16',-1.,nslits),
             filled_column('coadd_v_err84',-1.,nslits),
             filled_column('coadd_f_acc',-1.,nslits),
+            filled_column('coadd_lnprob',-1.,nslits),
 
             # COMBINED VELOCITIES
             filled_column('dmost_v',-1.,nslits),
