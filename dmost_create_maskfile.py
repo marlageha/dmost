@@ -247,8 +247,8 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
         mask['exptime'][i] = hdr['EXPTIME']
         mask['mask_ra'][i] = hdr['RA']
         mask['mask_dec'][i]= hdr['DEC']
-        mask['mask_el'][i]= hdr['EL']
-        mask['mask_az'][i]= hdr['AZ']
+#        mask['mask_el'][i]= hdr['EL']
+#        mask['mask_az'][i]= hdr['AZ']
 
         mask['mjd'][i]     = hdr['MJD']
 
