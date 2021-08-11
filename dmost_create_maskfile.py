@@ -22,10 +22,6 @@ import  dmost_utils,dmost_flexure
 import dmost_telluric, dmost_chi2_template, dmost_emcee
 
 
-#import scipy.ndimage as scipynd
-#from scipy.optimize import curve_fit
-
-
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
@@ -174,6 +170,8 @@ def create_slits(nslits,nexp):
             filled_column('emcee_w_err16',np.zeros(nexp),nslits),
             filled_column('emcee_w_err84',np.zeros(nexp),nslits),
             filled_column('emcee_f_acc',np.zeros(nexp),nslits),
+            filled_column('emcee_nsamp',np.zeros(nexp),nslits),
+            filled_column('emcee_converge',np.zeros(nexp),nslits),
             filled_column('emcee_lnprob',np.zeros(nexp),nslits),
    
             # LOW SN V
@@ -184,6 +182,8 @@ def create_slits(nslits,nexp):
             filled_column('coadd_v_err16',-1.,nslits),
             filled_column('coadd_v_err84',-1.,nslits),
             filled_column('coadd_f_acc',-1.,nslits),
+            filled_column('coadd_converge',-1.,nslits),
+            filled_column('coadd_nsamp',-1.,nslits),
             filled_column('coadd_lnprob',-1.,nslits),
 
             # COMBINED VELOCITIES
