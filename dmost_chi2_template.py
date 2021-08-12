@@ -67,7 +67,7 @@ def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux,npoly):
     fit    = np.poly1d(p)
 
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
-    continuum_syn_flux = synth_flux * fit(data_wave)
+    model_flux = synth_flux * fit(data_wave)
 
     return fit, model_flux
 
