@@ -101,7 +101,7 @@ def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest,n
 
     # FIT CONTINUUM
 #    final_model = dmost_telluric.fit_syn_continuum_telluric(data_wave,data_flux,data_ivar,cmask,conv_int_flux)
-    final_model = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
+    final_model = fit_continuum(data_wave,data_flux,data_ivar,cmask,conv_int_flux,npoly)
 
     return final_model
 
