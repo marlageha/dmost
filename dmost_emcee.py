@@ -256,14 +256,34 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                           sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
 
 
+    tau = sampler.get_autocorr_time()
+    burnin = int(2 * np.max(tau))
 
+    theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
+    print(burnin,arg,theta)
 
-    return sampler, slits
+    slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
+    slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
+    slits['emcee_burn'][arg,nexp]     = burnin
+
+    for ii in [0,1]:
+        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
+        if (ii==0):
+            slits['emcee_v'][arg,nexp] = mcmc[1]
+            slits['emcee_v_err16'][arg,nexp] = mcmc[0]
+            slits['emcee_v_err84'][arg,nexp] = mcmc[2]
+
+        if (ii==1):
+            slits['emcee_w'][arg,nexp] = mcmc[1]
+            slits['emcee_w_err16'][arg,nexp] = mcmc[0]
+            slits['emcee_w_err84'][arg,nexp] = mcmc[2]
+
+    return sampler, slits, theta
 
 
 ######################################################
 
-def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
+def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
     
     # OPEN PDF QA FILE
     file  = data_dir+'QA/emcee_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf'
@@ -274,7 +294,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
     # LOOP OVER EACH SLIT
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
-        if (slits['collate1d_SN'][arg] > 10) & (slits['marz_flag'][arg] < 3) & \
+        if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3) & \
            (bool(slits['chi2_tfile'][arg].strip())) & (slits['reduce_flag'][arg,nexp] == 1):
             
             
@@ -297,36 +317,17 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
 
             # SMOOTH TEMPLATES 
             losvd_pix = slits['fit_los'][arg,nexp]/ 0.01
-            sm_pflux = scipynd.gaussian_filter1d(pflux,losvd_pix,truncate=3)
-            sm_tell  = scipynd.gaussian_filter1d(telluric['flux'],losvd_pix,truncate=3)
+            sm_pflux  = scipynd.gaussian_filter1d(pflux,losvd_pix,truncate=3)
+            sm_tell   = scipynd.gaussian_filter1d(telluric['flux'],losvd_pix,truncate=3)
 
             
             # RUN EMCEE!!
             ###################
-            sampler, slits = run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
+            sampler, slits, theta = run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                        telluric,sm_tell, \
                                        sm_pflux,plogwave,npoly,losvd_pix)
             ###################
 
-
-            tau = sampler.get_autocorr_time()
-            burnin = int(2 * np.max(tau))
-            print(burnin)
-
-            theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
-            print(arg,theta)
-
-            for ii in [0,1]:
-                mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
-                if (ii==0):
-                    slits['emcee_v'][arg,nexp] = mcmc[1]
-                    slits['emcee_v_err16'][arg,nexp] = mcmc[0]
-                    slits['emcee_v_err84'][arg,nexp] = mcmc[2]
-
-                if (ii==1):
-                    slits['emcee_w'][arg,nexp] = mcmc[1]
-                    slits['emcee_w_err16'][arg,nexp] = mcmc[0]
-                    slits['emcee_w_err84'][arg,nexp] = mcmc[2]
 
 
 
@@ -335,9 +336,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
                                     sm_pflux,plogwave, npoly,losvd_pix)
 
             # SAVE QUALITY OF FIT INFO
-            slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
-            slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
-            slits['emcee_burn'][arg,nexp]     = burnin
+  
             slits['emcee_lnprob'][arg,nexp]   = np.sum((flux - model)**2 * ivar)/(np.size(flux)-3)
         
                      
@@ -370,13 +369,14 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
 
 
         # WRITE TO SCREEN
-        m = (slits['collate1d_SN'] > 3) & (slits['marz_flag'] < 3)
+        SNmin = 10
+        m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
-        print('{} {} Emcee with {} slits w/SN > 3'.format(mask['maskname'][0],\
-                                                                mask['fname'][ii],nslits))
+        print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
+                                                                mask['fname'][ii],nslits,SNmin))
 
         # RUN EMCEE
-        slits = emcee_allslits(data_dir, slits, mask, ii, hdu, telluric)
+        slits = emcee_allslits(data_dir, slits, mask, ii, hdu, telluric,SNmin)
         mask['flag_emcee'][ii] = 1
         
         # WRITE DMOST FILE

@@ -19,7 +19,8 @@ from astropy.time import Time
 import pyspherematch as sm
 
 import  dmost_utils,dmost_flexure
-import dmost_telluric, dmost_chi2_template, dmost_emcee
+import dmost_telluric, dmost_chi2_template, dmost_emcee, dmost_coadd_emcee
+
 
 
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
@@ -84,6 +85,7 @@ def create_mask(nexp):
             filled_column('flag_telluric',0,nexp),
             filled_column('flag_template',0,nexp),
             filled_column('flag_emcee',0,nexp),
+            filled_column('flag_coadd',0,nexp),
             filled_column('nexp',-1,nexp),
             
             # TELESCOPE DATA
@@ -515,6 +517,13 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
     if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
         slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
         write_dmost(slits,mask,outfile)
+
+
+
+    # RUN LOW SN EMCEE
+#    if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
+    slits, mask  = dmost_coadd_emcee.run_emcee(data_dir, slits, mask,outfile)
+    write_dmost(slits,mask,outfile)
 
 
     print()
