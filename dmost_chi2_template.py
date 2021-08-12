@@ -69,7 +69,7 @@ def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux,npoly):
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
     continuum_syn_flux = synth_flux * fit(data_wave)
 
-    return fit
+    return fit, model_flux
 
 
 ###############################################
@@ -101,7 +101,7 @@ def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest,n
 
     # FIT CONTINUUM
 #    final_model = dmost_telluric.fit_syn_continuum_telluric(data_wave,data_flux,data_ivar,cmask,conv_int_flux)
-    final_model = fit_continuum(data_wave,data_flux,data_ivar,cmask,conv_int_flux,npoly)
+    fit, final_model = fit_continuum(data_wave,data_flux,data_ivar,cmask,conv_int_flux,npoly)
 
     return final_model
 
@@ -118,8 +118,8 @@ def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_i
     cmask, chi2_mask = create_chi2_masks(data_wave)
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
-    tmp_flux = np.interp(data_wave,np.exp(phx_logwave),conv_spec)
-    cont_fit = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
+    tmp_flux      = np.interp(data_wave,np.exp(phx_logwave),conv_spec)
+    cont_fit, tmp = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
 
     
     vchi2=[]
