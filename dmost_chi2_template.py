@@ -92,7 +92,7 @@ def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest,n
     conv_spec = scipynd.gaussian_filter1d(phx_flux,losvd_pix,truncate=3)
     
     # MASK TELLURIC REGIONS
-    cmask, chi2_mask = dmost_telluric.create_tell_masks(data_wave)
+    cmask, chi2_mask = create_chi2_masks(data_wave)
 
     # Velocity shift star
     shifted_logwave = phx_logwave + vbest/2.997924e5       
