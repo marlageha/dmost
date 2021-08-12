@@ -29,17 +29,6 @@ DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 # 
 def create_chi2_masks(data_wave):
     
-    b = [6855,7167,7580,8160,8925]
-    r = [6912,7320,7690,8300,9120]
-
-    # FIT CONTINUUM FITTING W/O SKY ABS
-    data_mask1 = (data_wave > b[0]) & (data_wave < r[0]) 
-    data_mask2 = (data_wave > b[1]) & (data_wave < r[1]) 
-    data_mask3 = (data_wave > b[2]) & (data_wave < r[2]) 
-    data_mask4 = (data_wave > b[3]) & (data_wave < r[3]) 
-    data_mask5 = (data_wave > b[4]) & (data_wave < r[4]) 
-    continuum_mask = data_mask1 | data_mask2 | data_mask3 | data_mask4 | data_mask5
-    continuum_mask = ~continuum_mask
     
     # DETERMINE CHI2 NEAR STRONG LINES
     cmask1 = (data_wave > 6200) & (data_wave < 6750) 
@@ -49,6 +38,16 @@ def create_chi2_masks(data_wave):
     cmask3 = (data_wave > 8350) & (data_wave < 8850) 
 
     chi2_mask = cmask1 | cmask2 | cmask3 | cmask4 | cmask5
+
+
+    # USE THIS FOR CONTINUUM FITTING
+    cmask1 = (data_wave > 6555) & (data_wave < 6567) 
+    cmask2 = (data_wave > 7590) & (data_wave < 7680) 
+    cmask3 = (data_wave > 8470) & (data_wave < 8660) 
+
+    cmaski = cmask1 | cmask2 | cmask3
+    continuum_mask = np.invert(cmaski)
+
 
     return continuum_mask, chi2_mask
 
