@@ -14,7 +14,7 @@ import time
 from scipy.optimize import curve_fit
 import scipy.ndimage as scipynd
 
-import dmost_utils, dmost_telluric
+import dmost_utils
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 
 
@@ -53,17 +53,17 @@ def create_chi2_masks(data_wave):
 
 
 ########################################
-def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux):
+def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux,npoly):
 
     
     # FIT CONTINUUM -- for weights use 1/sigma
     ivar = data_ivar/synth_flux**2
-    p    = np.polyfit(data_wave[cmask],data_flux[cmask]/synth_flux[cmask],5,w=np.sqrt(ivar[cmask]))
+    p    = np.polyfit(data_wave[cmask],data_flux[cmask]/synth_flux[cmask],npoly,w=np.sqrt(ivar[cmask]))
     fit  = np.poly1d(p)
    
     d      = data_flux/fit(data_wave)
     cmask2 = (d > np.percentile(d,15)) & (d < np.percentile(d,99))
-    p      = np.polyfit(data_wave[cmask2],data_flux[cmask2]/synth_flux[cmask2],5,w=np.sqrt(ivar[cmask2]))
+    p      = np.polyfit(data_wave[cmask2],data_flux[cmask2]/synth_flux[cmask2],npoly,w=np.sqrt(ivar[cmask2]))
     fit    = np.poly1d(p)
 
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
@@ -80,7 +80,7 @@ def calc_chi2(data_flux,data_wave,data_ivar,final_fit,nparam=3):
 
 
 ###############################################
-def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest):
+def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest,npoly):
     
     hdu  = fits.open(file)
     data = hdu[1].data
@@ -100,14 +100,15 @@ def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest):
 
 
     # FIT CONTINUUM
-    final_model = dmost_telluric.fit_syn_continuum_telluric(data_wave,data_flux,data_ivar,cmask,conv_int_flux)
+#    final_model = dmost_telluric.fit_syn_continuum_telluric(data_wave,data_flux,data_ivar,cmask,conv_int_flux)
+    final_model = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
 
     return final_model
 
 
 
 ###############################################
-def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_ivar,losvd_pix,vrange):
+def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,npoly):
     
 
     # CREATE MODEL 
@@ -118,7 +119,7 @@ def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_i
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
     tmp_flux = np.interp(data_wave,np.exp(phx_logwave),conv_spec)
-    cont_fit = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux)
+    cont_fit = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
 
     
     vchi2=[]
@@ -179,6 +180,12 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
 
     losvd_pix =  np.mean(f['fit_los'][f['fit_los']>0])/ 0.01
 
+
+    # CONTINUUM POLYNOMIAL SET BY SN LIMITS
+    npoly = 5
+    if (f['collate1d_SN']) > 100:
+        npoly=7
+
     # LOOP THROUGH ALL TEMPLATES
     for phx_file in phx_files:
 
@@ -191,7 +198,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
 
         # RUN ONE STELLAR TEMPLATE
         min_v,min_chi2 = chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,\
-                                           data_ivar,losvd_pix,vrange)
+                                           data_ivar,losvd_pix,vrange,npoly)
 
         final_file = ''
         if min_chi2 > 0.1:
@@ -260,10 +267,10 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
         
         fig,ax = plt.subplots(figsize=(20,5))
         cmask, chi2_mask = create_chi2_masks(data_wave)
-        plt.plot(data_wave,data_flux,'grey',label='full spectrum',linewidth=0.9)
+        plt.plot(data_wave,data_flux,'k',label='full spectrum',linewidth=0.9)
 
-        plt.plot(data_wave[chi2_mask],data_flux[chi2_mask],'k',label='fitted region',linewidth=0.8)
-        model = single_stellar_template(final_file,data_wave,data_flux,data_ivar,losvd_pix,f['chi2_v'])
+        plt.plot(data_wave[chi2_mask],data_flux[chi2_mask],'grey',label='fitted region',linewidth=0.8)
+        model = single_stellar_template(final_file,data_wave,data_flux,data_ivar,losvd_pix,f['chi2_v'],npoly)
         plt.plot(data_wave,model,'r',label='Model',linewidth=0.8,alpha=0.8)
         plt.title('SN = {:0.1f}   chi2 = {:0.1f}   v = {:0.1f}'.format(f['collate1d_SN'],f['chi2_tchi2'],f['chi2_v']))
         plt.legend(title='det={}  xpos={}'.format(f['rdet'][0],int(f['rspat'][0])))
