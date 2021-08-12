@@ -96,7 +96,7 @@ def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest):
 
     # Velocity shift star
     shifted_logwave = phx_logwave + vbest/2.997924e5       
-    conv_int_flux = np.interp(data_wave,np.exp(shifted_logwave),conv_spec)
+    conv_int_flux   = np.interp(data_wave,np.exp(shifted_logwave),conv_spec)
 
 
     # FIT CONTINUUM
