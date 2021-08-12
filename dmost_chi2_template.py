@@ -36,7 +36,6 @@ def create_chi2_masks(data_wave):
     cmask5 = (data_wave > 7350) & (data_wave < 7550) 
     cmask2 = (data_wave > 7800) & (data_wave < 8125) 
     cmask3 = (data_wave > 8350) & (data_wave < 8850) 
-
     chi2_mask = cmask1 | cmask2 | cmask3 | cmask4 | cmask5
 
 
@@ -44,7 +43,6 @@ def create_chi2_masks(data_wave):
     cmask1 = (data_wave > 6555) & (data_wave < 6567) 
     cmask2 = (data_wave > 7590) & (data_wave < 7680) 
     cmask3 = (data_wave > 8470) & (data_wave < 8660) 
-
     cmaski = cmask1 | cmask2 | cmask3
     continuum_mask = np.invert(cmaski)
 
@@ -135,7 +133,6 @@ def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_i
         final_fit_tmp = conv_int_flux * cont_fit(data_wave)
 
         # CALCUALTE CHI2
-        #chi2_mask = cmask
         chi2 = calc_chi2(data_flux[chi2_mask],data_wave[chi2_mask],\
                          data_ivar[chi2_mask], final_fit_tmp[chi2_mask])
 
@@ -172,12 +169,13 @@ def projected_chi_plot(x,y,z):
 ###############################################
 def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
     
-    best_chi, best_v, best_t =[], [], []
+    best_chi, best_v, best_t       = [], [], []
     best_feh, best_teff, best_logg = [], [], []
 
     templ = DEIMOS_RAW + '/templates/pheonix/dmost*'
     phx_files = glob.glob(templ)
 
+    # USE MEAN LINE SPREAD FUNCTION
     losvd_pix =  np.mean(f['fit_los'][f['fit_los']>0])/ 0.01
 
 

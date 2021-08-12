@@ -171,6 +171,7 @@ def create_slits(nslits,nexp):
             filled_column('emcee_w_err84',np.zeros(nexp),nslits),
             filled_column('emcee_f_acc',np.zeros(nexp),nslits),
             filled_column('emcee_nsamp',np.zeros(nexp),nslits),
+            filled_column('emcee_burn',np.zeros(nexp),nslits),
             filled_column('emcee_converge',np.zeros(nexp),nslits),
             filled_column('emcee_lnprob',np.zeros(nexp),nslits),
    
@@ -511,9 +512,9 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
 
 
     # RUN EMCEE
-#    if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
-#        slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
-#        write_dmost(slits,mask,outfile)
+    if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
+        slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
+        write_dmost(slits,mask,outfile)
 
 
     print()

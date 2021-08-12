@@ -16,6 +16,7 @@ import emcee
 import corner
 import glob
 import numba
+import h5py
 
 import dmost_utils, dmost_create_maskfile
 
@@ -77,7 +78,7 @@ def lnprob_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,losvd_pix):
 def lnprior_v(theta):
    
     #v = theta[0],  w = theta[1]
-    if (-500. < theta[0] < 500.) & (-45. < theta[1] < 45.):
+    if (-500. < theta[0] < 500.) & (-40. < theta[1] < 40.):
         return 0.0
     
     return -np.inf
@@ -120,92 +121,203 @@ def read_best_template(pfile):
     phx_flux = np.array(data['flux']).flatten()
     phx_logwave= np.array(data['wave']).flatten()
     
-    return phx_logwave, phx_flux
+    plogwave    = np.exp(phx_logwave)
 
+    return plogwave, phx_flux
+
+######################################################
+def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
+
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
+
+
+    tau = sampler.get_autocorr_time()
+    burnin = int(2 * np.max(tau))
+
+    for ii in range(20):
+        ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
+    ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
+    ax1.axvline(burnin)
+
+    for ii in range(20):
+        ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
+    ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
+    ax2.axvline(burnin)
+
+    pdf.savefig()
+    plt.close(fig)
+
+
+    # PLOT SPECTRUM
+    plt.figure(figsize=(20,5))
+    m = (flux > np.percentile(flux,0.1)) & (flux < np.percentile(flux,99.9))
+    plt.plot(wave[m],flux[m],'k',linewidth=0.8)
+    plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
+    plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['rSN'][arg,nexp],\
+                                                  slits['emcee_lnprob'][arg,nexp]))
+    plt.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
+
+    pdf.savefig()
+    plt.close(fig)
+
+    # PLOT CORNER
+    labels=['v','w']
+    ndim=2
+    samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
+    fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
+
+    pdf.savefig()
+    plt.close('all')
+
+
+    return pdf
+
+######################################################
+def run_sampler(sampler, p0, max_n):
+
+
+    index = 0
+    convg = 0
+    autocorr = np.empty(max_n)
+
+    # This will be useful to testing convergence
+    old_tau = np.inf
+
+
+    for sample in sampler.sample(p0, iterations=max_n, progress=True):
+        # check convergence every 200 steps
+        if sampler.iteration % 200:
+            continue
+
+        tau = sampler.get_autocorr_time(tol=0)
+        autocorr[index] = np.mean(tau)
+        index += 1
+
+        # Check convergence
+        converged = np.all(tau * 100 < sampler.iteration)
+        converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
+        if converged:
+            convg = 1
+            break
+        old_tau = tau
+
+    
+    return sampler, convg
+
+
+######################################################
+def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
+                     telluric,sm_tell, sm_pflux,plogwave,npoly,losvd_pix):
+
+    # SET GUESSES AND INITIALIZE WALKERS
+    vguess    = slits['chi2_v'][arg]
+    wguess    = slits['telluric_w'][arg,nexp]
+    if np.abs(wguess) > 40:
+        wguess = 0
+    ndim, nwalkers,p0         = initialize_walkers(vguess,wguess)
+
+    max_n = 2000
+
+
+    # BACKEND FILENAME
+    filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['maskdef_id'][arg]+'.h5'
+
+
+    # SETUP BACKEND
+    backend = emcee.backends.HDFBackend(filename,name = mask['fname'][nexp],read_only=False)
+
+    if not os.path.isfile(filename): 
+
+        # IF SAVED FILE DOESN"T EXIST, CREATE AND RUN
+        backend.reset(nwalkers, ndim)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
+                                args=(wave, flux, ivar, telluric['wave'],sm_tell, \
+                                      sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
+
+        sampler, convg = run_sampler(sampler, p0, max_n)
+        slits['emcee_converge'][arg,nexp] = convg
+
+    else:
+        if not (mask['fname'][nexp] in h5py.File(filename).keys()):
+
+            # IF FILES EXISTS, BUT EXPOSURE DOESN'T, RUN SAMPLER
+            backend.reset(nwalkers, ndim)
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
+                                    args=(wave, flux, ivar, telluric['wave'],sm_tell, \
+                                          sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
+            sampler, convg = run_sampler(sampler, p0, max_n)
+            slits['emcee_converge'][arg,nexp] = convg
+
+        else:
+            print('Reading previous chains')
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
+                                        args=(wave, flux, ivar, telluric['wave'],sm_tell, \
+                                          sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
+
+
+
+
+    return sampler, slits
 
 
 ######################################################
 
 def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
     
-    SNmin = 3
-
+    # OPEN PDF QA FILE
     file  = data_dir+'QA/emcee_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf'
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
    
 
-    m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
-    nslits = np.sum(m)
-    print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
-                                                                mask['fname'][nexp],nslits,SNmin))
     
     # LOOP OVER EACH SLIT
-    for arg in np.arange(0,nslits,1,dtype='int'):
+    for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
-        if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3) & \
+        if (slits['collate1d_SN'][arg] > 10) & (slits['marz_flag'][arg] < 3) & \
            (bool(slits['chi2_tfile'][arg].strip())) & (slits['reduce_flag'][arg,nexp] == 1):
             
-            # READ STELLAR TEMPLATE 
-            pwave,pflux = read_best_template(slits['chi2_tfile'][arg])
-            plogwave    = np.exp(pwave)
             
-            # PARAMETERS
-            losvd_pix = slits['fit_los'][arg,nexp]/ 0.01
-            vguess    = slits['chi2_v'][arg]
-            wguess    = slits['telluric_w'][arg,nexp]
-            if np.abs(wguess) > 40:
-                wguess = 0
-            
-
             # READ DATA AND SET VIGNETTING LIMITS
-            wave, flux, ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
-            wave_lims = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
+            wave, flux, ivar, sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
+            wave_lims             = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
             wave = wave[wave_lims]
             flux = flux[wave_lims]
             ivar = ivar[wave_lims]
+
+            # READ STELLAR TEMPLATE 
+            plogwave,pflux = read_best_template(slits['chi2_tfile'][arg])
+    
             
             # CONTINUUM POLYNOMIAL SET BY SN LIMITS
             npoly = 5
-            if (slits['rSN'][arg][nexp]) > 75:
+            if (slits['rSN'][arg][nexp]) > 100:
                 npoly=7
-                if (slits['rSN'][arg][nexp]) > 150:
-                    npoly=9
 
-
-
-            # INITIALIZEWALKERS
-            ndim, nwalkers,p0         = initialize_walkers(vguess,wguess)
 
             # SMOOTH TEMPLATES 
+            losvd_pix = slits['fit_los'][arg,nexp]/ 0.01
             sm_pflux = scipynd.gaussian_filter1d(pflux,losvd_pix,truncate=3)
             sm_tell  = scipynd.gaussian_filter1d(telluric['flux'],losvd_pix,truncate=3)
 
             
-            #with Pool() as pool:
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
-                                        args=(wave, flux, ivar, telluric['wave'],sm_tell, \
-                                              sm_pflux,plogwave,npoly,losvd_pix),a=0.5)
+            # RUN EMCEE!!
+            ###################
+            sampler, slits = run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
+                                       telluric,sm_tell, \
+                                       sm_pflux,plogwave,npoly,losvd_pix)
+            ###################
 
-            # FIRST BURN-IN AND RUN EMCEE
-            t0=time.time()
 
-            pos, prob, state = sampler.run_mcmc(p0, 100)
-            sampler.reset()  
-            sampler.run_mcmc(p0, 1800)
+            tau = sampler.get_autocorr_time()
+            burnin = int(2 * np.max(tau))
+            print(burnin)
 
-            t1=time.time()
-            print('mcmc run = {:0.3f}'.format(t1-t0))
-            
-            # Samples to burn
-            d = 100
-            
-            #tau = sampler.get_autocorr_time()
-            #print('tau = ',tau)
-            theta = [np.mean(sampler.chain[:, d:, i])  for i in [0,1]]
+            theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
             print(arg,theta)
-            
+
             for ii in [0,1]:
-                mcmc = np.percentile(sampler.chain[:,d:, ii], [16, 50, 84])
+                mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
                 if (ii==0):
                     slits['emcee_v'][arg,nexp] = mcmc[1]
                     slits['emcee_v_err16'][arg,nexp] = mcmc[0]
@@ -217,55 +329,22 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric):
                     slits['emcee_w_err84'][arg,nexp] = mcmc[2]
 
 
+
             # MAKE BEST MODEL 
             model = mk_single_model(theta, wave, flux, ivar, telluric['wave'],sm_tell, \
                                     sm_pflux,plogwave, npoly,losvd_pix)
-                     
 
             # SAVE QUALITY OF FIT INFO
-            slits['emcee_f_acc'][arg,nexp]  = np.mean(sampler.acceptance_fraction)
-            slits['emcee_lnprob'][arg,nexp] = np.sum((flux - model)**2 * ivar)/(np.size(flux)-3)
+            slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
+            slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
+            slits['emcee_burn'][arg,nexp]     = burnin
+            slits['emcee_lnprob'][arg,nexp]   = np.sum((flux - model)**2 * ivar)/(np.size(flux)-3)
         
+                     
 
-            
-            fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
+            # PLOT STUFF
+            pdf = mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model)
 
-            
-            for ii in range(20):
-                ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
-                ax1.axvline(d)
-            ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
-
-
-            for ii in range(20):
-                ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
-                ax2.axvline(d)
-            ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
-
-            pdf.savefig()
-            plt.close(fig)
-
-
-            # PLOT SPECTRUM
-            plt.figure(figsize=(20,5))
-            m = (flux > np.percentile(flux,0.1)) & (flux < np.percentile(flux,99.9))
-#            plt.plot(wave,flux,linewidth=0.8)
-            plt.plot(wave[m],flux[m],'k',linewidth=0.8)
-            plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
-            plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['rSN'][arg,nexp],\
-                                                          slits['emcee_lnprob'][arg,nexp]))
-            plt.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
-
-            pdf.savefig()
-            plt.close(fig)
-
-            # PLOT CORNER
-            labels=['v','w']
-            samples   = sampler.chain[:, d:, :].reshape((-1, ndim))
-            fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
-
-            pdf.savefig()
-            plt.close('all')
 
     pdf.close()
     plt.close('all')
@@ -281,20 +360,26 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
     # FOR EACH EXPOSURE
     for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
 
+        # READ SPEC1D FILE
         hdu         = fits.open(data_dir+'Science/'+spec1d_file)
         nslits      = np.size(slits)
         
-        # READ TELLURIC
+        # READ TELLURIC FOR THIS EXPOSURE
         tfile = glob.glob(data_dir+'/dmost/telluric_'+mask['maskname'][ii]+'_'+mask['fname'][ii]+'*.fits')
         telluric = Table.read(tfile[0])
 
 
+        # WRITE TO SCREEN
+        m = (slits['collate1d_SN'] > 3) & (slits['marz_flag'] < 3)
+        nslits = np.sum(m)
+        print('{} {} Emcee with {} slits w/SN > 3'.format(mask['maskname'][0],\
+                                                                mask['fname'][ii],nslits))
+
         # RUN EMCEE
-        slits = emcee_allslits(data_dir, slits, mask, ii, hdu  ,telluric)
+        slits = emcee_allslits(data_dir, slits, mask, ii, hdu, telluric)
         mask['flag_emcee'][ii] = 1
         
-#    if write_file:
-#        outfile      = data_dir+'/dmost/dmost_mask_'+mask['maskname'][0]+'.fits'
+        # WRITE DMOST FILE
         dmost_create_maskfile.write_dmost(slits,mask,outfile)
         
     return slits, mask
