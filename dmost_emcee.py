@@ -369,7 +369,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
 
 
         # WRITE TO SCREEN
-        SNmin = 10
+        SNmin = 5
         m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
