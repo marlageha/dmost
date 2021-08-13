@@ -255,10 +255,12 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                         args=(wave, flux, ivar, telluric['wave'],sm_tell, \
                                           sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
 
-
-    tau = sampler.get_autocorr_time()
-    burnin = int(2 * np.max(tau))
-
+    try:
+        tau = sampler.get_autocorr_time()
+        burnin = int(2 * np.max(tau))
+    except:
+        burnin=100
+        
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
     print(burnin,arg,theta)
 
