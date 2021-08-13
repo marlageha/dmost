@@ -217,7 +217,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
         wguess = 0
     ndim, nwalkers,p0         = initialize_walkers(vguess,wguess)
 
-    max_n = 2000
+    max_n = 3000
 
 
     # BACKEND FILENAME
