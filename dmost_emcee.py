@@ -131,9 +131,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
 
-
-    tau = sampler.get_autocorr_time()
-    burnin = int(2 * np.max(tau))
+    burnin = slits['emcee_burn'][arg,nexp]
 
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
