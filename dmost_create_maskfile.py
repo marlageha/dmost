@@ -522,7 +522,7 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
 
     # RUN LOW SN EMCEE
 #    if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
-    slits, mask  = dmost_coadd_emcee.run_emcee(data_dir, slits, mask,outfile)
+    slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
     write_dmost(slits,mask,outfile)
 
 
