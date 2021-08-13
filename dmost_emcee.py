@@ -217,7 +217,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
         wguess = 0
     ndim, nwalkers,p0         = initialize_walkers(vguess,wguess)
 
-    max_n = 2000
+    max_n = 3000
 
 
     # BACKEND FILENAME
@@ -369,7 +369,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
 
 
         # WRITE TO SCREEN
-        SNmin = 10
+        SNmin = 5
         m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
