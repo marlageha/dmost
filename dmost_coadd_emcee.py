@@ -341,8 +341,8 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     telluric = Table.read(tfile[0])
        
 
-    SNmax = 50
-    SNmin = 30
+    SNmax = 20
+    SNmin = 2
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
 
     nslits = np.sum(m)
