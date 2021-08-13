@@ -131,8 +131,9 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
 
-    burnin = slits['emcee_burn'][arg,nexp]
-
+    burnin = 100
+    print(slits['emcee_burn'][arg,nexp])
+    
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
     ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
