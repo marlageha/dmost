@@ -209,9 +209,11 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
                                         args=(wave, flux, ivar, telluric['wave'],sm_tell, \
                                           sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
 
-
-    tau = sampler.get_autocorr_time()
-    burnin = int(2 * np.max(tau))
+    try:
+        tau = sampler.get_autocorr_time()
+        burnin = int(2 * np.max(tau))
+    except:
+        burnin=100
 
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
     print(burnin,arg,theta)
@@ -289,13 +291,13 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
-        ax1.axvline(burnin)
+        #ax1.axvline(burnin)
         ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['coadd_v'][arg]))
 
 
     for ii in range(20):
         ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
-        ax2.axvline(burnin)
+        #ax2.axvline(burnin)
         ax2.set_title('w = {:0.2f}'.format(slits['coadd_w'][arg]))
 
     pdf.savefig()
