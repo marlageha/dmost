@@ -336,7 +336,7 @@ def create_slits_from_bintab(data_dir,mask,nexp):
     slits = create_slits(nslits,nexp)
 
     # MATCH AGAINST COLLATE1D FILES
-    collate1d = ascii.read(data_dir+'by_object_meta.dat')
+    collate1d = ascii.read(data_dir+'collate_report.dat')
     collate1d_files = np.unique(collate1d['filename'])
 
 
@@ -357,7 +357,7 @@ def create_slits_from_bintab(data_dir,mask,nexp):
         
         # MATCHING COLLATE1D ON RA/DEC
         m = np.in1d(collate1d['maskdef_objname'],obj['OBJECT'])
-        m1,m,dd = sm.spherematch(obj['RA_OBJ'], obj['DEC_OBJ'],               collate1d['ra'],collate1d['dec'],1./3600)
+        m1,m,dd = sm.spherematch(obj['RA_OBJ'], obj['DEC_OBJ'],collate1d['objra'],collate1d['objdec'],1./3600)
 
         # READ COLLATE1D AND ADD SN
         if (np.size(m) > 0):
