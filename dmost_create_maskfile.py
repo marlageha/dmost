@@ -173,7 +173,7 @@ def create_slits(nslits,nexp):
             filled_column('emcee_w_err84',np.zeros(nexp),nslits),
             filled_column('emcee_f_acc',np.zeros(nexp),nslits),
             filled_column('emcee_nsamp',np.zeros(nexp),nslits),
-            filled_column('emcee_burn',np.zeros(nexp),nslits),
+            filled_column('emcee_burnin',np.zeros(nexp,dtype=int),nslits),
             filled_column('emcee_converge',np.zeros(nexp),nslits),
             filled_column('emcee_lnprob',np.zeros(nexp),nslits),
    
