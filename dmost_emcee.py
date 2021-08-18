@@ -319,20 +319,27 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             losvd_pix = slits['fit_los'][arg,nexp]/ 0.01
             sm_pflux  = scipynd.gaussian_filter1d(pflux,losvd_pix,truncate=3)
             sm_tell   = scipynd.gaussian_filter1d(telluric['flux'],losvd_pix,truncate=3)
+            twave=telluric['wave']
 
+            # TRIM SYNTHETIC ARRAYS FOR SPEED
+            dmin = np.min(wave) - 20
+            dmax = np.max(wave) + 20
+            mt = (twave > dmin) & (twave['wave']<dmax)
+            mp = (plogwave > dmin) & (plogwave<dmax)
+            
             
             # RUN EMCEE!!
             ###################
             sampler, slits, theta = run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
-                                       telluric,sm_tell, \
-                                       sm_pflux,plogwave,npoly,losvd_pix)
+                                       twave[mt],sm_tell[mt], \
+                                       sm_pflux[mp],plogwave[m],npoly,losvd_pix)
             ###################
 
 
 
 
             # MAKE BEST MODEL 
-            model = mk_single_model(theta, wave, flux, ivar, telluric['wave'],sm_tell, \
+            model = mk_single_model(theta, wave, flux, ivar, twave,sm_tell, \
                                     sm_pflux,plogwave, npoly,losvd_pix)
 
             # SAVE QUALITY OF FIT INFO
