@@ -173,7 +173,7 @@ def main(*args):
         # MARZ
         print('Creating Marz input file')
         create_marz_input(msk,working_dir)
-        os.system('cp marz*fits ../marz_files')
+        os.system('mv marz*fits ../marz_files')
     
 if __name__ == "__main__":
     main()
