@@ -42,10 +42,9 @@ def fit_syn_continuum_telluric(data_wave,data_flux,data_ivar,cmask,synth_flux):
     d = data_flux/fit(data_wave)
     cmask2 = (d > np.percentile(d,15)) & (d < np.percentile(d,99))
     p = np.polyfit(data_wave[cmask2],data_flux[cmask2]/synth_flux[cmask2],5,w=np.sqrt(ivar[cmask2]))
-    fit=np.poly1d(p)
 
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
-    continuum_syn_flux = synth_flux * fit(data_wave)
+    continuum_syn_flux = synth_flux * faster_polyval(p, data_wave)
 
     return continuum_syn_flux
 
@@ -61,12 +60,19 @@ def fit_syn_continuum_telluric2(data_wave,data_flux,data_ivar,cmask,synth_flux):
     d = data_flux/fit(data_wave)
     cmask2 = (d > np.percentile(d,15)) & (d < np.percentile(d,99))
     p = np.polyfit(data_wave[cmask2],data_flux[cmask2]/synth_flux[cmask2],5,w=np.sqrt(ivar[cmask2]))
-    fit=np.poly1d(p)
 
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
     #continuum_syn_flux = synth_flux * fit(data_wave)
 
-    return fit
+    return p
+
+########################################
+def faster_polyval(p, x):
+    y = np.zeros(x.shape, dtype=float)
+    for i, v in enumerate(p):
+        y *= x
+        y += v
+    return y
 
 ########################################
 # Create masks for chi2 evaluation and 
@@ -74,7 +80,7 @@ def fit_syn_continuum_telluric2(data_wave,data_flux,data_ivar,cmask,synth_flux):
 def create_tell_masks(data_wave):
     
     b = [6855,7167,7580,8160,8925]
-    r = [6912,7320,7690,8300,9120]
+    r = [6855,7320,7690,8300,9120]
 
     data_mask1 = (data_wave > b[0]) & (data_wave < r[0]) 
     data_mask2 = (data_wave > b[1]) & (data_wave < r[1]) 
@@ -156,12 +162,12 @@ def get_telluric_model(file):
 ########################################
 def generate_single_telluric(tfile,w,data_wave,data_flux,data_ivar,cont_mask,lsp):
 
-    losvd_pix   =  lsp/0.01
+    losvd_pix   =  lsp/0.02
     twave,tflux =  get_telluric_model(tfile)
 
     conv_tell = scipynd.gaussian_filter1d(tflux,losvd_pix)
 
-    shift_wave      = twave + w*0.01
+    shift_wave      = twave + w*0.02
     conv_shift_tell = np.interp(data_wave,shift_wave,conv_tell)
 
     model = fit_syn_continuum_telluric(data_wave,data_flux,   \
@@ -183,11 +189,11 @@ def parse_tfile(tfile):
 ########################################
 def run_single_telluric(twave,conv_tell,data_wave,data_flux,data_ivar,chi_mask,cfit,wshift):
 
-    shift_wave      = twave + wshift*0.01
+    shift_wave      = twave + wshift*0.02
     conv_shift_tell = np.interp(data_wave,shift_wave,conv_tell)
    
     # FIT CONTINUUM
-    final_fit = conv_shift_tell * cfit(data_wave)
+    final_fit = conv_shift_tell * faster_polyval(cfit,data_wave)
  
     # CALCUALTE CHI2
     nparam = 3
@@ -206,26 +212,23 @@ def telluric_marginalize_w(file,data_wave,data_flux,\
     twave,tflux = get_telluric_model(file)
     conv_tell   = scipynd.gaussian_filter1d(tflux,losvd_pix,truncate=3)
     
-    
-    
-    
+   
     # SEARCH OVER TELLURIC SHIFT RANGE
-    wrange = np.arange(-0.5,0.5,0.025)/0.01
-    
+    wrange = np.arange(-0.5,0.5,0.025)/0.02
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
     tmp_flux = np.interp(data_wave,twave,conv_tell)
     cont_fit = fit_syn_continuum_telluric2(data_wave,data_flux,data_ivar,cont_mask,tmp_flux)
-        
+ 
         
     # LOOP OVER TELLURIC SHIFTS
     chi_wshift = [run_single_telluric(twave,conv_tell,\
                             data_wave,data_flux,data_ivar,\
                             chi_mask,cont_fit,wshift) for wshift in wrange]
     
-    
+
     min_w, min_w_chi2 = find_chi2_roots(wrange, chi_wshift)
-    
+
     
     return min_w,min_w_chi2
 
@@ -252,7 +255,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
 
     # GET SYNTHETIC TELLURIC SPECTRA
     DEIMOS_RAW = os.getenv('DEIMOS_RAW')
-    templ      = DEIMOS_RAW + '/templates/tellurics/telluric*fits'
+    templ      = DEIMOS_RAW + '/templates/tellurics/telluric_0.02A*fits'
     tfiles     = glob.glob(templ)
 
     file  = data_dir+'QA/telluric_slits_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf'
@@ -270,7 +273,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
     for arg in np.arange(0,nslits,1,dtype='int'):
         if (slits['rSN'][arg,nexp] > min_SN) & (slits['rSN'][arg,nexp] < 155):
 
-            losvd_pix =  slits['fit_los'][arg,nexp]/ 0.01
+            losvd_pix =  slits['fit_lsf'][arg,nexp]/ 0.02
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
 
             wave_lims = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
@@ -320,11 +323,14 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
 
 
             # GENERATE THE FINAL MODEL
-            dir = DEIMOS_RAW + '/templates/tellurics/telluric_0.01A_h2o_'
-            final_file = dir+'{:0.0f}_o2_{:0.2f}_.fits'.format(tmp_h2o[n],tmp_o2[n])
+            dir = DEIMOS_RAW + '/templates/fine_tellurics/telluric_0.02A_h2o_'
+            round_h2o = 2. * round(tmp_h2o[n]/2)
+            round_o2  = 0.05*round(tmp_o2[n]/0.05) 
+
+            final_file = dir+'{:0.0f}_o2_{:0.2f}_.fits'.format(round_h2o,round_o2)
 
             model      = generate_single_telluric(final_file,tmp_w[n], data_wave,data_flux,\
-                                      data_ivar,continuum_mask,slits['fit_los'][arg,nexp])
+                                      data_ivar,continuum_mask,slits['fit_lsf'][arg,nexp])
 
             plt.figure(figsize=(16,5))
             plt.plot(data_wave,data_flux)
@@ -486,7 +492,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     
     str = '_h{:0.0f}_o{:2.2f}'.format(round_h2o, round_o2)
     tfile = data_dir+'/dmost/telluric_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+str+'.fits'
-    tfine = DEIMOS_RAW + '/templates/fine_tellurics/telluric_0.01A_h2o_{}_o2_{:2.2f}_.fits'.format(int(round_h2o),round_o2)
+    tfine = DEIMOS_RAW + '/templates/fine_tellurics/telluric_0.02A_h2o_{}_o2_{:2.2f}_.fits'.format(int(round_h2o),round_o2)
         
     # COPY FINE GRAIN TELLURIC TO DATA DIRECTORY
     os.system('cp '+tfine+' '+tfile)
@@ -520,7 +526,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
             mask['telluric_h2o'][ii] = thdr['h2o']
             mask['telluric_o2'][ii]  = thdr['o2']/1e5
             print('{} {} Telluric already done, adding to header {} {:0.2f}'.format(mask['maskname'][ii],mask['fname'][ii],\
-                                                                               thdr['h2o'],thdr['o2']/1e5))
+                                                                               thdr['h2o'],thdr['o2']))
 
 
         if (np.size(tfile) == 0) | (clobber == 1):

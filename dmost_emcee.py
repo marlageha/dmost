@@ -16,6 +16,7 @@ import emcee
 import corner
 import glob
 import numba
+from numba import njit
 import h5py
 
 import dmost_utils, dmost_create_maskfile
@@ -30,19 +31,61 @@ from scipy.optimize import curve_fit
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
+from numpy.core.multiarray import interp as compiled_interp
+
+
 
 ###################################################
-def mk_single_model(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly, losvd_pix):
+def mk_single_model(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly, pfit):
+    
+    # Velocity shift stellar model
+    swave              = shift_v(pwave,theta[0])
+    linear_shift_vflux = compiled_interp(twave,swave,pflux)
+
+     
+    # TRANSFORM BACK TO LINEAR, ON TELLURIC GRID
+    syn_flux = tflux * linear_shift_vflux
+    shift_syn_wave = twave + theta[1]*0.02
+
+    # REBIN INTO DATA SPACE
+    conv_int_spec = compiled_interp(wave,shift_syn_wave,syn_flux)
+
+    # FIT CONTINUUM
+    fit = faster_polyval(pfit, wave)
+
+    
+    # ADD CONTNUMM TO SYNTHETIC SPECTRUM
+    model = conv_int_spec * fit
+
+    return model
+
+
+@njit
+def shift_v(pwave,v):
+    swave = pwave * np.e**(v/2.997924e5)
+    return swave
+
+
+def faster_polyval(p, x):
+    y = np.zeros(x.shape, dtype=float)
+    for i, v in enumerate(p):
+        y *= x
+        y += v
+    return y
+
+
+############################
+def get_poly_fit(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly):
     
     # Velocity shift stellar model
     swave              = pwave * np.exp(theta[0]/2.997924e5)
     linear_shift_vflux = np.interp(twave,swave,pflux)
-     
+
     # TRANSFORM BACK TO LINEAR, ON TELLURIC GRID
     syn_flux = tflux * linear_shift_vflux
 
     # SHIFT LINEAR SPECTRUM
-    shift_syn_wave = twave + theta[1]*0.01
+    shift_syn_wave = twave + theta[1]*0.02
 
 
     # REBIN INTO DATA SPACE
@@ -52,25 +95,21 @@ def mk_single_model(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly, lo
     # FIT CONTINUUM
     m  = (flux > np.percentile(flux,5)) & (flux < np.percentile(flux,99.9))
     p  = np.polyfit(wave[m],flux[m]/conv_int_spec[m],npoly,w=ivar[m])
-    fit=np.poly1d(p)
-    
-    # ADD CONTNUMM TO SYNTHETIC SPECTRUM
-    model = conv_int_spec * fit(wave)
-    
+
        
-    return model
+    return p
 
 
 
 ######################################################
-def lnprob_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,losvd_pix):
+def lnprob_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,pfit):
  
     lp = lnprior_v(theta)
 
     if not np.isfinite(lp):
         return -np.inf
 
-    return lp + lnlike_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,losvd_pix)
+    return lp + lnlike_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,pfit)
 
 
 ######################################################
@@ -84,10 +123,10 @@ def lnprior_v(theta):
     return -np.inf
 
 ######################################################
-def lnlike_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,losvd_pix):
+def lnlike_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly, pfit):
 
     # MAKE MODEL
-    model = mk_single_model(theta, wave, flux, ivar, twave, tflux, pflux,pwave,npoly,losvd_pix)
+    model = mk_single_model(theta, wave, flux, ivar, twave, tflux, pflux,pwave,npoly,pfit)
 
     chi2 = ((flux - model)**2)*(ivar)
     lnl  = -0.5 * np.sum(chi2)
@@ -121,7 +160,7 @@ def read_best_template(pfile):
     phx_flux = np.array(data['flux']).flatten()
     phx_logwave= np.array(data['wave']).flatten()
     
-    plogwave    = np.exp(phx_logwave)
+    plogwave    = np.e**(phx_logwave)
 
     return plogwave, phx_flux
 
@@ -131,8 +170,8 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
 
-    burnin = int(slits['emcee_burn'][arg,nexp])
-    
+    burnin=slits['emcee_burnin'][arg,nexp]
+
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
     ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
@@ -174,39 +213,42 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
 ######################################################
 def run_sampler(sampler, p0, max_n):
 
-
-    index = 0
-    convg = 0
-    autocorr = np.empty(max_n)
-
-    # This will be useful to testing convergence
-    old_tau = np.inf
-
-
-    for sample in sampler.sample(p0, iterations=max_n, progress=True):
-        # check convergence every 200 steps
-        if sampler.iteration % 200:
-            continue
-
-        tau = sampler.get_autocorr_time(tol=0)
-        autocorr[index] = np.mean(tau)
-        index += 1
-
-        # Check convergence
-        converged = np.all(tau * 100 < sampler.iteration)
-        converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
-        if converged:
-            convg = 1
-            break
-        old_tau = tau
+       
+    # POOL
+    #with Pool() as pool:
+    #sampler = sampler.sample(p0, iterations=max_n,progress = True)
+    pos, prob, state = sampler.run_mcmc(p0, max_n,progress=True)
 
     
-    return sampler, convg
+    try:
+        tau = sampler.get_autocorr_time(tol=0)
+        burnin = int(2 * np.max(tau))
+        converged = np.all(tau * 100 < sampler.iteration)
+        print(tau,burnin, converged)
+        convg = np.sum(converged)
+    except:
+        convg=0
+        burnin=100
+        
+        
+    return sampler, convg, burnin
 
+######################################################
+def test_emcee_exists(filename, fname):
+    erun = -99
+    if not os.path.isfile(filename):
+        erun = 1
+    if os.path.isfile(filename): 
+        if not (fname in h5py.File(filename).keys()):
+            erun = 1
+        else:
+            erun = 0
+
+    return erun
 
 ######################################################
 def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
-                     telluric,sm_tell, sm_pflux,plogwave,npoly,losvd_pix):
+                     twave,sm_tell, sm_pflux,plogwave,npoly,pfit):
 
     # SET GUESSES AND INITIALIZE WALKERS
     vguess    = slits['chi2_v'][arg]
@@ -214,9 +256,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     if np.abs(wguess) > 40:
         wguess = 0
     ndim, nwalkers,p0         = initialize_walkers(vguess,wguess)
-
-    max_n = 3000
-
+    max_n = 1000
 
     # BACKEND FILENAME
     filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['maskdef_id'][arg]+'.h5'
@@ -225,46 +265,32 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     # SETUP BACKEND
     backend = emcee.backends.HDFBackend(filename,name = mask['fname'][nexp],read_only=False)
 
-    if not os.path.isfile(filename): 
-
-        # IF SAVED FILE DOESN"T EXIST, CREATE AND RUN
+    # SET AND RUN SAMPLER
+    erun = test_emcee_exists(filename, mask['fname'][nexp])
+    
+    # IF SAVED FILE DOESN"T EXIST, CREATE AND RUN
+    if (erun == 1): 
         backend.reset(nwalkers, ndim)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
-                                args=(wave, flux, ivar, telluric['wave'],sm_tell, \
-                                      sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
+                                  args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
+                                  backend=backend)#,pool=pool
 
-        sampler, convg = run_sampler(sampler, p0, max_n)
+        sampler, convg, burnin = run_sampler(sampler, p0, max_n)
         slits['emcee_converge'][arg,nexp] = convg
-
-    else:
-        if not (mask['fname'][nexp] in h5py.File(filename).keys()):
-
-            # IF FILES EXISTS, BUT EXPOSURE DOESN'T, RUN SAMPLER
-            backend.reset(nwalkers, ndim)
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
-                                    args=(wave, flux, ivar, telluric['wave'],sm_tell, \
-                                          sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
-            sampler, convg = run_sampler(sampler, p0, max_n)
-            slits['emcee_converge'][arg,nexp] = convg
-
-        else:
-            print('Reading previous chains')
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
-                                        args=(wave, flux, ivar, telluric['wave'],sm_tell, \
-                                          sm_pflux,plogwave,npoly,losvd_pix),a=0.5,backend=backend)
-
-    try:
-        tau = sampler.get_autocorr_time()
-        burnin = int(2 * np.max(tau))
-    except:
-        burnin=100
+        slits['emcee_burnin'][arg,nexp] = burnin
         
+    # OR JUST READ IN PREVIOUS RESULTS
+    if (erun == 0): 
+        print('Reading previous chains')
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
+                                  args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
+                                  backend=backend)
+
+    burnin=slits['emcee_burnin'][arg,nexp]
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
-    print(burnin,arg,theta)
 
     slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
     slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
-    slits['emcee_burn'][arg,nexp]     = burnin
 
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
@@ -292,7 +318,9 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
 
     
     # LOOP OVER EACH SLIT
-    for arg in np.arange(0,np.size(slits),1,dtype='int'):
+    for arg in np.arange(0,3,1,dtype='int'):
+#    for arg in np.arange(0,np.size(slits),1,dtype='int'):
+
 
         if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3) & \
            (bool(slits['chi2_tfile'][arg].strip())) & (slits['reduce_flag'][arg,nexp] == 1):
@@ -314,25 +342,39 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             if (slits['rSN'][arg][nexp]) > 100:
                 npoly=7
 
-
-            # SMOOTH TEMPLATES 
-            losvd_pix = slits['fit_los'][arg,nexp]/ 0.01
-            sm_pflux  = scipynd.gaussian_filter1d(pflux,losvd_pix,truncate=3)
-            sm_tell   = scipynd.gaussian_filter1d(telluric['flux'],losvd_pix,truncate=3)
-            twave=telluric['wave']
-
-            # TRIM SYNTHETIC ARRAYS FOR SPEED
+                
+            # TRIM WAVELENGTH OF TEMPLATES TO SPEED UP COMPUTATION
             dmin = np.min(wave) - 20
             dmax = np.max(wave) + 20
-            mt = (twave > dmin) & (twave['wave']<dmax)
+            mt = (telluric['wave'] > dmin) & (telluric['wave']<dmax)
             mp = (plogwave > dmin) & (plogwave<dmax)
             
+
+            # SMOOTH TEMPLATES 
+            losvd_pix = slits['fit_lsf'][arg,nexp]/ 0.02
+            sm_pflux  = scipynd.gaussian_filter1d(pflux[mp],losvd_pix,truncate=3)
+            pwave     = plogwave[mp]
             
+            sm_tell   = scipynd.gaussian_filter1d(telluric['flux'][mt],losvd_pix,truncate=3)
+            twave=telluric['wave'][mt]
+
+
+            vguess    = slits['chi2_v'][arg]
+            wguess    = slits['telluric_w'][arg,nexp]
+            if np.abs(wguess) > 40:
+                wguess = 0
+            
+
+            pfit = get_poly_fit([vguess, wguess], wave, flux, ivar, twave,\
+                                                  sm_tell,sm_pflux,pwave, npoly)
+
             # RUN EMCEE!!
             ###################
+            t0 = time.time()
             sampler, slits, theta = run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
-                                       twave[mt],sm_tell[mt], \
-                                       sm_pflux[mp],plogwave[m],npoly,losvd_pix)
+                                       twave,sm_tell, sm_pflux,pwave,npoly,pfit)
+            t1=time.time()
+            print('Time = {:0.5f}'.format(t1-t0))
             ###################
 
 
@@ -340,7 +382,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
 
             # MAKE BEST MODEL 
             model = mk_single_model(theta, wave, flux, ivar, twave,sm_tell, \
-                                    sm_pflux,plogwave, npoly,losvd_pix)
+                                    sm_pflux,pwave, npoly,pfit)
 
             # SAVE QUALITY OF FIT INFO
   
@@ -364,7 +406,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
     
        
     # FOR EACH EXPOSURE
-    for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
+    for ii,spec1d_file in enumerate(mask['spec1d_filename'][0:1]): 
 
         # READ SPEC1D FILE
         hdu         = fits.open(data_dir+'Science/'+spec1d_file)

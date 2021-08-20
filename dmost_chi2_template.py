@@ -40,10 +40,10 @@ def create_chi2_masks(data_wave):
 
 
     # USE THIS FOR CONTINUUM FITTING
-    cmask1 = (data_wave > 6555) & (data_wave < 6567) 
-    cmask2 = (data_wave > 7590) & (data_wave < 7680) 
-    cmask3 = (data_wave > 8470) & (data_wave < 8660) 
-    cmaski = cmask1 | cmask2 | cmask3
+    cmask1 = (data_wave > 6855) & (data_wave < 6855) 
+    cmask2 = (data_wave > 7580) & (data_wave < 7690) 
+#    cmask3 = (data_wave > 8470) & (data_wave < 8660) 
+    cmaski = cmask1 | cmask2 #| cmask3
     continuum_mask = np.invert(cmaski)
 
 
@@ -62,12 +62,11 @@ def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux,npoly):
     d      = data_flux/fit(data_wave)
     cmask2 = (d > np.percentile(d,15)) & (d < np.percentile(d,99))
     p      = np.polyfit(data_wave[cmask2],data_flux[cmask2]/synth_flux[cmask2],npoly,w=np.sqrt(ivar[cmask2]))
-    fit    = np.poly1d(p)
 
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
-    model_flux = synth_flux * fit(data_wave)
+    model_flux = synth_flux * faster_polyval(p, data_wave)
 
-    return fit, model_flux
+    return p, model_flux
 
 
 ###############################################
@@ -98,12 +97,18 @@ def single_stellar_template(file,data_wave,data_flux,data_ivar,losvd_pix,vbest,n
 
 
     # FIT CONTINUUM
-#    final_model = dmost_telluric.fit_syn_continuum_telluric(data_wave,data_flux,data_ivar,cmask,conv_int_flux)
-    fit, final_model = fit_continuum(data_wave,data_flux,data_ivar,cmask,conv_int_flux,npoly)
+    p, final_model = fit_continuum(data_wave,data_flux,data_ivar,cmask,conv_int_flux,npoly)
 
     return final_model
 
 
+########################################
+def faster_polyval(p, x):
+    y = np.zeros(x.shape, dtype=float)
+    for i, v in enumerate(p):
+        y *= x
+        y += v
+    return y
 
 ###############################################
 def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,npoly):
@@ -116,21 +121,21 @@ def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_i
     cmask, chi2_mask = create_chi2_masks(data_wave)
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
-    tmp_flux      = np.interp(data_wave,np.exp(phx_logwave),conv_spec)
-    cont_fit, tmp = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
+    pwave = np.e**(phx_logwave)
+    tmp_flux      = np.interp(data_wave,pwave,conv_spec)
+    cont_p, tmp = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
 
     
     vchi2=[]
-    pwave = np.exp(phx_logwave)
     for v in vrange:
 
         # Velocity shift star
-        shifted_logwave = pwave * np.exp(v/2.997924e5)        
+        shifted_logwave = pwave * np.e**(v/2.997924e5)        
         conv_int_flux   = np.interp(data_wave,shifted_logwave,conv_spec)
     
 
         # FIT CONTINUUM
-        final_fit_tmp = conv_int_flux * cont_fit(data_wave)
+        final_fit_tmp = conv_int_flux * faster_polyval(cont_p,data_wave)
 
         # CALCUALTE CHI2
         chi2 = calc_chi2(data_flux[chi2_mask],data_wave[chi2_mask],\
@@ -176,12 +181,12 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
     phx_files = glob.glob(templ)
 
     # USE MEAN LINE SPREAD FUNCTION
-    losvd_pix =  np.mean(f['fit_los'][f['fit_los']>0])/ 0.01
+    losvd_pix =  np.mean(f['fit_lsf'][f['fit_lsf']>0])/ 0.02
 
 
     # CONTINUUM POLYNOMIAL SET BY SN LIMITS
     npoly = 5
-    if (f['collate1d_SN']) > 100:
+    if (f['collate1d_SN']) > 130:
         npoly=7
 
     # LOOP THROUGH ALL TEMPLATES

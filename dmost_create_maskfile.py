@@ -142,7 +142,10 @@ def create_slits(nslits,nexp):
             filled_column('bSN',np.zeros(nexp),nslits),
             filled_column('fit_slope',np.zeros(nexp),nslits),
             filled_column('fit_b',np.zeros(nexp),nslits),
-            filled_column('fit_los',np.zeros(nexp),nslits),
+            filled_column('fit_lsf_p0',np.zeros(nexp),nslits),
+            filled_column('fit_lsf_p1',np.zeros(nexp),nslits),
+            filled_column('fit_lsf_p2',np.zeros(nexp),nslits),
+            filled_column('fit_lsf',np.zeros(nexp),nslits),
             filled_column('rms_sky',np.zeros(nexp),nslits),
  
 
@@ -186,6 +189,7 @@ def create_slits(nslits,nexp):
             filled_column('coadd_v_err84',-1.,nslits),
             filled_column('coadd_f_acc',-1.,nslits),
             filled_column('coadd_converge',-1.,nslits),
+            filled_column('coadd_burnin',-1,nslits),
             filled_column('coadd_nsamp',-1.,nslits),
             filled_column('coadd_lnprob',-1.,nslits),
 
@@ -253,8 +257,6 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
         mask['exptime'][i] = hdr['EXPTIME']
         mask['mask_ra'][i] = hdr['RA']
         mask['mask_dec'][i]= hdr['DEC']
-#        mask['mask_el'][i]= hdr['EL']
-#        mask['mask_az'][i]= hdr['AZ']
 
         mask['mjd'][i]     = hdr['MJD']
 
@@ -275,14 +277,15 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
 
 #############################################################
 def read_marz_output(marz_file):
+    
     mz = ascii.read(marz_file)
     usecols = {3: "RA", 4: "DEC", 13: "SPEC_Z", 14: "ZQUALITY", 1: "SPECOBJID"}
-    mz['col3'].name='RA'
-    mz['col4'].name='DEC'
-    mz['col13'].name='SPEC_Z'
-    mz['col14'].name='ZQUALITY'
-    mz['col11'].name='TYPE'
-    mz["RA"] *= 180.0 / np.pi
+    mz['col3'].name  = 'RA'
+    mz['col4'].name  = 'DEC'
+    mz['col13'].name = 'SPEC_Z'
+    mz['col14'].name = 'ZQUALITY'
+    mz['col11'].name = 'TYPE'
+    mz["RA"]  *= 180.0 / np.pi
     mz["DEC"] *= 180.0 / np.pi
     
     return mz
@@ -498,6 +501,7 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
     # RUN FLEXURE
     if ~(np.sum(mask['flag_flexure']) == nexp):
         slits,mask = dmost_flexure.run_flexure(data_dir,slits,mask)
+        write_dmost(slits,mask,outfile)
 
 
     # RUN TELLURIC

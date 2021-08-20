@@ -73,7 +73,8 @@ def sky_em_residuals(wave,flux,ivar,sky,plot=0):
 def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_b, fit_los, x, y):
 
   
-    pdf2 = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_slits_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf')
+    pdf2 = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_slits_'+\
+                                                    mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf')
     plt.rcParams.update({'figure.max_open_warning': 0})
     for arg in np.arange(0,nslits,1,dtype='int'):
 
@@ -112,18 +113,22 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
             t = 'Sky Line Fits = {:0.4f} AA, Arc = {:0.2f}'.format(slits['rms_sky'][arg,nexp],0.32*slits['rms_arc_r'][arg,nexp])
             ax1.set_title(t)
 
-            sky_diff  = np.concatenate((r_sky_diff,b_sky_diff),axis=None)
-            sky_lines = np.concatenate((r_sky_line,b_sky_line),axis=None)
-            sky_ediff = np.concatenate((r_sky_ediff,b_sky_ediff),axis=None)
-            sky_los   = np.concatenate((r_los,b_los),axis=None)
+            sky_diff  = np.concatenate((b_sky_diff,r_sky_diff),axis=None)
+            sky_lines = np.concatenate((b_sky_line,r_sky_line),axis=None)
+            sky_ediff = np.concatenate((b_sky_ediff,r_sky_ediff),axis=None)
+            sky_los   = np.concatenate((b_los,r_los),axis=None)
 
 
             ax2.plot(r_sky_line,r_los,'ro',alpha=0.8,label='Red chip: Sky Emission')
             ax2.plot(b_sky_line,b_los,'bo',alpha=0.8,label='Blue chip: Sky Emission')
             ax2.errorbar(r_sky_line,r_los,yerr=r_elos,fmt='none',ecolor='r',alpha=0.5)
             ax2.errorbar(b_sky_line,b_los,yerr=b_elos,fmt='none',ecolor='b',alpha=0.5)
-            ax2.axhline(slits['fit_los'][arg,nexp],linewidth=1, color='grey',alpha=0.5)
+            ax2.axhline(slits['fit_lsf'][arg,nexp],linewidth=1, color='grey',alpha=0.5)
 
+            lsf_fit = create_lsf_parabola(sky_lines,slits['fit_lsf_p0'][arg,nexp],\
+                                    slits['fit_lsf_p1'][arg,nexp],slits['fit_lsf_p2'][arg,nexp])
+            ax2.plot(sky_lines,lsf_fit)
+            
             ax2.set_title('Line widths')
             ax2.set_xlabel('Wavelength (AA)')
             ax2.set_ylim(0.3,0.8)
@@ -135,16 +140,18 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
 
     #########################################################################
     # CREATE FULL MASK FITS
-    pdf = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_mask_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf')
+    pdf = matplotlib.backends.backend_pdf.PdfPages(plot_dir+'QA/flex_mask_'+mask['maskname'][nexp]+\
+                                                   '_'+mask['fname'][nexp]+'.pdf')
  
+    # SET SIGMA FOR PLOTTING
     t=1.5
     
     mu  =  np.median(slits['fit_slope'][:,nexp])
     sd  =  np.std(slits['fit_slope'][:,nexp])
     mu2 =  np.median(slits['fit_b'][:,nexp])
     sd2 =  np.std(slits['fit_b'][:,nexp])
-    mu3 =  np.median(slits['fit_los'][:,nexp])
-    sd3 =  np.std(slits['fit_los'][:,nexp])
+    mu3 =  np.median(slits['fit_lsf'][:,nexp])
+    sd3 =  np.std(slits['fit_lsf'][:,nexp])
     
     fig, (ax1,ax2,ax3) = plt.subplots(1, 3,figsize=(22,5))
  
@@ -185,14 +192,15 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     ax2.set_xlabel('RA [deg]')
     ax2.set_title('Wave fit: line intercept')
 
-    ax3.scatter(xslit,yslit,c=slits['fit_los'][:,nexp],cmap="cool",vmin = mu3-t*sd3,vmax=mu3+t*sd3)
+    ax3.scatter(xslit,yslit,c=slits['fit_lsf'][:,nexp],cmap="cool",vmin = mu3-t*sd3,vmax=mu3+t*sd3)
     ax3.set_ylabel('Dec [deg]')
     ax3.set_xlabel('RA [deg]')
     ax3.set_title('Wave fit: line width')
     cax, _ = matplotlib.colorbar.make_axes(ax3)
     normalize = matplotlib.colors.Normalize(vmin = mu3-t*sd3,vmax=mu3+t*sd3)
     cbar = matplotlib.colorbar.ColorbarBase(cax, cmap=matplotlib.cm.cool,norm=normalize)
-
+    
+    
     pdf.savefig()
     pdf.close()
     plt.close('all')
@@ -220,13 +228,28 @@ def gauss_guess(x,y):
 
 
 #######################################################
-#
 def fit_sky_linear(wlines,wdiff,wdiff_err):
     
     z = np.polyfit(wlines,wdiff,w = 1./wdiff_err,deg= 1,cov=False)
     p = np.poly1d(z)
 
     return p
+
+#######################################################
+def fit_lsf_parabola(wlines,wlsf,wlsf_err):
+    
+    p = np.polyfit(wlines,wlsf,w = 1./wlsf_err,deg= 2,cov=False)
+    
+    return p
+
+#######################################################
+def create_lsf_parabola(wave,p0,p1,p2):
+    
+    p = [p0,p1,p2]
+    pfit = np.poly1d(p)
+    lsf_fit = pfit(wave)
+
+    return lsf_fit
 
 
 #######################################################
@@ -255,6 +278,7 @@ def fit_mask_surfaces(fslope, fb, flos, x, y):
     
     return pmodel_m,pmodel_b,pmodel_los,np.sum(mgood)
 
+
 #######################################################
 def update_flexure_fit(slits, ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los,sky):
 
@@ -264,7 +288,7 @@ def update_flexure_fit(slits, ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los,sky)
 
         slits['fit_slope'][arg,ii] = pmodel_m(slits['RA'][arg],slits['DEC'][arg])
         slits['fit_b'][arg,ii]     = pmodel_b(slits['RA'][arg],slits['DEC'][arg])
-        slits['fit_los'][arg,ii]   = pmodel_los(slits['RA'][arg],slits['DEC'][arg])
+        slits['fit_lsf'][arg,ii]   = pmodel_los(slits['RA'][arg],slits['DEC'][arg])
 
         # CALCULATE RESIDUALS FROM FIT        
         if (slits['reduce_flag'][arg,ii] == 1):
@@ -303,10 +327,11 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
                                                         hdu[b].data['OPT_COUNTS_SKY'],\
                                                         hdu[b].data['OPT_COUNTS_IVAR'],sky)
 
-                sky_diff  = np.concatenate((r_sky_diff,b_sky_diff),axis=None)
-                sky_lines = np.concatenate((r_sky_line,b_sky_line),axis=None)
-                sky_ediff = np.concatenate((r_sky_ediff,b_sky_ediff),axis=None)
-                sky_los   = np.concatenate((r_los,b_los),axis=None)
+                sky_diff  = np.concatenate((b_sky_diff,r_sky_diff),axis=None)
+                sky_lines = np.concatenate((b_sky_line,r_sky_line),axis=None)
+                sky_ediff = np.concatenate((b_sky_ediff,r_sky_ediff),axis=None)
+                sky_los   = np.concatenate((b_los,r_los),axis=None)
+                sky_elos   = np.concatenate((b_elos,r_elos),axis=None)
 
                 # FIT SINGLE SLIT SKY LINES WITH A LINE           
                 fitted_line = fit_sky_linear(sky_lines,sky_diff,sky_ediff)
@@ -317,6 +342,14 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
                 flos   = np.append(flos,np.median(sky_los))
                 x      = np.append(x,slits['RA'][arg])
                 y      = np.append(y,slits['DEC'][arg])
+                
+                
+                # FIT LSF WITH PARABOLA
+                lsf_p = fit_lsf_parabola(sky_lines,sky_los,sky_elos)
+                slits['fit_lsf_p0'][arg,ii] = lsf_p[0]
+                slits['fit_lsf_p1'][arg,ii] = lsf_p[1]
+                slits['fit_lsf_p2'][arg,ii] = lsf_p[2]
+
             except:
                 print('  Skipping slit {} {}'.format(r,b))
                 slits['reduce_flag'][arg,ii] = 0
@@ -343,7 +376,8 @@ def run_flexure(data_dir,slits,mask):
         
         # INITIAL SKY LINE STUFF
         slits, fslope, fb, flos, x, y = measure_sky_lines(slits, ii,nslits,hdu,sky)
-              
+             
+            
         # FIT SURFACES
         pmodel_m, pmodel_b,pmodel_los, ngood = fit_mask_surfaces(fslope, fb, flos, x, y)  
         print('{} {} Flexure with {} slits'.format(mask['maskname'][0],\
