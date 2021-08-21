@@ -213,15 +213,13 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
 ######################################################
 def run_sampler(sampler, p0, max_n):
 
-       
     # POOL
     #with Pool() as pool:
     #sampler = sampler.sample(p0, iterations=max_n,progress = True)
     pos, prob, state = sampler.run_mcmc(p0, max_n,progress=True)
-
     
     try:
-        tau = sampler.get_autocorr_time(tol=0)
+        tau    = sampler.get_autocorr_time(tol=0)
         burnin = int(2 * np.max(tau))
         converged = np.all(tau * 100 < sampler.iteration)
         print(tau,burnin, converged)
@@ -277,7 +275,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
 
         sampler, convg, burnin = run_sampler(sampler, p0, max_n)
         slits['emcee_converge'][arg,nexp] = convg
-        slits['emcee_burnin'][arg,nexp] = burnin
+        slits['emcee_burnin'][arg,nexp]   = burnin
         
     # OR JUST READ IN PREVIOUS RESULTS
     if (erun == 0): 
@@ -286,6 +284,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
                                   backend=backend)
 
+        
     burnin=slits['emcee_burnin'][arg,nexp]
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
 

@@ -111,7 +111,7 @@ def faster_polyval(p, x):
     return y
 
 ###############################################
-def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,npoly):
+def chi2_single_stellar_template(phx_flux,pwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,npoly):
     
 
     # CREATE MODEL 
@@ -121,7 +121,6 @@ def chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,data_i
     cmask, chi2_mask = create_chi2_masks(data_wave)
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
-    pwave = np.e**(phx_logwave)
     tmp_flux      = np.interp(data_wave,pwave,conv_spec)
     cont_p, tmp = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
 
@@ -199,8 +198,14 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
         phx_logwave = np.array(data['wave']).flatten()
 
 
+        # TRIM WAVELENGTH OF TEMPLATES TO SPEED UP COMPUTATION
+        dmin = np.min(data_wave) - 20
+        dmax = np.max(data_wave) + 20
+        pwave = np.e**(phx_logwave)
+        mp = (pwave > dmin) & (pwave<dmax)
+
         # RUN ONE STELLAR TEMPLATE
-        min_v,min_chi2 = chi2_single_stellar_template(phx_flux,phx_logwave,data_wave,data_flux,\
+        min_v,min_chi2 = chi2_single_stellar_template(phx_flux[mp],pwave[mp],data_wave,data_flux,\
                                            data_ivar,losvd_pix,vrange,npoly)
 
         final_file = ''

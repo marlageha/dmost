@@ -78,6 +78,7 @@ def create_mask(nexp):
             filled_column('year','    ',nexp),
             filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
+            filled_column('slitwidth',-1.,nexp),   # FIND THIS!
             filled_column('vhelio',-1.,nexp),
             filled_column('telluric_h2o',-1.,nexp),
             filled_column('telluric_o2',-1.,nexp),
@@ -91,8 +92,6 @@ def create_mask(nexp):
             # TELESCOPE DATA
             filled_column('mask_ra',-1.,nexp),
             filled_column('mask_dec',-1.,nexp),
-            filled_column('mask_el',-1.,nexp),
-            filled_column('mask_az',-1.,nexp)
 
            ]
 
