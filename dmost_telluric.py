@@ -496,6 +496,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
         
     # COPY FINE GRAIN TELLURIC TO DATA DIRECTORY
     os.system('cp '+tfine+' '+tfile)
+    print(tfile)
     
     # UPDATE MASK!
     mask['telluric_h2o'][nexp] = round_h2o
