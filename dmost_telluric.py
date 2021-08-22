@@ -485,7 +485,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     ########################################
     # ROUND TO FINEST GRID 
     round_h2o = 2. * round(final_h2o/2)
-    round_o2  = 0.05*round(final_o2/0.05) 
+    round_o2  = 0.02*round(final_o2/0.02) 
     
     print('{} {}          H2O = {:0.0f}, O2 = {:2.2f}'.format(mask['maskname'][0],\
                                                         mask['fname'][nexp],round_h2o,round_o2))
