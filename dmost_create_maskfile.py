@@ -78,7 +78,6 @@ def create_mask(nexp):
             filled_column('year','    ',nexp),
             filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
-            filled_column('slitwidth',-1.,nexp),   # FIND THIS!
             filled_column('vhelio',-1.,nexp),
             filled_column('telluric_h2o',-1.,nexp),
             filled_column('telluric_o2',-1.,nexp),
@@ -126,6 +125,7 @@ def create_slits(nslits,nexp):
             filled_column('opt_fwhm',np.zeros(nexp),nslits),
             filled_column('xpos',-1.,nslits),
             filled_column('ypos',-1.,nslits),
+            filled_column('slitwidth',-1.,nslits),
 
             
             # COLLATE1D
@@ -325,16 +325,16 @@ def create_slits_from_bintab(data_dir,mask,nexp):
     
     # CREATE TABLE USING BINTABS
     # BluSlits contains mask design x/y positions
-    rhdu     = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][0]+'/'+mask['rawfilename'][0])
-    bintab   = rhdu['ObjectCat'].data
-    bluslits = rhdu['BluSlits'].data  
-    desislit = rhdu['DesiSlits'].data
-    m        = bintab['ObjClass'] == 'Program_Target'
+    rhdu      = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][0]+'/'+mask['rawfilename'][0])
+    bintab    = rhdu['ObjectCat'].data
+    bluslits  = rhdu['BluSlits'].data  
+    desislits = rhdu['DesiSlits'].data
+    m         = bintab['ObjClass'] == 'Program_Target'
 
-    bintab   = bintab[m]
-    bluslits = bluslits[m]
-    desislits= desislits[m]
-    nslits   = np.sum(m)
+    bintab    = bintab[m]
+    bluslits  = bluslits[m]
+    desislits = desislits[m]
+    nslits    = np.sum(m)
     
     
 
@@ -355,7 +355,7 @@ def create_slits_from_bintab(data_dir,mask,nexp):
         slits['maskdef_id'][i] = obj['OBJECTID']
         slits['xpos'][i]       = (bsl['slitX1']+bsl['slitX2'])/2.
         slits['ypos'][i]       = bsl['slitY1']
-        slits['slitwidth'][i]  = dsl['slitWid']
+        slits['slitwidth'][i]  = 0.01*(round(dsl['slitWid']/0.01))
 
         
         # GENERAL REDUCE FLAG

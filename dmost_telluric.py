@@ -205,11 +205,17 @@ def run_single_telluric(twave,conv_tell,data_wave,data_flux,data_ivar,chi_mask,c
 
 
 ########################################
-def telluric_marginalize_w(file,data_wave,data_flux,\
+def telluric_marginalize_w(file,data_wave,wmin,wmax,data_flux,\
                            data_ivar,cont_mask,chi_mask,losvd_pix):
     
     # READ SINGLE SYNTHEIC TELLURIC
     twave,tflux = get_telluric_model(file)
+    
+    # TRIM MODEL TO REDUCE COMPUTATION TIME
+    mt = (twave >  wmin-10) & (twave < wmax+10)
+    twave = twave[mt]
+    tflux = tflux[mt]
+    
     conv_tell   = scipynd.gaussian_filter1d(tflux,losvd_pix,truncate=3)
     
    
@@ -280,6 +286,8 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             data_wave = wave[wave_lims]
             data_flux = flux[wave_lims]
             data_ivar = ivar[wave_lims]
+            wmin      = np.min(data_wave)
+            wmax      = np.max(data_wave)
 
             # CREATE DATA MASKS
             continuum_mask, chi2_mask = create_tell_masks(data_wave)
@@ -294,7 +302,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
 
                 o2,h2o = parse_tfile(tfile)
 
-                min_w,min_chi2 = telluric_marginalize_w(tfile,data_wave,data_flux,\
+                min_w,min_chi2 = telluric_marginalize_w(tfile,data_wave,wmin,wmax,data_flux,\
                                             data_ivar,continuum_mask, chi2_mask,losvd_pix)
 
                 tmp_chi[j] = min_chi2
@@ -496,7 +504,6 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
         
     # COPY FINE GRAIN TELLURIC TO DATA DIRECTORY
     os.system('cp '+tfine+' '+tfile)
-    print(tfile)
     
     # UPDATE MASK!
     mask['telluric_h2o'][nexp] = round_h2o
