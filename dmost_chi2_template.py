@@ -171,14 +171,35 @@ def projected_chi_plot(x,y,z):
     return aa,bb,cc
 
 ###############################################
+def get_stellar_template_files(SN):
+    
+    if (SN >= 25):
+        grid = 'grid1'
+  
+    if (10 < SN < 25):
+        grid = 'grid2'
+  
+    if (SN <= 10):
+        grid = 'grid3'
+        
+    
+    templ = DEIMOS_RAW + '/templates/pheonix/'+grid+'/dmost*'
+    pfiles = glob.glob(templ)
+    
+    
+    return pfiles, grid
+
+###############################################
 def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
     
     best_chi, best_v, best_t       = [], [], []
     best_feh, best_teff, best_logg = [], [], []
 
-    templ = DEIMOS_RAW + '/templates/pheonix/dmost*'
-    phx_files = glob.glob(templ)
-
+    
+    # GRAB TEMPLATES FOR SPECIFIC SN
+    phx_files, grid = get_stellar_template_files(f['collate1d_SN'])
+    
+    
     # USE MEAN LINE SPREAD FUNCTION
     losvd_pix =  np.mean(f['fit_lsf'][f['fit_lsf']>0])/ 0.02
 
@@ -224,6 +245,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
             tfile = final_file.split('pheonix/')
 
             f['chi2_tfile'] = tfile[1]
+            f['chi2_tgrid'] = grid
             f['chi2_tchi2'] = best_chi[n]
             f['chi2_v']     = best_v[n]
             f['chi2_teff']  = best_teff[n]
@@ -245,6 +267,8 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
         ax1.set_xlabel('Teff')
         ax1.set_ylabel('[Fe/H]')
         ax1.set_title('Teff = {:0.1f}'.format(f['chi2_teff']))
+        ax1.set_xlim(2400,8100)
+        ax1.set_ylim(-4.2,0.2)
 
         aa,bb,cc = projected_chi_plot(best_teff,best_logg,best_chi)
         ax2.scatter(aa,bb,c=np.log(cc),vmin=vmn,vmax=vmx,cmap='cool')
@@ -252,6 +276,8 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
         ax2.set_xlabel('Teff')
         ax2.set_ylabel('Logg')
         ax2.set_title('Logg = {:0.1f}'.format(f['chi2_logg']))
+        ax2.set_xlim(2400,8100)
+        ax2.set_ylim(0.5,5.5)
 
         
         aa,bb,cc = projected_chi_plot(best_feh,best_logg,best_chi)
@@ -260,7 +286,10 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
         ax3.set_xlabel('[Fe/H]')
         ax3.set_ylabel('Logg')
         ax3.set_title('[Fe/H] = {:0.1f}'.format(f['chi2_feh']))
+        ax3.set_ylim(-4.2,0.2)
+        ax3.set_ylim(0.5,5.5)
 
+        
         # MAKE COLORBAR
         v1 = np.linspace(vmn,vmx, 8, endpoint=True)
         cax, _    = matplotlib.colorbar.make_axes(ax3,ticks=v1)
@@ -323,6 +352,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             tfile,f,pdf = chi2_best_template(obj,data_wave,data_flux,data_ivar,vrange,pdf,plot=1)
 
             slits['chi2_tfile'][ii] = f['chi2_tfile']
+            slits['chi2_tgrid'][ii] = f['chi2_tgrid']
             slits['chi2_tchi2'][ii] = f['chi2_tchi2']
             slits['chi2_v'][ii]     = f['chi2_v']
             slits['chi2_teff'][ii]  = f['chi2_teff']

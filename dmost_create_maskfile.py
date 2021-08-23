@@ -157,7 +157,8 @@ def create_slits(nslits,nexp):
             filled_column('telluric_chi2',np.zeros(nexp),nslits),
 
             # CHI2 TEMPLATE
-            filled_column('chi2_tfile','                              ',nslits),
+            filled_column('chi2_tfile','                                    ',nslits),
+            filled_column('chi2_tgrid','      ',nslits),
             filled_column('chi2_tchi2',-1.,nslits),
             filled_column('chi2_v',-1.,nslits),
             filled_column('chi2_teff',-1,nslits),

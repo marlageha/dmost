@@ -317,8 +317,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
 
     
     # LOOP OVER EACH SLIT
-    for arg in np.arange(0,3,1,dtype='int'):
-#    for arg in np.arange(0,np.size(slits),1,dtype='int'):
+    for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
 
         if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3) & \
@@ -405,7 +404,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
     
        
     # FOR EACH EXPOSURE
-    for ii,spec1d_file in enumerate(mask['spec1d_filename'][0:1]): 
+    for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
 
         # READ SPEC1D FILE
         hdu         = fits.open(data_dir+'Science/'+spec1d_file)

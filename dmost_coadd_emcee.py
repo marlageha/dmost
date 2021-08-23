@@ -374,8 +374,8 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
 
     # MAKE BEST MODEL 
-    model = mk_single_model(theta, wave, flux, ivar, telluric['wave'],sm_tell, \
-                        sm_pflux,plogwave, npoly,losvd_pix)
+    model = mk_single_model(theta, wave, flux, ivar, twave,sm_tell, \
+                        sm_pflux,pwave, npoly,losvd_pix)
          
 
     # SAVE QUALITY OF FIT INFO
