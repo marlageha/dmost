@@ -414,17 +414,34 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
          (fslits2['telluric_h2o'][:,nexp] > md-3*std) & (fslits2['telluric_h2o'][:,nexp] < md+3*std) &\
          (fslits2['telluric_o2'][:,nexp] > md2-3*std2) & (fslits2['telluric_o2'][:,nexp] < md2+3*std2)
         
+        
+        
+        
     # FIX PROBLEM WITH SMALL H2O VALUES
     mh20 = fslits2['telluric_h2o'][:,nexp] < 10
     fslits2['telluric_h2o_err'][mh20,nexp] = fslits2['telluric_h2o_err'][mh20,nexp]+10
         
-    # DETERMINE FINAL VALUES BASED ON WEIGHTED MEANS
-    if np.sum(m) > 1:
-        final_h2o = np.average(fslits2['telluric_h2o'][m,nexp],\
-                               weights = 1./(fslits2['telluric_h2o_err'][m,nexp])**2)
-        final_o2 = np.average(fslits2['telluric_o2'][m,nexp],\
-                               weights = 1./(fslits2['telluric_o2_err'][m,nexp])**2)
+   
+    good_h2o  = fslits2['telluric_h2o'][m1,nexp]
+    good_eh2o = fslits2['telluric_h2o_err'][m1,nexp]
+    good_o2   = fslits2['telluric_o2'][m1,nexp]
+    good_eo2  = fslits2['telluric_o2_err'][m1,nexp]
 
+   # REMOVE OUTLIERS
+    mh = (good_h2o > np.percentile(good_h2o,10)) & \
+         (good_h2o < np.percentile(good_h2o,90))
+    mo = (good_o2 > np.percentile(good_o2,10)) & \
+         (good_o2 < np.percentile(good_o2,90))
+
+    
+    
+        
+    # DETERMINE FINAL VALUES BASED ON WEIGHTED MEANS
+    if np.sum(mh&mo) > 3:
+        final_h2o = np.average(good_h2o[mh],\
+                               weights = 1./good_eh2o[mh]**2)
+        final_o2 = np.average(good_o2[mo],\
+                               weights = 1./good_o2[mo]**2)
     else:
         # RELAX WHEN FEW POINTS
         m= (fslits2['telluric_chi2'][:,nexp] > 0)& \
@@ -437,7 +454,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
             final_o2  = np.nanmean(fslits2['telluric_o2'][m,nexp])
         else:
             print('FAKING IT!')
-            final_h2o = 100
+            final_h2o = 50
             final_o2  = 1.3
 
     # PLOT H20-- zoom in and all data
