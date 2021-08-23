@@ -242,10 +242,10 @@ def telluric_marginalize_w(file,data_wave,wmin,wmax,data_flux,\
 # DETERMINE MINIMUM SN REQUIREMENT TO GET 50 SLITS FOR TELLURIC
 def telluric_min_SN(good_slits_SN):
 
-    m=(good_slits_SN > 3) & (good_slits_SN < 150)
+    m=(good_slits_SN > 5) & (good_slits_SN < 175)
     ngood = np.sum(m)
     if (ngood < 60):
-        min_SN = 3
+        min_SN = 5
     else:
         sorted_SN = np.sort(good_slits_SN[m])
         min_SN    = sorted_SN[-60]
