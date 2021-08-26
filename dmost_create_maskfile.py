@@ -518,9 +518,9 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
 
 
     # RUN CHI2 TEMPLATE FINDER ON COMBINED DATA
-    if ~(np.sum(mask['flag_template']) == nexp) | (flag_template == 1):
-        slits,mask  = dmost_chi2_template.run_chi2_templates(data_dir, slits, mask)
-        write_dmost(slits,mask,outfile)
+#    if ~(np.sum(mask['flag_template']) == nexp) | (flag_template == 1):
+#        slits,mask  = dmost_chi2_template.run_chi2_templates(data_dir, slits, mask)
+#        write_dmost(slits,mask,outfile)
 
 
     # RUN EMCEE
