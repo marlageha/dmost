@@ -126,6 +126,8 @@ def create_slits(nslits,nexp):
             filled_column('xpos',-1.,nslits),
             filled_column('ypos',-1.,nslits),
             filled_column('slitwidth',-1.,nslits),
+            filled_column('ccd_gap_b',-1.,nslits),
+            filled_column('ccd_gap_r',-1.,nslits),
 
             
             # COLLATE1D
