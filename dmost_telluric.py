@@ -461,7 +461,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
 
         if np.sum(m) > 0:
             final_h2o = np.nanmean(fslits2['telluric_h2o'][m,nexp])
-            final_o2  = np.nanmean(fslits2['telluric_o2'][m,nexp])
+            final_o2  = get_o2_nodata(mask['airmas'][nexp])
         else:
             print('FAKING IT!')
             final_h2o = 50
