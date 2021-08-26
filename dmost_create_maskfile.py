@@ -512,9 +512,9 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
 
     # RUN TELLURIC
     tfile = glob.glob(data_dir+'/dmost/telluric_'+maskname+'*.fits')
-    if ~(np.sum(mask['flag_telluric']) == nexp) | (flag_telluric == 1) | ~(np.size(tfile) == nexp):
-        slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
-        write_dmost(slits,mask,outfile)
+#    if ~(np.sum(mask['flag_telluric']) == nexp) | (flag_telluric == 1) | ~(np.size(tfile) == nexp):
+    slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
+    write_dmost(slits,mask,outfile)
 
 
     # RUN CHI2 TEMPLATE FINDER ON COMBINED DATA
