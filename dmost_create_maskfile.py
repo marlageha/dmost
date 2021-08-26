@@ -512,26 +512,26 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
 
     # RUN TELLURIC
     tfile = glob.glob(data_dir+'/dmost/telluric_'+maskname+'*.fits')
-#    if ~(np.sum(mask['flag_telluric']) == nexp) | (flag_telluric == 1) | ~(np.size(tfile) == nexp):
-    slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
-    write_dmost(slits,mask,outfile)
+    if ~(np.sum(mask['flag_telluric']) == nexp) | (flag_telluric == 1) | ~(np.size(tfile) == nexp):
+        slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
+        write_dmost(slits,mask,outfile)
 
 
     # RUN CHI2 TEMPLATE FINDER ON COMBINED DATA
-#    if ~(np.sum(mask['flag_template']) == nexp) | (flag_template == 1):
-#        slits,mask  = dmost_chi2_template.run_chi2_templates(data_dir, slits, mask)
-#        write_dmost(slits,mask,outfile)
+    if ~(np.sum(mask['flag_template']) == nexp) | (flag_template == 1):
+        slits,mask  = dmost_chi2_template.run_chi2_templates(data_dir, slits, mask)
+        write_dmost(slits,mask,outfile)
 
 
     # RUN EMCEE
-    #if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
-    #    slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
-    #    write_dmost(slits,mask,outfile)
+    if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
+        slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
+        write_dmost(slits,mask,outfile)
 
     # RUN LOW SN EMCEE
-    #if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
-    #slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
-    #write_dmost(slits,mask,outfile)
+    if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
+        slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
+        write_dmost(slits,mask,outfile)
 
 
     print()
