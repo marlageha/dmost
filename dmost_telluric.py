@@ -185,6 +185,16 @@ def parse_tfile(tfile):
     return o2,h2o
 
 
+########################################
+def get_o2_nodata(airmass):
+
+    # USING FIT TO ALL O2 DATA, DETERMINE BASED ON AIRMASS
+    m= 0.928719
+    b=0.09761
+    
+    o2=m*airmass+b
+    return o2
+
 
 ########################################
 def run_single_telluric(twave,conv_tell,data_wave,data_flux,data_ivar,chi_mask,cfit,wshift):
@@ -455,7 +465,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
         else:
             print('FAKING IT!')
             final_h2o = 50
-            final_o2  = 1.3
+            final_o2  = get_o2_nodata(mask['airmas'][nexp])
 
     # PLOT H20-- zoom in and all data
     ax1.plot(fslits2['rSN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
