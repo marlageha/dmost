@@ -63,6 +63,25 @@ def get_slit_name(slits,i):
     
     return rname, bname
 
+##################################################
+# GET CHIP GAP WAVELENGTHS
+def get_chip_gaps(slits,arg,nexp,hdu,r,b):
+    
+
+    try:
+        ccd_b = hdu[b].data['OPT_WAVE'][-1]
+        ccd_r = hdu[r].data['OPT_WAVE'][0]
+    except:
+        ccd_b=-1
+        ccd_r=-1
+        
+    slits['ccd_gap_b'][arg,nexp] = ccd_b
+    slits['ccd_gap_r'][arg,nexp] = ccd_r
+
+    return slits
+
+
+
 #######################################################
 #  LOAD A SPECTRUM
 ######################################################
@@ -106,6 +125,7 @@ def load_spectrum(slits,nexp,hdu,vacuum=0,vignetted = 0):
             print('  Removing more than 50 pixels of data')
         
         
+       
     except:
         print('  No data!')
         n=8172

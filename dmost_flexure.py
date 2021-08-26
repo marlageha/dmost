@@ -316,6 +316,9 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
          if (slits['reduce_flag'][arg,ii] == 1):
                 
             r,b = dmost_utils.get_slit_name(slits[arg],ii)
+
+            # SET CCD GAPS WHILE WE ARE HERE
+            slits = dmost_utils.get_chip_gaps(slits,arg,ii,hdu,r,b)
             
             try:
                 # MEASURE SKY LINE DIFFERENCES
