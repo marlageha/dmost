@@ -457,7 +457,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
         m= (fslits2['telluric_chi2'][:,nexp] > 0)& \
         (fslits2['telluric_h2o'][:,nexp] > 1) & (fslits2['telluric_h2o'][:,nexp] < 120) & \
         (fslits2['telluric_o2'][:,nexp] > 0.6) & (fslits2['telluric_o2'][:,nexp] < 2.5) 
-        print('Fewer tellurics2:',np.sum(m))
+        print('No slits, using fit for O2:',np.sum(m))
 
         if np.sum(m) > 0:
             final_h2o = np.nanmean(fslits2['telluric_h2o'][m,nexp])
