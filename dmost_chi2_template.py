@@ -345,7 +345,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(jhdu) 
             vexp = 0
             if (obj['reduce_flag'][0] == 0):
-                m=obj['reduce_flag'] =! 0
+                m=obj['reduce_flag'] != 0
                 vexp=m[0]
             wave_lims = dmost_utils.vignetting_limits(obj,vexp,jwave)
 
