@@ -343,7 +343,11 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             jhdu = fits.open(data_dir+'collate1d/'+obj['collate1d_filename'])
 
             jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(jhdu) 
-            wave_lims = dmost_utils.vignetting_limits(obj,0,jwave)
+            vexp = 0
+            if (obj['reduce_flag'][0] == 0):
+                m=obj['reduce_flag'] =! 0
+                vexp=m[0]
+            wave_lims = dmost_utils.vignetting_limits(obj,vexp,jwave)
 
             data_wave = jwave[wave_lims]
             data_flux = jflux[wave_lims]
