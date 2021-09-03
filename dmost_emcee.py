@@ -175,12 +175,12 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
     ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
-    ax1.axvline(burnin)
+    ax1.axvline(2*burnin)
 
     for ii in range(20):
         ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
     ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
-    ax2.axvline(burnin)
+    ax2.axvline(2*burnin)
 
     pdf.savefig()
     plt.close(fig)
@@ -201,7 +201,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     # PLOT CORNER
     labels=['v','w']
     ndim=2
-    samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
+    samples   = sampler.chain[:, 2*burnin:, :].reshape((-1, ndim))
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
 
     pdf.savefig()
@@ -286,13 +286,13 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
 
         
     burnin=slits['emcee_burnin'][arg,nexp]
-    theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
+    theta = [np.mean(sampler.chain[:, 2*burnin:, i])  for i in [0,1]]
 
     slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
     slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
 
     for ii in [0,1]:
-        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
+        mcmc = np.percentile(sampler.chain[:,2*burnin:, ii], [16, 50, 84])
         if (ii==0):
             slits['emcee_v'][arg,nexp] = mcmc[1]
             slits['emcee_v_err16'][arg,nexp] = mcmc[0]
