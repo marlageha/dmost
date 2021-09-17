@@ -20,6 +20,24 @@ import matplotlib.pyplot as plt
 # ADD THIS CORRECTION TO MEASURED VELOCITY
 ######################################################
 def deimos_helio(mjd,ra,dec):
+    '''
+    Heliocentric velocity correction for Keck 
+    
+    Parameters
+    ----------
+    mjd: float
+        mjd date of observatiom
+    ra: float
+        right ascension of observation
+    dec: float
+        declination of observation
+    
+    Returns
+    -------
+    vhelio
+        heliocentric velocity correction
+        This should be ADDED to the measured velocity
+    '''
     i=0
     t = Time(mjd,format='mjd')
     r = np.median(ra)
