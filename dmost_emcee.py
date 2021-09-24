@@ -384,7 +384,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
 
             # SAVE QUALITY OF FIT INFO
   
-            slits['emcee_lnprob'][arg,nexp]   = np.sum((flux - model)**2 * ivar)/(np.size(flux)-3)
+            slits['emcee_lnprob'][arg,nexp]   = np.sum((flux - model)**2 * ivar)/(np.size(flux)-2)
         
                      
 
