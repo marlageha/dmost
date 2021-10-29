@@ -333,7 +333,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     print('{} Finding chi2 templates for {} stellar slits w/SN > 1.0'.format(mask['maskname'][0],np.sum(m)))
      
     # V RANGE FOR TEMPLATE FINDER
-    vrange = np.arange(-500,500,20)
+    vrange = np.arange(-500,500,5)
 
     for ii,obj in enumerate(slits): 
 
