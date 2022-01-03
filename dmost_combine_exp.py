@@ -52,7 +52,9 @@ def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
     if (obj['emcee_f_acc'] > 0.69):
         v     = obj['emcee_v']+mask['vhelio']
         terr  = (obj['emcee_v_err84']-obj['emcee_v_err16'])/2.
-        err   =  np.sqrt(terr**2 + sys_exp**2)
+        
+        # IS THIS RIGHT?   ADDING SYS ERROR FOR COADD
+        err   =  np.sqrt(terr**2 + nexp*sys_exp**2)
         ncomb = 1                     
             
     return v,verr,ncomb    
