@@ -57,7 +57,7 @@ def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
     return v,verr,ncomb    
   
   
-def combine_exp(slits, mask, sys_err = 0.25):
+def combine_exp(slits, mask, sys_exp = 0.25):
   
   
     # READ MASK, SLIT FILES
@@ -67,7 +67,7 @@ def combine_exp(slits, mask, sys_err = 0.25):
     if (nexp > 1):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, sys_err=sys_err)
+            v,verr,ncomb = combine_multiple_exp(obj,mask, sys_exp=sys_exp)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
@@ -78,7 +78,7 @@ def combine_exp(slits, mask, sys_err = 0.25):
     if (nexp == 1):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_single_exp(obj,mask,sys_err=sys_err)
+            v,verr,ncomb = combine_single_exp(obj,mask,sys_exp=sys_exp)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
