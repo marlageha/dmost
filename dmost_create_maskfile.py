@@ -19,7 +19,7 @@ from astropy.time import Time
 import pyspherematch as sm
 
 import  dmost_utils,dmost_flexure
-import dmost_telluric, dmost_chi2_template, dmost_emcee, dmost_coadd_emcee
+import dmost_telluric, dmost_chi2_template, dmost_emcee, dmost_coadd_emcee, dmost_combine_exp
 
 
 
@@ -533,6 +533,9 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
     slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
     write_dmost(slits,mask,outfile)
 
+    # COMBINE EXPOSURES
+    slits, mask = dmost_combine_exp.combine_exp(slits, mask)
+    write_dmost(slits,mask,outfile)
 
     print()
     return slits,mask
