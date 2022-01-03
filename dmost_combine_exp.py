@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def combine_multiple_exp(obj, mask, f_acc_thresh = 0.69, f_acc_coadd = 0.65, sys_exp = 0.25):
+def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.65, sys_exp = 0.25):
 
     v, verr, ncomb    = [-1,-1,0]
     
@@ -67,7 +67,7 @@ def combine_exp(slits, mask, sys_exp = 0.25):
     if (nexp > 1):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, sys_exp=sys_exp)
+            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_exp=sys_exp)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
