@@ -13,15 +13,15 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
     
     # USE VELOCITY IF ANY EXPOSURE IS GOOD
     if np.any(obj['emcee_f_acc'] > f_acc_thresh):
-        
+        vt,et = [], []
         for j in np.arange(0,nexp,1):
             if obj['emcee_f_acc'][j] > f_acc_thresh:
-                v     = obj['emcee_v'][j]+mask['vhelio'][j]
-                terr  = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
-                err   = np.sqrt(terr**2 + sys_exp**2)
+                vt   = np.append(vt,obj['emcee_v'][j]+mask['vhelio'][j])
+                terr = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
+                et   = np.append(et,np.sqrt(terr**2 + sys_exp**2))
                 ncomb=ncomb+1
-        sum1 = np.sum(1./err**2)
-        sum2 = np.sum(v/err**2)
+        sum1 = np.sum(1./et**2)
+        sum2 = np.sum(vt/et**2)
 
         v    = sum2/sum1
         verr = np.sqrt(1./sum1)
