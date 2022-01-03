@@ -31,7 +31,8 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
     else:
         if (obj['coadd_f_acc'] > 0.65):
             v     = obj['coadd_v']+np.mean(mask['vhelio'])
-            verr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+            terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+            verr   = np.sqrt(terr**2 + sys_exp**2)
             ncomb = 1 + 100.
 
     return v,verr,ncomb
