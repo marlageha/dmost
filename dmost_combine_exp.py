@@ -57,11 +57,10 @@ def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
     return v,verr,ncomb    
   
   
-def combine_exp():
+def combine_exp(slits, mask):
   
   
     # READ MASK, SLIT FILES
-    slits, mask = dmost_utils.read_dmost(file)
     nexp = mask['nexp'][0]
     
     
@@ -85,4 +84,4 @@ def combine_exp():
             slits['v_nexp'][i]      = ncomb
             
             
-    write_dmost(slits,mask,file)
+    return slits,mask
