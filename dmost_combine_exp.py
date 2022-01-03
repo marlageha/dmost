@@ -71,9 +71,7 @@ def combine_exp(slits, mask, sys_exp = 0.25):
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
-            
-            print(v,verr,ncomb)
-            
+                        
             
     if (nexp == 1):
         for i,obj in enumerate(slits):
