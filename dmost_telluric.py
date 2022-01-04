@@ -256,6 +256,8 @@ def telluric_min_SN(good_slits_SN):
     ngood = np.sum(m)
     if (ngood < 60):
         min_SN = 5
+        if (ngood < 5):
+            min_SN = 3
     else:
         sorted_SN = np.sort(good_slits_SN[m])
         min_SN    = sorted_SN[-60]
