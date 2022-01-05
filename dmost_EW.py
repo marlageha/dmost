@@ -28,7 +28,7 @@ DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
 
 ######################################################
-def mk_EW_plots(pdf, this_slit, nwave,nspec, cat_fit, mg_fit, na_fit):
+def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec cat_fit, mg_fit, na_fit):
 
     fig, (ax1, ax2,ax3,ax4) = plt.subplots(1, 4,figsize=(22,5))
 
@@ -38,6 +38,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, cat_fit, mg_fit, na_fit):
     ax1.set_title('SN= {:0.2f}'.format(this_slit['collate1d_SN']))
 
 
+    ax2.plot(nwave,nspec)
     ax2.set_xlim(8630,8680)
     ax2.plot(nwave,cat_fit,'r',label='_nolegend_')
     ax2.set_title('CaT EW= {:0.2f}  err={:0.2f}'.format(this_slit['cat'],this_slit['cat_err']))
@@ -48,9 +49,8 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, cat_fit, mg_fit, na_fit):
     ax3.set_title(' MgI EW = {:0.2f}  err={:0.2f}'.format(this_slit['mgI'],this_slit['mgI_err']))
     ax3.set_xlim(8802,8810)
 
-    ax4.plot(nwave,nspec)
 
-#    ax4.plot(nawave,naspec)
+    ax4.plot(nawave,naspec)
     ax4.set_xlim(8150,8220)
     ax4.plot(nwave,na_fit,'r')
     ax4.set_title('Na1 EW={:0.2f} err={:0.2f}'.format(this_slit['naI'],this_slit['naI_err']))
@@ -469,7 +469,7 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     slits['naI_err'][arg] = NaI_EW_err
     print(NaI_EW)
 
-    mk_EW_plots(pdf, slits[arg], nwave, nspec, CaT_fit, MgI_fit, NaI_fit)
+    mk_EW_plots(pdf, slits[arg], nwave, nspec, nawave, naspec, CaT_fit, MgI_fit, NaI_fit)
 
 
     return slits
