@@ -14,7 +14,7 @@ from astropy.io import ascii
 
 import dmost_utils,dmost_flexure, dmost_create_maskfile
 import dmost_telluric, dmost_chi2_template, dmost_emcee
-import dmost_coadd_emcee, dmost_combine_exp
+import dmost_coadd_emcee, dmost_combine_exp, dmost_EW
 
 from dmost_create_maskfile import write_dmost
 
@@ -60,13 +60,16 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
         slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
         write_dmost(slits,mask,outfile)
 
-    # CALCULATE EQUIVALENT WIDTH QUANTITIES
-    #slits, mask  = dmost_EW.run_ew(data_dir, slits, mask,outfile)
-
-
     # COMBINE VELOCITIES ACROSS MULTIPLE EXPOSURES
     slits, mask = dmost_combine_exp.combine_exp(slits, mask)
     write_dmost(slits,mask,outfile)
+
+
+    # CALCULATE EQUIVALENT WIDTH QUANTITIES
+    slits, mask  = dmost_EW.run_coadd_EW(data_dir, slits, mask)
+    write_dmost(slits,mask,outfile)
+
+
 
 
     print()
