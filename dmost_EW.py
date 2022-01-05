@@ -28,7 +28,7 @@ DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
 
 ######################################################
-def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec cat_fit, mg_fit, na_fit):
+def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na_fit):
 
     fig, (ax1, ax2,ax3,ax4) = plt.subplots(1, 4,figsize=(22,5))
 
