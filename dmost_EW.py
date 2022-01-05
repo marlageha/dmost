@@ -57,7 +57,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
 
 
     ymax = 1.2
-    if this_slit['collate1d_SN'] < 10:
+    if this_slit['collate1d_SN'] < 20:
         ymax = 1.5
 
     ax1.set_ylim(0,ymax)
@@ -298,6 +298,17 @@ def CaT_gauss_plus_lorentzian(x,*p):
 
     return p[0] + gauss + lorentz
 
+###########################################
+def CaT_gauss(x,*p):
+# USE ON LOW SN SPECTRA
+ 
+    gauss = -1.*p[3]*np.exp(-0.5*( (x-p[1])/p[2] )**2) - \
+            p[4]*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) - \
+            p[5]*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
+    
+
+    return p[0] + gauss
+
 
 ########################################
 def CaT_GL_guess(x,y):
@@ -307,9 +318,70 @@ def CaT_GL_guess(x,y):
 
     return p0
 
+########################################
+def CaII_EW_fit_gauss(wvl,spec,ivar):
+    
+    # CALCULATE IN CENARRO (2001) DEFINED WINDOWS, TABLE 4
+    # lines  = [8498.02,8542.09,8662.14]
+    wline1 = [8484, 8513]
+    wline2 = [8522, 8562]
+    wline3 = [8642, 8682]
+
+
+    CaT, CaT_err, p   = -99, -99, 0
+    gfit    = -99*wvl
+
+    if np.mean(spec) > 0:
+
+        # FIT SIMULTANOUSLY IN THE THREE WINDOWS
+        mw1  = (wvl > wline1[0]) & (wvl < wline1[1]) 
+        mw2  = (wvl > wline2[0]) & (wvl < wline2[1]) 
+        mw3  = (wvl > wline3[0]) & (wvl < wline3[1]) 
+        mw = mw1 | mw2 | mw3
+        
+
+        # GAUSSIAN GUESS
+        sg=0.3
+        p0 = [1.,8542.09,0.8,sg,sg,0.8*sg]
+
+        errors = 1./np.sqrt(ivar[mw])
+        
+        try:
+            p, pcov = curve_fit(CaT_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0)
+        except:
+            p, pcov = p0, None
+
+        perr = np.sqrt(np.diag(pcov))
+
+          
+        # INTEGRATE PROFILE -- GAUSSIAN FIRST
+        gint1 = p[3] * p[2] * np.sqrt(2.*np.pi)
+        gint2 = p[4] * p[2] * np.sqrt(2.*np.pi)
+        gint3 = p[5] * p[2] * np.sqrt(2.*np.pi)
+
+         # CALCUALTE GAUSSIAN ERROR
+        tmp1 = p[4] * perr[2]* np.sqrt(2*np.pi)
+        tmp2 = p[2] * perr[4]* np.sqrt(2*np.pi)
+        gerr1 = np.sqrt(tmp1**2 + tmp2**2)
+        tmp1 = p[5] * perr[2]* np.sqrt(2*np.pi)
+        tmp2 = p[2] * perr[5]* np.sqrt(2*np.pi)
+        gerr2 = np.sqrt(tmp1**2 + tmp2**2)
+        tmp1 = p[3] * perr[2]* np.sqrt(2*np.pi)
+        tmp2 = p[2] * perr[3]* np.sqrt(2*np.pi)
+        gerr3 = np.sqrt(tmp1**2 + tmp2**2)
+
+        # PUT IT ALL TOGETHER
+        CaT = gint1 + gint2 + gint3
+        CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2)
+
+        # CREATE FIT FOR PLOTTING
+        gfit = CaT_gauss(wvl,*p)
+        
+        
+    return CaT, CaT_err, gfit
 
 ########################################
-def CaII_EW_fit_all(wvl,spec,ivar):
+def CaII_EW_fit_GL(wvl,spec,ivar):
     
     # CALCULATE IN CENARRO (2001) DEFINED WINDOWS, TABLE 4
     # lines  = [8498.02,8542.09,8662.14]
@@ -440,11 +512,13 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     #####################             
     # CALCULATE Ca II LINES CONTINUUM
     nwave,nspec,nivar           = CaII_normalize(wave,flux,ivar)
-    CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_all(nwave,nspec,nivar)
+    CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_GL(nwave,nspec,nivar)
+    if (CaT_EW_err == -99):
+        CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_gauss(nwave,nspec,nivar)
+
 
     slits['cat'][arg]     = CaT_EW
     slits['cat_err'][arg] = CaT_EW_err
-    print(CaT_EW)
 
     ##########################
     # CALCULATE MgI LINES
@@ -459,7 +533,6 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
 
     slits['mgI'][arg]     = MgI_EW
     slits['mgI_err'][arg] = MgI_EW_err
-    print(MgI_EW)
 
     #############################
     # NaI LINES
@@ -467,7 +540,6 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     NaI_EW,NaI_EW_err, NaI_fit = NaI_fit_EW(nawave,naspec,naivar)
     slits['naI'][arg]     = NaI_EW
     slits['naI_err'][arg] = NaI_EW_err
-    print(NaI_EW)
 
     mk_EW_plots(pdf, slits[arg], nwave, nspec, nawave, naspec, CaT_fit, MgI_fit, NaI_fit)
 
