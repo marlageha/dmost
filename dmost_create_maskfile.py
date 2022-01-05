@@ -174,12 +174,12 @@ def create_slits(nslits,nexp):
             filled_column('v_nexp',1,nslits),
            
            # EQUIVALENT WIDTHS FROM COADD1D FILES
-            filled_column('cat',-1,nslits),
-            filled_column('cat_err',-1,nslits),
-            filled_column('naI',1,nslits),
-            filled_column('naI_err',1,nslits),
-            filled_column('mgI',1,nslits),
-            filled_column('mgI_err',1,nslits)
+            filled_column('cat',-1.,nslits),
+            filled_column('cat_err',-1.,nslits),
+            filled_column('naI',1.,nslits),
+            filled_column('naI_err',1.,nslits),
+            filled_column('mgI',1.,nslits),
+            filled_column('mgI_err',1.,nslits)
 
            ]
             
@@ -290,6 +290,8 @@ def add_marz(data_dir,mask,slits):
         ngal   = np.sum(mz_gal['ZQUALITY'] > 2) # GALAXIES
 
         print('{} Add marz results with {} galaxies'.format(mask['maskname'][0],ngal))
+
+
     else:
         print(marz_file)
         print('{} No MARZ FILE!'.format(mask['maskname'][0]))

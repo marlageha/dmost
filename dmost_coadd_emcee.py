@@ -470,8 +470,6 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
             
     pdf.close()
     plt.close('all')
-    outfile = 'coadd_test.fits'
-    dmost_create_maskfile.write_dmost(slits,mask,outfile)
         
     return slits, mask
 
