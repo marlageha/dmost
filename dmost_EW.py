@@ -40,7 +40,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, cat_fit, mg_fit, na_fit):
 
     ax2.set_xlim(8630,8680)
     ax2.plot(nwave,cat_fit,'r',label='_nolegend_')
-    ax2.set_title('CaT EW= {:0.2f}  EWerr={:0.2f}'.format(this_slit['cat'],this_slit['cat_err']))
+    ax2.set_title('CaT EW= {:0.2f}  err={:0.2f}'.format(this_slit['cat'],this_slit['cat_err']))
 
 
     ax3.plot(nwave,nspec)
@@ -53,7 +53,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, cat_fit, mg_fit, na_fit):
 #    ax4.plot(nawave,naspec)
     ax4.set_xlim(8150,8220)
     ax4.plot(nwave,na_fit,'r')
-    ax4.set_title('Na1={:0.2f} NaIerr={:0.2f}'.format(this_slit['naI'],this_slit['naI_err']))
+    ax4.set_title('Na1 EW={:0.2f} err={:0.2f}'.format(this_slit['naI'],this_slit['naI_err']))
 
 
     ymax = 1.2
