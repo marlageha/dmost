@@ -29,32 +29,6 @@ DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 c = 299792.
 
 
-# two layers of tables
-# 1.  MASK LEVEL
-#         nexp
-#         [airmass]
-#         [mjd]
-#         [rawfile]
-#         [spec1dfiles]
-#         [mask telluric values]
-# 2.  SLIT LEVEL
-#     -- constructed from raw bintabs table
-#     -- add in coadd1d file
-#     -- add in data from dmost, 
-# 
-#     [slit identifiers]
-#     [flexure parameters]
-#     [telluric LSF, wguess]
-#     vignetting limits
-#     collate1d filename
-#     collate1d SN
-#     combined synthetic template
-#     marz flags
-#     [emcee velocities]
-#     combined velocity
-#     photometry
-#     membership
-
 
 ######################################################
 # FILL A COLUMN
@@ -199,10 +173,14 @@ def create_slits(nslits,nexp):
             filled_column('dmost_v_err',-1.,nslits),
             filled_column('v_nexp',1,nslits),
            
-            
-            filled_column('prob_member',-1,nslits),
-            filled_column('gmag',-1,nslits),
-            filled_column('rmag',1,nslits)
+           # EQUIVALENT WIDTHS FROM COADD1D FILES
+            filled_column('cat',-1,nslits),
+            filled_column('cat_err',-1,nslits),
+            filled_column('naI',1,nslits),
+            filled_column('naI_err',1,nslits),
+            filled_column('mgI',1,nslits),
+            filled_column('mgI_err',1,nslits)
+
            ]
             
     slits = Table(cols)
@@ -465,27 +443,31 @@ def read_dmost(outfile):
     return slits, mask
 
 
-
 #############################################################
-def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_flexure=0):
+def create_single_mask(maskname):
+    '''
 
+    '''
 
     # DEFINE DIRECTORIES, GRAB SPEC1D FILES
-    DEIMOS_REDUX  = os.getenv('DEIMOS_REDUX')
-
+    DEIMOS_REDUX = os.getenv('DEIMOS_REDUX')
     data_dir     = DEIMOS_REDUX+maskname+'/'
     spec1d_files = glob.glob(data_dir+'Science/spec1d*fits')
     nexp         = np.size(spec1d_files)
+
     if (nexp == 0):
         print('No spec1d files found!')
         print(data_dir)
         return
 
-    # IF FILE EXISTS, READ DMOST IN
-    outfile      = data_dir+'/dmost/dmost_mask_'+maskname+'.fits'
+
+    outfile      = data_dir+'/dmost/dmost_'+maskname+'.fits'
+
+    # IF DMOST FILE EXISTS, READ DMOST IN
     if os.path.isfile(outfile):
-        print('Reading existing file',outfile)
+        print('Reading existing file: ',outfile)
         slits,mask = read_dmost(outfile)
+        print('{} Slit table with {} slits'.format(mask['maskname'][0],np.size(slits)))
 
     else:
 
@@ -504,50 +486,7 @@ def run_single_mask(maskname,flag_telluric=0,flag_template=0,flag_emcee=0,flag_f
     slits = add_marz(data_dir,mask,slits)
 
 
-    # RUN FLEXURE
-    if ~(np.sum(mask['flag_flexure']) == nexp):
-        slits,mask = dmost_flexure.run_flexure(data_dir,slits,mask)
-        write_dmost(slits,mask,outfile)
-
-
-    # RUN TELLURIC
-    tfile = glob.glob(data_dir+'/dmost/telluric_'+maskname+'*.fits')
-    if ~(np.sum(mask['flag_telluric']) == nexp) | (flag_telluric == 1) | ~(np.size(tfile) == nexp):
-        slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
-        write_dmost(slits,mask,outfile)
-
-
-    # RUN CHI2 TEMPLATE FINDER ON COMBINED DATA
-    if ~(np.sum(mask['flag_template']) == nexp) | (flag_template == 1):
-        slits,mask  = dmost_chi2_template.run_chi2_templates(data_dir, slits, mask)
-        write_dmost(slits,mask,outfile)
-
-
-    # RUN EMCEE
-    if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
-        slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
-        write_dmost(slits,mask,outfile)
-
-    # RUN LOW SN EMCEE
-    #if ~(np.sum(mask['flag_emcee']) == nexp) | (flag_emcee == 1):
-    slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
-    write_dmost(slits,mask,outfile)
-
-    # COMBINE EXPOSURES
-    slits, mask = dmost_combine_exp.combine_exp(slits, mask)
-    write_dmost(slits,mask,outfile)
-
-    print()
-    return slits,mask
-
-#####################################################    
-def run_many_masks(masknames,flag_telluric=0,flag_template=0,flag_emcee=0,flag_flexure=0):
-
-    for masks in masknames:
-        slits,mask = run_single_mask(masks,flag_telluric=0,flag_template=0,flag_emcee=0,flag_flexure=0)
-    
-    return
-
+    return slits, mask, nexp, outfile
 
 #####################################################    
 def main(*args):
@@ -558,7 +497,7 @@ def main(*args):
     DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
     DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
     
-    s,m = run_single_mask(mask)
+    s,m = create_single_mask(mask)
     
 if __name__ == "__main__":
     main()

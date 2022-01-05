@@ -3,6 +3,25 @@ import numpy as np
 
 def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.65, sys_exp = 0.25):
 
+    '''
+    Combine velocity and velocity errors for single object 
+    across multiple exposures including systematic error term
+
+    Parameters
+    ----------
+    obj: table
+        single slit object
+    f_acc_threshold, f_acc_coadd: 
+        acceptance threshold from MCMC
+    sys_exp:
+        systematic error btw exposures, determine in notebook
+    
+    Returns
+    -------
+    v, verr, ncomb
+        combined velocity, error and number of combined exposures
+    '''
+
     v, verr, ncomb    = [-1,-1,0]
     
     # IS THIS A GALAXY?
@@ -61,11 +80,17 @@ def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
   
   
 def combine_exp(slits, mask, sys_exp = 0.25):
-  
+    '''
+    Combine exposures in a single mask, 
+    either single or multiple exposures
+    '''  
   
     # READ MASK, SLIT FILES
     nexp = mask['nexp'][0]
     
+    print('{} Combining {} exposure results'.format(mask['maskname'][0],nexp))
+
+
     
     if (nexp > 1):
         for i,obj in enumerate(slits):

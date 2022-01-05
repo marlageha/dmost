@@ -162,15 +162,15 @@ def get_telluric_model(file):
 ########################################
 def generate_single_telluric(tfile,w,data_wave,data_flux,data_ivar,cont_mask,lsp):
 
-    losvd_pix   =  lsp/0.02
-    twave,tflux =  get_telluric_model(tfile)
+    losvd_pix       =  lsp/0.02
+    twave,tflux     =  get_telluric_model(tfile)
 
-    conv_tell = scipynd.gaussian_filter1d(tflux,losvd_pix)
+    conv_tell       = scipynd.gaussian_filter1d(tflux,losvd_pix)
 
     shift_wave      = twave + w*0.02
     conv_shift_tell = np.interp(data_wave,shift_wave,conv_tell)
 
-    model = fit_syn_continuum_telluric(data_wave,data_flux,   \
+    model           = fit_syn_continuum_telluric(data_wave,data_flux,\
                                    data_ivar,cont_mask,conv_shift_tell)
     
     return model
@@ -207,7 +207,7 @@ def run_single_telluric(twave,conv_tell,data_wave,data_flux,data_ivar,chi_mask,c
  
     # CALCUALTE CHI2
     nparam = 3
-    chi2 = np.sum((data_flux[chi_mask] - final_fit[chi_mask])**2 * \
+    chi2   = np.sum((data_flux[chi_mask] - final_fit[chi_mask])**2 * \
                   data_ivar[chi_mask])/(np.size(data_flux[chi_mask])-nparam)
 
     return chi2

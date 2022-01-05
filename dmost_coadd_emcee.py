@@ -430,7 +430,10 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 ######################################################
 
 def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
-    
+    '''
+    Run the coadd if 
+    '''    
+
 
     file  = data_dir+'/QA/coadd_emcee_'+mask['maskname'][0]+'.pdf'
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
@@ -442,6 +445,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
 
     SNmax = 30
     SNmin = 1.5
+
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
 
     nslits = np.sum(m)
@@ -452,8 +456,13 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     # FOR EACH SLIT
     for ii,slt in enumerate(slits): 
 
-    
-        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (slt['marz_flag'] < 3):
+
+        # SKIP IF EXPOSURE HAS 2 OR MORE GOOD SINGLE VALUES
+        mm = slt['emcee_f_acc'] > 0.69
+        single_good_exp = np.sum(mm)
+
+        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (slt['marz_flag'] < 3) & \
+                (single_good_exp < 2):
       
 
             # RUN EMCEE ON COADD
@@ -461,8 +470,6 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
             
     pdf.close()
     plt.close('all')
-#    if write_file:
-#        outfile      = data_dir+'/dmost/dmost_mask_'+mask['maskname'][0]+'.fits'
     outfile = 'coadd_test.fits'
     dmost_create_maskfile.write_dmost(slits,mask,outfile)
         

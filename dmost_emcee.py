@@ -414,9 +414,8 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         tfile = glob.glob(data_dir+'/dmost/telluric_'+mask['maskname'][ii]+'_'+mask['fname'][ii]+'*.fits')
         telluric = Table.read(tfile[0])
 
-
         # WRITE TO SCREEN
-        SNmin = 5
+        SNmin = 3
         m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
