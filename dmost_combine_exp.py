@@ -111,9 +111,9 @@ def combine_exp(slits, mask, sys_exp = 0.25):
     
 
     print()
-    nstar = np.sum(slits['marz_flag'] < 3)
+    nstar = np.size(slits)
     ngood = np.sum(slits['dmost_v'] != -1.0) 
-    print('{}  Velocities measured for {} of {} stars'.format(mask['maskname'][0],ngood,nstar))
+    print('{} Velocities measured for {} of {} spectra'.format(mask['maskname'][0],ngood,nstar))
 
     nstar = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 3))
     ngood = np.sum((slits['dmost_v_err'] > 0) &  (slits['collate1d_SN'] > 3))
