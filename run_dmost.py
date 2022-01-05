@@ -19,7 +19,7 @@ import dmost_coadd_emcee, dmost_combine_exp
 from dmost_create_maskfile import write_dmost
 
 
-def run_dmost(maskname, rerun_chi2 = 0, erun_emcee = 0, rerun_coadd = 0):
+def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
     '''
     Main drive for dmost 
     '''
