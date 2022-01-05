@@ -3,22 +3,32 @@
 import numpy as np
 import os, sys
 import matplotlib.pyplot as plt
+import glob
+
 
 from astropy.table import Table
 from astropy.io import ascii
 
-from pypeit import pypeitsetup
+#from pypeit import pypeitsetup
 
+
+import dmost_utils,dmost_flexure, dmost_create_maskfile
+import dmost_telluric, dmost_chi2_template, dmost_emcee
+import dmost_coadd_emcee, dmost_combine_exp
+
+from dmost_create_maskfile import write_dmost
 
 
 def run_dmost(maskname, rerun_chi2 = 0, erun_emcee = 0, rerun_coadd = 0):
     '''
     Main drive for dmost 
     '''
+    DEIMOS_REDUX = os.getenv('DEIMOS_REDUX')
+    data_dir     = DEIMOS_REDUX+maskname+'/'
 
 
     # CREATE OR READ DMOST OUTPUT TABLE
-    slits, mask = dmost_create_maskfile.create_single_mask(maskname)
+    slits, mask, nexp, outfile = dmost_create_maskfile.create_single_mask(maskname)
 
 
     # RUN FLEXURE
