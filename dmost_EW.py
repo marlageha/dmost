@@ -47,7 +47,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
     ax3.plot(nwave,nspec)
     ax3.plot(nwave,mg_fit,'r')
     ax3.set_title(' MgI EW = {:0.2f}  err={:0.2f}'.format(this_slit['mgI'],this_slit['mgI_err']))
-    ax3.set_xlim(8802,8810)
+    ax3.set_xlim(8802,8811)
 
 
     ax4.plot(nawave,naspec)
@@ -197,7 +197,7 @@ def MgI_guess(x,y):
 
 
 ########################################
-def mgI_EW_fit(wvl,spec,ivar):
+def mgI_EW_fit(wvl,spec,ivar,cat_lsf):
     
     # CALCULATE in +/- 5A of MgI line
     # there is a line at 8804.6 (need to deal with this?)
@@ -206,37 +206,37 @@ def mgI_EW_fit(wvl,spec,ivar):
     mw    = (wvl > wline[0]) & (wvl < wline[1]) 
 
     mg1_EW, mg1_EW_err, p3     = -99, -99,  -99
-    gfit       = -99*wvl
+    mgfit       = -99*wvl
        
-    if np.median(spec[mw]) > 0:
 
-
-        # GAUSSIAN FIT
+    # GAUSSIAN FIT
+    try:
         p0 = MgI_guess(wvl[mw],spec[mw])
         errors = 1./np.sqrt(ivar[mw])
-        try:
-            p, pcov = curve_fit(MgI_gaussian,wvl[mw],spec[mw],sigma = errors,p0=p0)                  
-            perr = np.sqrt(np.diag(pcov))
-         
-            # INTEGRATE PROFILE
-            mg1_EW = (p[1])*(p[2]*np.sqrt(2.*np.pi))
+        p, pcov = curve_fit(MgI_gaussian,wvl[mw],spec[mw],sigma = errors,p0=p0, \
+                           bounds=((0.5, 0.1, 0.5), (2, 2, 3)))
+        print(p)
+        perr = np.sqrt(np.diag(pcov))
+     
+        # INTEGRATE PROFILE
+        mg1_EW = (p[1])*(p[2]*np.sqrt(2.*np.pi))
 
-            # CALCUALTE ERROR
-            tmp1 = p[1] * perr[2]* np.sqrt(2*np.pi)
-            tmp2 = p[2] * perr[1]* np.sqrt(2*np.pi)
-            mg1_EW_err = np.sqrt(tmp1**2 + tmp2**2)
+        # CALCUALTE ERROR
+        tmp1 = p[1] * perr[2]* np.sqrt(2*np.pi)
+        tmp2 = p[2] * perr[1]* np.sqrt(2*np.pi)
+        mg1_EW_err = np.sqrt(tmp1**2 + tmp2**2)
 
-            # CREATE FIT FOR PLOTTING
-            gfit = MgI_gaussian(wvl,*p)
-            p3=p[2]
+        # CREATE FIT FOR PLOTTING
+        mgfit = MgI_gaussian(wvl,*p)
+        p3=p[2]
 
-            if (p[2] > 2.0) | (np.abs(mg1_EW) > 10) | (mg1_EW_err == 0.):
-                mg1_EW=-99
-                mg1_EW_err = -99
-        except:
-            p, pcov = p0, None
+        if (p[2] > 2.0) | (np.abs(mg1_EW) > 10) | (mg1_EW_err == 0.):
+            mg1_EW=-99
+            mg1_EW_err = -99
+    except:
+        p3 = -1
       
-    return mg1_EW,mg1_EW_err,gfit, p3
+    return mg1_EW,mg1_EW_err,mgfit, p3
 
 
 ######################################
@@ -378,7 +378,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         gfit = CaT_gauss(wvl,*p)
         
         
-    return CaT, CaT_err, gfit
+    return CaT, CaT_err, gfit, p[2]
 
 ########################################
 def CaII_EW_fit_GL(wvl,spec,ivar):
@@ -454,7 +454,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 
          
         # OMG, WHY 0.85??
-    return 0.85*CaT, CaT_err, gfit
+    return 0.85*CaT, CaT_err, gfit, p[2]
 
 
 ########################################
@@ -507,14 +507,15 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     ivar = jivar[wave_lims]
 
     redshift = slits['dmost_v'][arg] / 299792.
-    wave = wvl / (1.0+redshift)  
+    wave     = wvl / (1.0+redshift)  
 
     #####################             
     # CALCULATE Ca II LINES CONTINUUM
-    nwave,nspec,nivar           = CaII_normalize(wave,flux,ivar)
-    CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_GL(nwave,nspec,nivar)
-    if (CaT_EW_err == -99):
-        CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_gauss(nwave,nspec,nivar)
+    nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
+    CaT_EW, CaT_EW_err, CaT_fit, cat_lsf = CaII_EW_fit_GL(nwave,nspec,nivar)
+
+    if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 10):
+        CaT_EW, CaT_EW_err, CaT_fit, cat_lsf = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
     slits['cat'][arg]     = CaT_EW
@@ -523,7 +524,7 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     ##########################
     # CALCULATE MgI LINES
     MgI_EW_dir,MgI_EW_dir_err          = mgI_EW_direct(nwave,nspec,nivar)        
-    MgI_EW,MgI_EW_err, MgI_fit,mg1_p3  = mgI_EW_fit(nwave,nspec,nivar)
+    MgI_EW,MgI_EW_err, MgI_fit,mg1_p3  = mgI_EW_fit(nwave,nspec,nivar, cat_lsf)
 
     # REPLACE BAD MgI FIT WITH DIRECT
     if (MgI_EW > 1.0) | (mg1_p3 > 1.5):
