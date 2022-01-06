@@ -344,7 +344,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         gfit = CaT_gauss(wvl,*p)
         
         
-    return CaT, CaT_err, gfit, p[2]
+    return CaT, CaT_err, gfit
 
 ########################################
 def CaII_EW_fit_GL(wvl,spec,ivar):
@@ -420,7 +420,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 
          
         # OMG, WHY 0.85??
-    return 0.85*CaT, CaT_err, gfit, p[2]
+    return 0.85*CaT, CaT_err, gfit
 
 
 ########################################
@@ -481,10 +481,10 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         #####################             
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
-        CaT_EW, CaT_EW_err, CaT_fit, cat_lsf = CaII_EW_fit_GL(nwave,nspec,nivar)
+        CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_GL(nwave,nspec,nivar)
 
         if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 15) |  (CaT_EW < 0):
-            CaT_EW, CaT_EW_err, CaT_fit, cat_lsf = CaII_EW_fit_gauss(nwave,nspec,nivar)
+            CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
         slits['cat'][arg]     = CaT_EW
