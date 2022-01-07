@@ -214,7 +214,7 @@ def mgI_EW_fit(wvl,spec,ivar):
         p0 = MgI_guess(wvl[mw],spec[mw])
         errors = 1./np.sqrt(ivar[mw])
         p, pcov = curve_fit(MgI_gaussian,wvl[mw],spec[mw],sigma = errors,p0=p0, \
-                           bounds=((0.5, 0.0, 0.5, 8806), (2, 2, 1.25,8808)))
+                           bounds=((0.5, 0.0, 0.5, 8805), (2, 2, 1.25,8808)))
         perr = np.sqrt(np.diag(pcov))
      
         # INTEGRATE PROFILE
