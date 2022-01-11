@@ -277,15 +277,10 @@ def add_marz(data_dir,mask,slits):
     marz_file = DEIMOS_REDUX+'/marz_files/marz_'+mask['maskname'][0]+'_MG.mz'
     if os.path.isfile(marz_file):
         mz_gal    = read_marz_output(marz_file)
-        m         = mz_gal['ZQUALITY'] > 1 # ZQ = 2 is ambigous, but run as star
 
-        mz_gal = mz_gal[m]
-        if np.sum(m) > 0:
-
-            m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],mz_gal['RA'],mz_gal['DEC'],1./3600)
-
-            slits['marz_flag'][m1]   = mz_gal['ZQUALITY'][m2]
-            slits['marz_z'][m1]      = mz_gal['SPEC_Z'][m2]
+        m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],mz_gal['RA'],mz_gal['DEC'],1./3600)
+        slits['marz_flag'][m1] = mz_gal['ZQUALITY'][m2]
+        slits['marz_z'][m1]    = mz_gal['SPEC_Z'][m2]
 
         ngal   = np.sum(mz_gal['ZQUALITY'] > 2) # GALAXIES
 
