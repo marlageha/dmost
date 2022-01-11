@@ -439,14 +439,14 @@ def CaII_normalize(wave,spec,ivar):
     m4 = (wave > cont4[0]) & (wave < cont4[1])
     m5 = (wave > cont5[0]) & (wave < cont5[1])
     m = m1 | m2 | m3 | m4 | m5
-    
+
     fwave = wave[m]
     fspec = spec[m]
     fivar = ivar[m]
     z = np.polyfit(fwave,fspec,1)
     p = np.poly1d(z)
     fit = p(wave)
-    
+
     # NORMALIZE SPECTRUM
     nwave = wave
     nspec = spec/fit
@@ -476,8 +476,9 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     wave     = wvl / (1.0+redshift)  
 
     wlims = (wvl > 8100) & (wvl < 8700)
-    if (np.sum(flux[wlims] > 0) > 1100):
+    if (np.sum(flux[wlims] > 0) > 1200):
 
+        
         #####################             
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
