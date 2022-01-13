@@ -35,7 +35,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
     ax1.plot(nwave,nspec)
     ax1.set_xlim(8484, 8560)
     ax1.plot(nwave,cat_fit,'r')
-    ax1.set_title('SN= {:0.2f}'.format(this_slit['collate1d_SN']))
+    ax1.set_title('SN= {:0.1f} v = {:0.1f}'.format(this_slit['collate1d_SN'], this_slit['dmost_v']))
 
 
     ax2.plot(nwave,nspec)
@@ -313,7 +313,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         
         try:
             p, pcov = curve_fit(CaT_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                            bounds=((0.5, 8541., 0.5, 0,0,0), (2, 8543.5, 1.5,2,2,2)))
+                            bounds=((0.5, 8540., 0.5, 0,0,0), (2, 8543.5, 1.5,2,2,2)))
         except:
             p, pcov = p0, None
 
@@ -484,7 +484,7 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
         CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_GL(nwave,nspec,nivar)
 
-        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 15) |  (CaT_EW < 0):
+        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 30) |  (CaT_EW < 0):
             CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
