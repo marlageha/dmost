@@ -80,7 +80,7 @@ def faster_polyval(p, x):
 def create_tell_masks(data_wave):
     
     b = [6855,7167,7580,8160,8925]
-    r = [6855,7320,7690,8300,9120]
+    r = [6912,7320,7690,8300,9120]
 
     data_mask1 = (data_wave > b[0]) & (data_wave < r[0]) 
     data_mask2 = (data_wave > b[1]) & (data_wave < r[1]) 
