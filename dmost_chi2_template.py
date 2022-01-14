@@ -202,12 +202,12 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
     
     
     # USE MEAN LINE SPREAD FUNCTION
-    losvd_pix =  np.mean(f['fit_lsf'][f['fit_lsf']>0])/ 0.02
+    losvd_pix =   np.mean(f['fit_lsf'][f['fit_lsf']>0])/ 0.02
 
 
     # CONTINUUM POLYNOMIAL SET BY SN LIMITS
     npoly = 5
-    if (f['collate1d_SN']) > 130:
+    if (f['collate1d_SN']) > 100:
         npoly=7
 
     # LOOP THROUGH ALL TEMPLATES
