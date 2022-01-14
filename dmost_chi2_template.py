@@ -58,11 +58,6 @@ def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux,npoly):
     # FIT CONTINUUM -- for weights use 1/sigma
     ivar = data_ivar/synth_flux**2
     p    = np.polyfit(data_wave[cmask],data_flux[cmask]/synth_flux[cmask],npoly,w=np.sqrt(ivar[cmask]))
-    fit  = np.poly1d(p)
-   
-    d      = data_flux/fit(data_wave)
-    cmask2 = (d > np.percentile(d,15)) & (d < np.percentile(d,99))
-    p      = np.polyfit(data_wave[cmask2],data_flux[cmask2]/synth_flux[cmask2],npoly,w=np.sqrt(ivar[cmask2]))
 
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
     model_flux = synth_flux * faster_polyval(p, data_wave)
