@@ -41,10 +41,16 @@ def create_chi2_masks(data_wave):
 
 
     # USE THIS FOR CONTINUUM FITTING
-    cmask1 = (data_wave > 6555) & (data_wave < 6567) 
-    cmask2 = (data_wave > 7590) & (data_wave < 7680) 
-    cmask3 = (data_wave > 8470) & (data_wave < 8660) 
-    cmaski = cmask1 | cmask2 | cmask3
+     # EXCLUDE FOR CONTINUUM FITTING
+    cmask1 = (data_wave > 6554) & (data_wave < 6567) 
+    cmask2 = (data_wave > 6855) & (data_wave < 6912)
+    cmask3 = (data_wave > 7167) & (data_wave < 7320)
+    cmask4 = (data_wave > 7590) & (data_wave < 7680) 
+    cmask5 = (data_wave > 8160) & (data_wave < 8300)
+    cmask6 = (data_wave > 8925) & (data_wave < 9120)
+
+    
+    cmaski = cmask1 | cmask2 | cmask3 | cmask4 | cmask5 | cmask6
     continuum_mask = np.invert(cmaski)
 
 
