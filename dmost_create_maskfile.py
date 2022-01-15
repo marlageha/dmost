@@ -53,6 +53,8 @@ def create_mask(nexp):
             filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
             filled_column('vhelio',-1.,nexp),
+            filled_column('seeing',-1.,nexp),
+            filled_column('lsf_correction',-1.,nexp),
             filled_column('telluric_h2o',-1.,nexp),
             filled_column('telluric_o2',-1.,nexp),
             filled_column('flag_flexure',0,nexp),
@@ -120,6 +122,7 @@ def create_slits(nslits,nexp):
             filled_column('fit_lsf_p1',np.zeros(nexp),nslits),
             filled_column('fit_lsf_p2',np.zeros(nexp),nslits),
             filled_column('fit_lsf',np.zeros(nexp),nslits),
+            filled_column('fit_lsf_corr',np.zeros(nexp),nslits),
             filled_column('rms_sky',np.zeros(nexp),nslits),
  
 
@@ -130,6 +133,7 @@ def create_slits(nslits,nexp):
             filled_column('telluric_o2_err',np.zeros(nexp),nslits),
             filled_column('telluric_w',np.zeros(nexp),nslits),
             filled_column('telluric_chi2',np.zeros(nexp),nslits),
+
 
             # CHI2 TEMPLATE
             filled_column('chi2_tfile','                                    ',nslits),
@@ -274,7 +278,7 @@ def read_marz_output(marz_file):
 #############################################################
 def add_marz(data_dir,mask,slits):
     
-    marz_file = DEIMOS_REDUX+'/marz_files/marz_'+mask['maskname'][0]+'_MG.mz'
+    marz_file = DEIMOS_REDUX+'marz_files/marz_'+mask['maskname'][0]+'_MG.mz'
     if os.path.isfile(marz_file):
         mz_gal    = read_marz_output(marz_file)
 
