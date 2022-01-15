@@ -318,7 +318,7 @@ def add_seeing(data_dir,mask,slits):
             mstar = (slits['collate1d_SN'] > min_SN) & (slits['marz_flag'] < 2)
 
         mask['seeing'][nexp] = np.nanmedian(slits['opt_fwhm'][mstar,nexp])
-        print('{} Seeing is {:0.2f} arcsec'.format(mask['maskname'][0],mask['seeing'][nexp]))
+        print('{} {} Seeing is {:0.2f} arcsec'.format(mask['maskname'][0], mask['fname'][nexp],mask['seeing'][nexp]))
 
     return mask
 
