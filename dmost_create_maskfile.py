@@ -192,6 +192,10 @@ def create_slits(nslits,nexp):
 
 #############################################################
 def dmost_parse_telluric(tfile,fname):
+    '''
+    Given a telluric template (tfile) created for given exposure (fname), 
+    pull out O2 and H2O values
+    '''
     a = tfile.split(fname)
     b = a[1].split('_')
     
@@ -203,7 +207,11 @@ def dmost_parse_telluric(tfile,fname):
     o2 = d[1]    
     return h2o,o2
 
+
 def parse_year(mjd):
+    '''
+    Get year from mjd, needed to find rawdata directories
+    '''
     t = Time(mjd,format='mjd')
     a = t.to_value('jyear', subfmt='str')
     b=a.split('.')
@@ -296,6 +304,23 @@ def add_marz(data_dir,mask,slits):
         print('{} No MARZ FILE!'.format(mask['maskname'][0]))
         
     return slits
+
+
+def add_seeing(data_dir,mask,slits):
+
+    # FOR EACH EXPOSURE
+    for nexp,spec1d_file in enumerate(mask['spec1d_filename']): 
+
+        min_SN = 10.
+        mstar = (slits['collate1d_SN'] > min_SN) & (slits['marz_flag'] < 2)
+        if (np.sum(mstar) < 3):
+            min_SN = 3.
+            mstar = (slits['collate1d_SN'] > min_SN) & (slits['marz_flag'] < 2)
+
+        mask['seeing'][nexp] = np.nanmedian(slits['opt_fwhm'][mstar,nexp])
+        print('{} Seeing is {:0.2f} arcsec'.format(mask['maskname'][0],mask['seeing'][nexp]))
+
+    return mask
 
 
 
@@ -485,6 +510,9 @@ def create_single_mask(maskname):
 
     # ADD MARZ
     slits = add_marz(data_dir,mask,slits)
+
+    # ADD SEEING
+    mask = add_seeing(data_dir,mask,slits)
 
 
     return slits, mask, nexp, outfile
