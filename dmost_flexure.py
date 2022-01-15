@@ -110,7 +110,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
             ax1.set_ylabel('Wavelength offset (AA)')
             ax1.set_xlabel('Wavelength (AA)')
             ax1.set_xlim(6300,9100)
-            t = 'Sky Line Fits = {:0.4f} AA, Arc = {:0.2f}'.format(slits['rms_sky'][arg,nexp],0.32*slits['rms_arc_r'][arg,nexp])
+            t = 'Sky Line Fits = {:0.4f} AA, Arc = {:0.2f} AA'.format(slits['rms_sky'][arg,nexp],0.32*slits['rms_arc_r'][arg,nexp])
             ax1.set_title(t)
 
             sky_diff  = np.concatenate((b_sky_diff,r_sky_diff),axis=None)
