@@ -355,37 +355,40 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
                                       data_ivar,continuum_mask,slits['fit_lsf'][arg,nexp])
 
             plt.figure(figsize=(16,5))
-            plt.plot(data_wave,data_flux)
-            plt.plot(data_wave,model,'k',label='model')
-            plt.plot(data_wave[chi2_mask],model[chi2_mask],'r',label='telluric fitted region')
+            plt.plot(data_wave,data_flux,linewidth=0.9)
+            plt.plot(data_wave,model,'k',label='model',linewidth=0.8)
+            plt.plot(data_wave[chi2_mask],model[chi2_mask],'r',label='telluric fitted region',linewidth=0.8,alpha=0.8)
 
-            plt.title('{}   {}  SN={:0.1f}'.format(arg,slits['rspat'][arg,nexp],slits['rSN'][arg,nexp]))
+            plt.title('chi2 = {:0.1f}     SN={:0.1f}'.format(np.min(tmp_chi),slits['rSN'][arg,nexp]))
             plt.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
 
             pdf.savefig()
 
+            fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(17,5))
+            vmn = np.log(np.min(tmp_chi))
+            vmx = np.log(vmn + np.percentile(tmp_chi,25))
 
-            fig, (ax1, ax2, ax3) = plt.subplots(1, 3,figsize=(20,5))
-            ax1.plot(tmp_h2o,tmp_chi,'.')
-            ax2.plot(tmp_o2,tmp_chi,'.')
-            ax3.plot(tmp_w,tmp_chi,'.')
+            aa,bb,cc = projected_chi_plot(tmp_o2,tmp_h2o,tmp_chi)
+            ax1.scatter(aa,bb,c=np.log(cc),vmin=vmn,vmax=vmx,cmap='cool')
+            ax1.plot(tmp_o2[n],tmp_h2o[n],'o',mfc='none',mec='k',ms=15)
+            ax1.set_ylabel('H2O')
+            ax1.set_xlabel('O2')
+            ax1.set_title('H2O= {:0.1f}     O2={:0.1f}'.format(bh2o, bo2))
 
-            cmin=np.min(tmp_chi)
-            cmax=np.min(tmp_chi)+np.percentile(tmp_chi,25.)
+            # MAKE COLORBAR
+            v1 = np.linspace(vmn,vmx, 8, endpoint=True)
+            cax, _    = matplotlib.colorbar.make_axes(ax1,ticks=v1)
+            normalize = matplotlib.colors.Normalize(vmin = vmn,vmax=vmx)
+            cbar      = matplotlib.colorbar.ColorbarBase(cax,norm=normalize,cmap=matplotlib.cm.cool)
+            cbar.ax.set_yticklabels(["{:4.1f}".format(np.exp(i)) for i in v1])
+            cbar.ax.set_ylabel('chi2')
 
-            ax1.set_ylabel('Chi2')
-            ax1.set_xlabel('h2o')
-
-            ax2.set_xlabel('o2')
-            ax3.set_xlabel('wshift')
-            ax1.set_title('{:0.2f}'.format(slits['rSN'][arg,nexp]))
-
-            ax2.set_title('{:0.3e}'.format(bo2))
-            ax1.set_title('{:0.3f}'.format(bh2o))
-
-
-            ax1.axvline(slits['telluric_h2o'][arg,nexp],color='b')
-            ax2.axvline(slits['telluric_o2'][arg,nexp],color='b')
+            
+            
+            ax2.plot(tmp_w,tmp_chi,'.')
+            ax2.set_xlabel('wshift')
+            ax2.set_ylabel('chi2')
+            ax2.set_title('w = {:0.2f}'.format(tmp_w[n]))
 
             pdf.savefig()
             plt.close('all')
@@ -567,7 +570,6 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
             print('{} {} Telluric already done, adding to header {} {:0.2f}'.format(mask['maskname'][ii],mask['fname'][ii],\
                                                                                thdr['h2o'],thdr['o2']))
 
-
         if (np.size(tfile) == 0) | (clobber == 1):
 
             # RUN ALL SLITS 
@@ -575,6 +577,15 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
 
             # CALCULATE FINAL VALUES AND QA PLOTS
             final_h2o, final_o2, mask = final_telluric_values(data_dir, slits, mask, ii, hdu)
+
+
+        # CORRECTION LSF USING TELLURIC ABS
+       # if (mask['lsf_correction'] == -1):#
+
+#            lsf_corr = telluric_lsf_correction(data_dir, slits, mask, ii, hdu) #, twave,tflux,SNmin)
+#            mask['lsf_correction'][ii]  = lsf_corr
+#            slits['fit_lsf_corr'][:,ii] = lsf_corr * slits['fit_lsf'][:,ii]
+
 
         mask['flag_telluric'][ii] = 1
         
