@@ -64,9 +64,10 @@ def create_mask(nexp):
             filled_column('flag_coadd',0,nexp),
             filled_column('nexp',-1,nexp),
             
-            # TELESCOPE DATA
+            # MASK DATA
             filled_column('mask_ra',-1.,nexp),
             filled_column('mask_dec',-1.,nexp),
+            filled_column('slitwidth',-1.,nexp),
 
            ]
 
@@ -103,7 +104,6 @@ def create_slits(nslits,nexp):
             filled_column('ccd_gap_r',np.zeros(nexp),nslits),
             filled_column('xpos',-1.,nslits),
             filled_column('ypos',-1.,nslits),
-            filled_column('slitwidth',-1.,nslits),
             
             # COLLATE1D
             filled_column('collate1d_filename','                                         ',nslits),
@@ -351,9 +351,14 @@ def create_slits_from_bintab(data_dir,mask,nexp):
     collate1d = ascii.read(data_dir+'collate_report.dat')
     collate1d_files = np.unique(collate1d['filename'])
 
+    # ADD SLITWIDTH TO MASKS
+    mask['slitwidth']  = np.median(0.01*(round(dsl['slitWid']/0.01)))
+
 
     # POPULATE USING BINTABS AND COLLATE1D DATA
     ncol1d = 0
+
+
     for i,(obj,bsl,dsl) in enumerate(zip(bintab,bluslits,desislits)):
         slits['RA'][i]         = obj['RA_OBJ']
         slits['DEC'][i]        = obj['DEC_OBJ']
@@ -361,7 +366,6 @@ def create_slits_from_bintab(data_dir,mask,nexp):
         slits['maskdef_id'][i] = obj['OBJECTID']
         slits['xpos'][i]       = (bsl['slitX1']+bsl['slitX2'])/2.
         slits['ypos'][i]       = bsl['slitY1']
-        slits['slitwidth'][i]  = 0.01*(round(dsl['slitWid']/0.01))
 
         
         # GENERAL REDUCE FLAG
