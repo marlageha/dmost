@@ -101,6 +101,25 @@ def create_tell_masks(data_wave):
     return continuum_mask, chi2_mask
 
 
+
+###############################################
+def projected_chi_plot(x,y,z):
+    
+    unq_a = np.unique(x)
+    unq_b = np.unique(y)
+    aa,bb,cc = [],[],[]
+    
+    
+    for a in unq_a:
+        for b in unq_b:
+            m=(x == a) & (y == b)
+            if np.sum(m) > 0:
+                cc = np.append(cc,np.min(z[m]))
+                aa = np.append(aa,a)
+                bb = np.append(bb,b)
+
+    return aa,bb,cc
+
 ########################################
 def solve_for_y(poly_coeffs, y):
     pc = poly_coeffs.copy()
