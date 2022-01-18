@@ -211,6 +211,9 @@ def vignetting_limits(slits,nexp,wave):
     vwave_min = np.min(wave)
     vwave_max = np.max(wave)
 
+
+
+
     
     # FOR DETECTOR 1+5, APPLY VIGNETTING FIT
     xpos = slits['rspat'][nexp]
@@ -224,6 +227,10 @@ def vignetting_limits(slits,nexp,wave):
         vwave_min = np.min(wave) + wlim5  + fdg 
         vwave_max = np.max(wave) - wlim5
 
+        vwave_min,vwave_max = arc_rms_limits(slits, nexp, vwave_min,vwave_max, wlim5)
+
+
+
     # FOR DETECTOR 4+8, APPLY VIGNETTING FIT
     if (slits['rdet'][nexp] == 8) & (xpos > 700):
         p8=[ 1.37190021e-04, -3.30255017e-02, -6.38328134e+00]  
@@ -233,12 +240,33 @@ def vignetting_limits(slits,nexp,wave):
         vwave_min = np.min(wave) + wlim8
         vwave_max = np.max(wave) - wlim8
             
+        vwave_min,vwave_max = arc_rms_limits(slits, nexp, vwave_min,vwave_max,wlim8)
+
 
     # RETURN NON-VIGNETTED WAVELENGTH REGION
     wave_lims = (wave > vwave_min) & (wave < vwave_max)
     
+
     return wave_lims
 
+
+def arc_rms_limits(slits,nexp,vwmin,vwmax,wlim):
+
+
+    # IF RED ARC SOLUTION BAD, REMOVE RED CHIP
+    if (slits['rms_arc_r'][nexp] > 0.2):
+        vwmax = slits['ccd_gap_b'][nexp] 
+        if (vwmin < vwmax - 4096*0.32):
+            vwmin = vwmax - 4096*0.32  + wlim
+
+
+   # IF BLUE ARC SOLUTION BAD, REMOVE BLUE CHIP
+    if (slits['rms_arc_b'][nexp] > 0.175):
+        vwmin = slits['ccd_gap_r'][nexp] 
+        if (vwmax > vwmin + 4096*0.31):  
+            vwmax = vwmin + 4096*0.31
+
+    return vwmin,vwmax
 
 ####################################################
 def read_dmost(outfile):
