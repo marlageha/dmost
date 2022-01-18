@@ -349,7 +349,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             
 
             # SMOOTH TEMPLATES 
-            losvd_pix = slits['fit_lsf'][arg,nexp]/ 0.02
+            losvd_pix = mask['lsf_correction'][nexp] * slits['fit_lsf'][arg,nexp]/ 0.02
             sm_pflux  = scipynd.gaussian_filter1d(pflux[mp],losvd_pix,truncate=3)
             pwave     = plogwave[mp]
             
@@ -415,7 +415,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         telluric = Table.read(tfile[0])
 
         # WRITE TO SCREEN
-        SNmin = 3
+        SNmin = 2.
         m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
