@@ -9,7 +9,6 @@ import glob
 from astropy.table import Table
 from astropy.io import ascii
 
-#from pypeit import pypeitsetup
 
 
 import dmost_utils,dmost_flexure, dmost_create_maskfile
