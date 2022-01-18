@@ -395,9 +395,9 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
         lint3 = 2.*np.pi*p[9]
 
 
-        lerr1 = 2.*np.pi*perr[7]
-        lerr2 = 2.*np.pi*perr[8]
-        lerr3 = 2.*np.pi*perr[9]
+        lerr1 = np.pi*perr[7] * perr[3]
+        lerr2 = np.pi*perr[8] * perr[3]
+        lerr3 = np.pi*perr[9] * perr[3]
 
         # PUT IT ALL TOGETHER
         #print('CA1 = ',gint1+lint1)
