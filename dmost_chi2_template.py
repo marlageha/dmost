@@ -36,7 +36,7 @@ def create_chi2_masks(data_wave):
     cmask3 = (data_wave > 7350) & (data_wave < 7550) 
     cmask4 = (data_wave > 7800) & (data_wave < 8125) 
     cmask5 = (data_wave > 8170) & (data_wave < 8210) 
-    cmask6 = (data_wave > 8350) & (data_wave < 8850) 
+    cmask6 = (data_wave > 8350) & (data_wave < 8875) 
     chi2_mask = cmask1 | cmask2 | cmask3 | cmask4 | cmask5 | cmask6
 
 
@@ -203,7 +203,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
     
     
     # USE MEAN LINE SPREAD FUNCTION
-    losvd_pix =   np.mean(f['fit_lsf'][f['fit_lsf']>0])/ 0.02
+    losvd_pix =    np.mean(f['fit_lsf'][f['fit_lsf']>0])/ 0.02
 
 
     # CONTINUUM POLYNOMIAL SET BY SN LIMITS
@@ -335,7 +335,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     print('{} Finding chi2 templates for {} stellar slits w/SN > 1.0'.format(mask['maskname'][0],np.sum(m)))
      
     # V RANGE FOR TEMPLATE FINDER
-    vrange = np.arange(-500,500,5)
+    vrange = np.arange(-500,500,3)
 
     for ii,obj in enumerate(slits): 
 
