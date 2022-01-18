@@ -312,7 +312,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
     for arg in np.arange(0,nslits,1,dtype='int'):
         if (slits['rSN'][arg,nexp] > min_SN) & (slits['rSN'][arg,nexp] < 155):
 
-            losvd_pix =  slits['fit_lsf'][arg,nexp]/ 0.02
+            losvd_pix =  mask['lsf_correction'][nexp] * slits['fit_lsf'][arg,nexp]/ 0.02
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
 
             wave_lims = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
@@ -586,7 +586,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
             thdr  =  thdu[1].header
             mask['telluric_h2o'][ii] = thdr['h2o']
             mask['telluric_o2'][ii]  = thdr['o2']
-            print('{} {} Telluric already done, adding to header {} {:0.2f}'.format(mask['maskname'][ii],mask['fname'][ii],\
+            print('{} {} Telluric already done: H2O = {}, O2 = {:0.2f}'.format(mask['maskname'][ii],mask['fname'][ii],\
                                                                                thdr['h2o'],thdr['o2']))
 
         if (np.size(tfile) == 0) | (clobber == 1):
