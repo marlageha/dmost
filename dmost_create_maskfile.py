@@ -45,7 +45,7 @@ def create_mask(nexp):
 
     cols = [filled_column('spec1d_filename','                                                                        ',nexp),
             filled_column('rawfilename','                          ',nexp), 
-            filled_column('deimos_maskname','              ',nexp), 
+            filled_column('deimos_maskname','                 ',nexp), 
             filled_column('maskname','        ',nexp), 
             filled_column('fname','        ',nexp),
             filled_column('mjd',-1.,nexp),
