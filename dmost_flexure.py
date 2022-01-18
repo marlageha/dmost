@@ -280,7 +280,7 @@ def fit_mask_surfaces(fslope, fb, flos, x, y):
 
 
 #######################################################
-def update_flexure_fit(slits, ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los,sky):
+def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los,sky):
 
 
     # UPDATE FITS
@@ -289,6 +289,12 @@ def update_flexure_fit(slits, ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los,sky)
         slits['fit_slope'][arg,ii] = pmodel_m(slits['RA'][arg],slits['DEC'][arg])
         slits['fit_b'][arg,ii]     = pmodel_b(slits['RA'][arg],slits['DEC'][arg])
         slits['fit_lsf'][arg,ii]   = pmodel_los(slits['RA'][arg],slits['DEC'][arg])
+
+
+        # APPLY CORRECTION FACTOR DETERMINED FROM ABSORPTION LINE FIT TO SEETING
+        # 
+        slits['fit_lsf'][arg,ii] = slits['fit_lsf'][arg,ii] * mask['lsf_correction'][ii]
+
 
         # CALCULATE RESIDUALS FROM FIT        
         if (slits['reduce_flag'][arg,ii] == 1):
@@ -387,7 +393,7 @@ def run_flexure(data_dir,slits,mask):
                                                                 mask['fname'][ii],ngood))
         
         # ADD TO TABLE
-        slits = update_flexure_fit(slits, ii, nslits, hdu, pmodel_m, pmodel_b,pmodel_los,sky)
+        slits = update_flexure_fit(slits, mask, ii, nslits, hdu, pmodel_m, pmodel_b,pmodel_los,sky)
   
         # REFIT FOR QA PLOTS
         qa_flexure_plots(data_dir,nslits,slits,ii,sky,hdu,mask,fslope, fb, flos, x, y)
