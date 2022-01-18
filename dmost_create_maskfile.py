@@ -55,6 +55,7 @@ def create_mask(nexp):
             filled_column('vhelio',-1.,nexp),
             filled_column('seeing',-1.,nexp),
             filled_column('lsf_correction',-1.,nexp),
+
             filled_column('telluric_h2o',-1.,nexp),
             filled_column('telluric_o2',-1.,nexp),
             filled_column('flag_flexure',0,nexp),
@@ -67,7 +68,7 @@ def create_mask(nexp):
             # MASK DATA
             filled_column('mask_ra',-1.,nexp),
             filled_column('mask_dec',-1.,nexp),
-            filled_column('slitwidth',-1.,nexp),
+            filled_column('slitwidth',-1.,nexp)
 
            ]
 
@@ -282,6 +283,22 @@ def read_marz_output(marz_file):
     return mz
 
 
+#############################################################
+def set_lsf_correction(mask,nexp):
+
+    seeing_over_slitwidth = mask['seeing'][nexp] / mask['slitwidth'][nexp]
+            
+    # FIT DETERMINED FROM FINDING BEST TELLURIC LSF
+    # SEE NOTEBOOK 
+    m = 0.23547431
+    b = 0.68572587
+    correction_factor = m * seeing_over_slitwidth + b
+    if correction_factor > 1.0:
+        correction_factor = 1.0
+
+    mask['lsf_correction'][nexp] = correction_factor
+
+    return mask
 
 #############################################################
 def add_marz(data_dir,mask,slits):
@@ -317,8 +334,18 @@ def add_seeing(data_dir,mask,slits):
             min_SN = 3.
             mstar = (slits['collate1d_SN'] > min_SN) & (slits['marz_flag'] < 2)
 
+
+
+        # SET SEEING VALUE FROM EXTRACTED STAR FWMH
         mask['seeing'][nexp] = np.nanmedian(slits['opt_fwhm'][mstar,nexp])
-        print('{} {} Seeing is {:0.2f} arcsec'.format(mask['maskname'][0], mask['fname'][nexp],mask['seeing'][nexp]))
+
+
+        # SET LSF CORRECTION -- DETERMINED FROM FIT
+        mask = set_lsf_correction(mask,nexp)
+
+        print('{} {} Slitwidth is {:0.1f}, Seeing is {:0.2f} arcsec, LSF correction is {:0.2f}'.format(mask['maskname'][0], mask['fname'][nexp],\
+                                                                            mask['slitwidth'][nexp],mask['seeing'][nexp],mask['lsf_correction'][nexp]))
+
 
     return mask
 
@@ -352,8 +379,8 @@ def create_slits_from_bintab(data_dir,mask,nexp):
     collate1d_files = np.unique(collate1d['filename'])
 
     # ADD SLITWIDTH TO MASKS
-    mask['slitwidth']  = np.median(0.01*(round(dsl['slitWid']/0.01)))
-
+    median_slitwidth = np.median(desislits['slitWid'])
+    mask['slitwidth']  = 0.01*(round(median_slitwidth/0.01))
 
     # POPULATE USING BINTABS AND COLLATE1D DATA
     ncol1d = 0
