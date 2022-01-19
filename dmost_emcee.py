@@ -331,6 +331,12 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             flux = flux[wave_lims]
             ivar = ivar[wave_lims]
 
+            # CORRECT CHIP GAP
+            fcorr = obj['chip_gap_corr_collate1d']
+            bwave_gap = np.median(obj['ccd_gap_b'])
+            flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],wave,flux,ivar)
+
+
             # READ STELLAR TEMPLATE 
             plogwave,pflux = read_best_template(slits['chi2_tfile'][arg])
     
@@ -416,7 +422,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
 
         # WRITE TO SCREEN
         SNmin = 2.
-        m = (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
+        m = (slits['rSN'][:,ii] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
                                                                 mask['fname'][ii],nslits,SNmin))
