@@ -194,6 +194,7 @@ def load_coadd_collate1d(hdu,vacuum=0,vignetted = 0):
         
         SN = np.median(all_flux*np.sqrt(all_ivar))
 
+
     except:
         print('no data!')
         n=8172
@@ -204,14 +205,23 @@ def load_coadd_collate1d(hdu,vacuum=0,vignetted = 0):
 
     return all_wave,all_flux,all_ivar, SN
 
+
+def correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar):
+
+    if (fcorr != -1):
+        m = wave < bwave_gap
+        flux[m] = fcorr * flux[m]
+        ivar[m] = ivar[m]/fcorr**2
+
+    return flux, ivar
+
+
 ####################################################
 def vignetting_limits(slits,nexp,wave):
     
     # DEFAULT SET TO FULL WAVELENGTH RANGE
     vwave_min = np.min(wave)
     vwave_max = np.max(wave)
-
-
 
 
     
