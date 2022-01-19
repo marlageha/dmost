@@ -43,10 +43,11 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
         write_dmost(slits,mask,outfile)
 
 
-    slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
 
+    # RUN CHIP GAP 
     # RUN CHI2 TEMPLATE FINDER ON COMBINED DATA
     if ~(np.sum(mask['flag_template']) == nexp) | (rerun_chi2 == 1):
+        slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
         slits,mask  = dmost_chi2_template.run_chi2_templates(data_dir, slits, mask)
         write_dmost(slits,mask,outfile)
 
