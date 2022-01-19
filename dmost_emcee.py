@@ -332,8 +332,6 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             ivar = ivar[wave_lims]
 
             # CORRECT CHIP GAP
-            fcorr = obj['chip_gap_corr_collate1d']
-            bwave_gap = np.median(obj['ccd_gap_b'])
             flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],wave,flux,ivar)
 
 
