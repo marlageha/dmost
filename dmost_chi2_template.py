@@ -192,7 +192,7 @@ def get_stellar_template_files(SN):
     return pfiles, grid
 
 ###############################################
-def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
+def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot=0):
     
     best_chi, best_v, best_t       = [], [], []
     best_feh, best_teff, best_logg = [], [], []
@@ -201,9 +201,6 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,vrange,pdf,plot=0):
     # GRAB TEMPLATES FOR SPECIFIC SN
     phx_files, grid = get_stellar_template_files(f['collate1d_SN'])
     
-    
-    # USE MEAN LINE SPREAD FUNCTION
-    losvd_pix =    np.mean(f['fit_lsf'][f['fit_lsf']>0])/ 0.02
 
 
     # CONTINUUM POLYNOMIAL SET BY SN LIMITS
@@ -360,7 +357,11 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             bwave_gap = np.median(obj['ccd_gap_b'])
             data_flux,data_ivar = dmost_utils.correct_chip_gap(fcorr,bwave_gap,data_wave,data_flux,data_ivar)
 
-            tfile,f,pdf = chi2_best_template(obj,data_wave,data_flux,data_ivar,vrange,pdf,plot=1)
+            # LSF
+            losvd_pix = np.mean(mask['lsf_correction']) * np.mean(obj['fit_lsf'][obj['fit_lsf']>0])/ 0.02
+
+
+            tfile,f,pdf = chi2_best_template(obj,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot=1)
 
             slits['chi2_tfile'][ii] = f['chi2_tfile']
             slits['chi2_tgrid'][ii] = f['chi2_tgrid']
