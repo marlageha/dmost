@@ -274,8 +274,11 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                   backend=backend)#,pool=pool
 
         sampler, convg, burnin = run_sampler(sampler, p0, max_n)
+        if (burnin < 75):
+            burnin = 75.
         slits['emcee_converge'][arg,nexp] = convg
         slits['emcee_burnin'][arg,nexp]   = burnin
+
         
     # OR JUST READ IN PREVIOUS RESULTS
     if (erun == 0): 
@@ -419,7 +422,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         telluric = Table.read(tfile[0])
 
         # WRITE TO SCREEN
-        SNmin = 2.
+        SNmin = 25.
         m = (slits['rSN'][:,ii] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
