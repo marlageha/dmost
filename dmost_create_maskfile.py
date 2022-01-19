@@ -53,8 +53,11 @@ def create_mask(nexp):
             filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
             filled_column('vhelio',-1.,nexp),
+
+            # SEEING AND SEEING-BASED CORRECTION TO LSF
             filled_column('seeing',-1.,nexp),
-            filled_column('lsf_correction',-1.,nexp),
+            filled_column('lsf_correction',-1.,nexp),  
+            filled_column('slitwidth',-1.,nexp),
 
             filled_column('telluric_h2o',-1.,nexp),
             filled_column('telluric_o2',-1.,nexp),
@@ -67,8 +70,7 @@ def create_mask(nexp):
             
             # MASK DATA
             filled_column('mask_ra',-1.,nexp),
-            filled_column('mask_dec',-1.,nexp),
-            filled_column('slitwidth',-1.,nexp)
+            filled_column('mask_dec',-1.,nexp)
 
            ]
 
@@ -134,6 +136,10 @@ def create_slits(nslits,nexp):
             filled_column('telluric_o2_err',np.zeros(nexp),nslits),
             filled_column('telluric_w',np.zeros(nexp),nslits),
             filled_column('telluric_chi2',np.zeros(nexp),nslits),
+
+            # CHIP GAP CORRECTION TO BLUE SIDE
+            filled_column('chip_gap_corr',np.zeros(nexp),nslits),
+            filled_column('chip_gap_corr_collate1d',-1.,nslits),
 
 
             # CHI2 TEMPLATE
