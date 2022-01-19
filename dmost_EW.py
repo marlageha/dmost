@@ -390,14 +390,14 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
         gerr3 = np.sqrt(tmp1**2 + tmp2**2)
 
         # INTEGRATE LORENTIAN
-        lint1 = 2.*np.pi*p[7]
-        lint2 = 2.*np.pi*p[8]
-        lint3 = 2.*np.pi*p[9]
+        lint1 = 2.*np.pi*p[7] #* perr[3]
+        lint2 = 2.*np.pi*p[8] #* perr[3]
+        lint3 = 2.*np.pi*p[9] #* perr[3]
 
 
-        lerr1 = np.pi*perr[7] * perr[3]
-        lerr2 = np.pi*perr[8] * perr[3]
-        lerr3 = np.pi*perr[9] * perr[3]
+        lerr1 = np.pi*perr[7] #* perr[3]
+        lerr2 = np.pi*perr[8] #* perr[3]
+        lerr3 = np.pi*perr[9] #* perr[3]
 
         # PUT IT ALL TOGETHER
         #print('CA1 = ',gint1+lint1)
