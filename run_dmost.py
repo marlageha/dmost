@@ -12,7 +12,7 @@ from astropy.io import ascii
 
 
 import dmost_utils,dmost_flexure, dmost_create_maskfile
-import dmost_telluric, dmost_chi2_template, dmost_emcee
+import dmost_telluric, dmost_chi2_template,dmost_chip_gap, dmost_emcee
 import dmost_coadd_emcee, dmost_combine_exp, dmost_EW
 
 from dmost_create_maskfile import write_dmost
@@ -42,6 +42,8 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
         slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
         write_dmost(slits,mask,outfile)
 
+
+    slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
 
     # RUN CHI2 TEMPLATE FINDER ON COMBINED DATA
     if ~(np.sum(mask['flag_template']) == nexp) | (rerun_chi2 == 1):
