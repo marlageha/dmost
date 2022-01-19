@@ -324,6 +324,11 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     flux = jflux[wave_lims]
     ivar = jivar[wave_lims]
 
+    # CORRECT CHIP GAP
+    fcorr = slits['chip_gap_corr_collate1d'][arg]
+    bwave_gap = np.median(slits['ccd_gap_b'][arg,:])
+    flux,ivar = dmost_utils.correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar)
+
 
     # READ STELLAR TEMPLATE 
     pwave,pflux = read_best_template(slits['chi2_tfile'][arg])
@@ -336,7 +341,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
     # PARAMETERS -- USE MEAN LSF
     m         = slits['fit_lsf'][arg,:] > 0
-    losvd_pix = np.mean(slits['fit_lsf'][arg,m]/ 0.02)
+    losvd_pix = np.mean(mask['lsf_correction']) * np.mean(obj['fit_lsf'][arg,m])/ 0.02
 
 
     # TRIM WAVELENGTH OF TEMPLATES TO SPEED UP COMPUTATION
@@ -443,7 +448,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     telluric = Table.read(tfile[0])
        
 
-    SNmax = 30
+    SNmax = 20
     SNmin = 1.5
 
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
