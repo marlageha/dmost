@@ -355,6 +355,11 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             data_flux = jflux[wave_lims]
             data_ivar = jivar[wave_lims]
 
+            # CORRECT CHIP GAP
+            fcorr = obj['chip_gap_corr_collate1d']
+            bwave_gap = np.median(obj['ccd_gap_b'])
+            data_flux,data_ivar = dmost_utils.correct_chip_gap(fcorr,bwave_gap,data_wave,data_flux,data_ivar)
+
             tfile,f,pdf = chi2_best_template(obj,data_wave,data_flux,data_ivar,vrange,pdf,plot=1)
 
             slits['chi2_tfile'][ii] = f['chi2_tfile']
