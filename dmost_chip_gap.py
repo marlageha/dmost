@@ -184,6 +184,8 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
 
     SNmin = 10
        
+    print('{} Calculate chip gap factor for stellar slits w/SN > {}'.format(mask['maskname'][0],SNmin))
+   
     # DETERMINE CHIP GAP FOR INDIVIDUAL EXPOSURES FIRST
     for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
 
