@@ -422,7 +422,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         telluric = Table.read(tfile[0])
 
         # WRITE TO SCREEN
-        SNmin = 25.
+        SNmin = 3.
         m = (slits['rSN'][:,ii] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
