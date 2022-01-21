@@ -376,6 +376,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             # RUN EMCEE!!
             ###################
             t0 = time.time()
+            print('SN = {:0.1f} det={}  xpos={}'.format(slits['rSN'][arg,nexp],slits['rdet'][arg,0],int(slits['rspat'][arg,0])))
             sampler, slits, theta = run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                        twave,sm_tell, sm_pflux,pwave,npoly,pfit)
             t1=time.time()
