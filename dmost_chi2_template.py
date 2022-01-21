@@ -310,6 +310,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
         plt.plot(data_wave,model,'r',label='Model',linewidth=0.8,alpha=0.8)
         plt.title('SN = {:0.1f}   chi2 = {:0.1f}   v = {:0.1f}'.format(f['collate1d_SN'],f['chi2_tchi2'],f['chi2_v']))
         plt.legend(title='det={}  xpos={}'.format(f['rdet'][0],int(f['rspat'][0])))
+        plt.legend(title='chip gap = {:0.2f}'.format(f['chip_gap_corr_collate1d']),loc=4)
 
         pdf.savefig()
         plt.close(fig)
