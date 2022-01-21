@@ -331,7 +331,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     # BROADCAST
     SNmin =2.0
     m = (slits['marz_flag'] < 3) & (slits['collate1d_SN'] > SNmin) 
-    print('{} Finding chi2 templates for {} stellar slits w/SN > 1.0'.format(mask['maskname'][0],np.sum(m)))
+    print('{} Finding chi2 templates for {} stellar slits w/SN > {}'.format(mask['maskname'][0],np.sum(m), SNmin))
      
     # V RANGE FOR TEMPLATE FINDER
     vrange = np.arange(-500,500,3)
