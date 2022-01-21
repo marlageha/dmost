@@ -342,9 +342,10 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
         # CREATE FIT FOR PLOTTING
         gfit = CaT_gauss(wvl,*p)
+        chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
         
-        
-    return CaT, CaT_err, gfit
+
+    return CaT, CaT_err, gfit, chi2
 
 ########################################
 def CaII_EW_fit_GL(wvl,spec,ivar):
@@ -410,6 +411,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 
         # CREATE FIT FOR PLOTTING
         gfit = CaT_gauss_plus_lorentzian(wvl,*p)
+        chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
 
         if (CaT > 14.0) | ~(np.isfinite(CaT_err)):
             CaT, CaT_err   = -99, -99
@@ -417,11 +419,22 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 
     except:
         p, pcov = p0, None
-
+        chi2    = -99
          
         # OMG, WHY 0.85??
-    return 0.85*CaT, CaT_err, gfit
+    return 0.85*CaT, CaT_err, gfit, chi2
 
+
+def calc_chi2_ew(wave,spec,ivar,mwindow, fit):
+
+    model = fit[wave]
+    model = model[mwindow]
+    data  = spec[mwindow]
+    ivar  = ivar[mwindow]
+
+    chi2 = np.sum((data - model)**2 * ivar)/np.size(data)
+
+    return chi2
 
 ########################################
 def CaII_normalize(wave,spec,ivar):
@@ -482,14 +495,15 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         #####################             
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
-        CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_GL(nwave,nspec,nivar)
+        CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar)
 
         if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 30) |  (CaT_EW < 0):
-            CaT_EW, CaT_EW_err, CaT_fit = CaII_EW_fit_gauss(nwave,nspec,nivar)
+            CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
-        slits['cat'][arg]     = CaT_EW
-        slits['cat_err'][arg] = CaT_EW_err
+        slits['cat'][arg]      = CaT_EW
+        slits['cat_err'][arg]  = CaT_EW_err
+        slits['cat_chi2'][arg] = CaT_chi2
 
         ##########################
         # CALCULATE MgI LINES
