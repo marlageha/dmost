@@ -396,7 +396,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             # THESE ARE TO AVOID A BUG
             label_format = '{:4.1f}'
             cbar.ax.set_yticks(cbar.ax.get_yticks().tolist()) # REMOVE IN THE FUTURE - PLACED TO AVOID WARNING - IT IS A BUG FROM MATPLOTLIB 3.3.1
-            cbar.ax.set_yticklabels([label_format.format(np.exp(x)) for x in ax.get_yticks().tolist()])
+            cbar.ax.set_yticklabels([label_format.format(np.exp(x)) for x in cbar.ax.get_yticks().tolist()])
 
             # THIS LINE PRODUCES A WARNING, BUT ITS A BUG
             #cbar.ax.set_yticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
