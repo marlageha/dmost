@@ -310,7 +310,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
     
     #ncount = 0
     for arg in np.arange(0,nslits,1,dtype='int'):
-        if (slits['rSN'][arg,nexp] > min_SN) & (slits['rSN'][arg,nexp] < 155):
+        if (slits['rSN'][arg,nexp] > min_SN) & (slits['rSN'][arg,nexp] < 155) & (slits['marz_flag'][arg] < 3):
 
             losvd_pix =  slits['fit_lsf'][arg,nexp]/ 0.02
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
@@ -375,7 +375,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
 
             
             # PLOT CHI2 GRID AND BEST FIT
-            fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(18,5),gridspec_kw={'width_ratios': [1, 4]})
+            fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(20,5),gridspec_kw={'width_ratios': [1, 4]})
             vmn = np.log(np.min(tmp_chi))
             vmx = np.log(vmn + np.percentile(tmp_chi,25))
 
