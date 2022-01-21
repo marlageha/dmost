@@ -138,8 +138,8 @@ def create_slits(nslits,nexp):
             filled_column('telluric_chi2',np.zeros(nexp),nslits),
 
             # CHIP GAP CORRECTION TO BLUE SIDE
-            filled_column('chip_gap_corr',np.zeros(nexp),nslits),
-            filled_column('chip_gap_corr_collate1d',-1.,nslits),
+            filled_column('chip_gap_corr',np.ones(nexp),nslits),
+            filled_column('chip_gap_corr_collate1d',1.,nslits),
 
 
             # CHI2 TEMPLATE
