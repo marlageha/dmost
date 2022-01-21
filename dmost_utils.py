@@ -110,10 +110,10 @@ def load_spectrum(slits,nexp,hdu,vacuum=0,vignetted = 0):
 
     try:
         # READ IN DATA FROM SPEC1D, TRIM INNER ENDS
-        tmp_wave = np.concatenate((hdu[b].data['OPT_WAVE'][:-2],hdu[r].data['OPT_WAVE'][2:]),axis=None)
-        all_flux = np.concatenate((hdu[b].data['OPT_COUNTS'][:-2],hdu[r].data['OPT_COUNTS'][2:]),axis=None)
-        all_sky = np.concatenate((hdu[b].data['OPT_COUNTS_SKY'][:-2],hdu[r].data['OPT_COUNTS_SKY'][2:]),axis=None)
-        all_ivar = np.concatenate((hdu[b].data['OPT_COUNTS_IVAR'][:-2],hdu[r].data['OPT_COUNTS_IVAR'][2:]),axis=None)
+        tmp_wave = np.concatenate((hdu[b].data['OPT_WAVE'][:-3],hdu[r].data['OPT_WAVE'][3:]),axis=None)
+        all_flux = np.concatenate((hdu[b].data['OPT_COUNTS'][:-3],hdu[r].data['OPT_COUNTS'][3:]),axis=None)
+        all_sky = np.concatenate((hdu[b].data['OPT_COUNTS_SKY'][:-3],hdu[r].data['OPT_COUNTS_SKY'][3:]),axis=None)
+        all_ivar = np.concatenate((hdu[b].data['OPT_COUNTS_IVAR'][:-3],hdu[r].data['OPT_COUNTS_IVAR'][3:]),axis=None)
 
         fitwave  = slits['fit_slope'][nexp]*tmp_wave + slits['fit_b'][nexp]
         vwave = tmp_wave - fitwave
