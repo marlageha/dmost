@@ -370,9 +370,13 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
                 wguess = 0
             
             print('SN = {:0.1f} det={}  xpos={}'.format(slits['rSN'][arg,nexp],slits['rdet'][arg,0],int(slits['rspat'][arg,0])))
-            print(vguess, wguess)
-            pfit = get_poly_fit([vguess, wguess], wave, flux, ivar, twave,\
+
+            try:
+                pfit = get_poly_fit([vguess, wguess], wave, flux, ivar, twave,\
                                                   sm_tell,sm_pflux,pwave, npoly)
+            except:
+                pfit = np.ones(npoly+1)
+
 
             # RUN EMCEE!!
             ###################
