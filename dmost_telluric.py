@@ -375,7 +375,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
 
             
             # PLOT CHI2 GRID AND BEST FIT
-            fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(20,5),gridspec_kw={'width_ratios': [1, 4]})
+            fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(20,5),gridspec_kw={'width_ratios': [1, 3]})
             vmn = np.log(np.min(tmp_chi))
             vmx = np.log(vmn + np.percentile(tmp_chi,25))
 
