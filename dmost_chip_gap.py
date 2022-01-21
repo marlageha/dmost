@@ -208,8 +208,9 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
         slits = chip_gap_single_collate1d(data_dir,slits, mask, telluric,SNmin)
 
 
-
-    print('{} Chip gap factor median is {:0.2f}'.format(mask['maskname'][0],np.median(slits['chip_gap_corr'])))
+    mm = slits['chip_gap_corr'] != 1
+    if np.sum(mm) > 0:
+        print('{} Chip gap factor median is {:0.2f}'.format(mask['maskname'][0],np.median(slits['chip_gap_corr'][mm])))
 
     # WRITE DMOST FILE
 #    dmost_create_maskfile.write_dmost(slits,mask,outfile)
