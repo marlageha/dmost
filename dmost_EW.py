@@ -427,8 +427,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 
 def calc_chi2_ew(wave,spec,ivar,mwindow, fit):
 
-    model = fit(wave)
-    model = model[mwindow]
+    model = fit[mwindow]
     data  = spec[mwindow]
     ivar  = ivar[mwindow]
 
