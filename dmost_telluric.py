@@ -312,7 +312,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
     for arg in np.arange(0,nslits,1,dtype='int'):
         if (slits['rSN'][arg,nexp] > min_SN) & (slits['rSN'][arg,nexp] < 155):
 
-            losvd_pix =  mask['lsf_correction'][nexp] * slits['fit_lsf'][arg,nexp]/ 0.02
+            losvd_pix =  slits['fit_lsf'][arg,nexp]/ 0.02
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
 
             wave_lims = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
@@ -373,17 +373,9 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             model      = generate_single_telluric(final_file,tmp_w[n], data_wave,data_flux,\
                                       data_ivar,continuum_mask,slits['fit_lsf'][arg,nexp])
 
-            plt.figure(figsize=(16,5))
-            plt.plot(data_wave,data_flux,linewidth=0.9)
-            plt.plot(data_wave,model,'k',label='model',linewidth=0.8)
-            plt.plot(data_wave[chi2_mask],model[chi2_mask],'r',label='telluric fitted region',linewidth=0.8,alpha=0.8)
-
-            plt.title('chi2 = {:0.1f}     SN={:0.1f}'.format(np.min(tmp_chi),slits['rSN'][arg,nexp]))
-            plt.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
-
-            pdf.savefig()
-
-            fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(17,5))
+            
+            # PLOT CHI2 GRID AND BEST FIT
+            fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(18,5),gridspec_kw={'width_ratios': [1, 4]})
             vmn = np.log(np.min(tmp_chi))
             vmx = np.log(vmn + np.percentile(tmp_chi,25))
 
@@ -402,12 +394,13 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             cbar.ax.set_yticklabels(["{:4.1f}".format(np.exp(i)) for i in v1])
             cbar.ax.set_ylabel('chi2')
 
-            
-            
-            ax2.plot(tmp_w,tmp_chi,'.')
-            ax2.set_xlabel('wshift')
-            ax2.set_ylabel('chi2')
-            ax2.set_title('w = {:0.2f}'.format(tmp_w[n]))
+            ax2.plot(data_wave,data_flux,linewidth=0.9)
+            ax2.plot(data_wave,model,'k',label='model',linewidth=0.8)
+            ax2.plot(data_wave[chi2_mask],model[chi2_mask],'r',label='telluric fitted region',linewidth=0.8,alpha=0.8)
+
+            ax2.set_title('chi2 = {:0.1f}     SN={:0.1f}'.format(np.min(tmp_chi),slits['rSN'][arg,nexp]))
+            ax2.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
+
 
             pdf.savefig()
             plt.close('all')
