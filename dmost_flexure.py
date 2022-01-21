@@ -123,11 +123,12 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
             ax2.plot(b_sky_line,b_los,'bo',alpha=0.8,label='Blue chip: Sky Emission')
             ax2.errorbar(r_sky_line,r_los,yerr=r_elos,fmt='none',ecolor='r',alpha=0.5)
             ax2.errorbar(b_sky_line,b_los,yerr=b_elos,fmt='none',ecolor='b',alpha=0.5)
-            ax2.axhline(slits['fit_lsf'][arg,nexp],linewidth=1, color='grey',alpha=0.5)
+            ax2.axhline(slits['fit_lsf'][arg,nexp] / mask['lsf_correction'][nexp],linewidth=1, \
+                color='grey',alpha=0.5,label='smooth fit value')
 
             lsf_fit = create_lsf_parabola(sky_lines,slits['fit_lsf_p0'][arg,nexp],\
                                     slits['fit_lsf_p1'][arg,nexp],slits['fit_lsf_p2'][arg,nexp])
-            ax2.plot(sky_lines,lsf_fit  / mask['lsf_correction'][nexp],label='smooth fit value')
+            ax2.plot(sky_lines,lsf_fit)
             ax2.legend()
 
             ax2.set_title('Line widths')
