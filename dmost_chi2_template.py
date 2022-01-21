@@ -328,7 +328,8 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
     
     # BROADCAST
-    m = (slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 1.0) 
+    SNmin =2.0
+    m = (slits['marz_flag'] < 3) & (slits['collate1d_SN'] > SNmin) 
     print('{} Finding chi2 templates for {} stellar slits w/SN > 1.0'.format(mask['maskname'][0],np.sum(m)))
      
     # V RANGE FOR TEMPLATE FINDER
@@ -337,7 +338,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     for ii,obj in enumerate(slits): 
 
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
-        if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > 1.0) & (bool(obj['collate1d_filename'].strip())):
+        if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > SNmin) & (bool(obj['collate1d_filename'].strip())):
 
             jhdu = fits.open(data_dir+'collate1d/'+obj['collate1d_filename'])
 
