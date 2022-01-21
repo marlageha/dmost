@@ -369,14 +369,14 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             if np.abs(wguess) > 40:
                 wguess = 0
             
-
+            print('SN = {:0.1f} det={}  xpos={}'.format(slits['rSN'][arg,nexp],slits['rdet'][arg,0],int(slits['rspat'][arg,0])))
+            print(vguess, wguess)
             pfit = get_poly_fit([vguess, wguess], wave, flux, ivar, twave,\
                                                   sm_tell,sm_pflux,pwave, npoly)
 
             # RUN EMCEE!!
             ###################
             t0 = time.time()
-            print('SN = {:0.1f} det={}  xpos={}'.format(slits['rSN'][arg,nexp],slits['rdet'][arg,0],int(slits['rspat'][arg,0])))
             sampler, slits, theta = run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                        twave,sm_tell, sm_pflux,pwave,npoly,pfit)
             t1=time.time()
