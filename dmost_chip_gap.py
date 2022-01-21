@@ -209,6 +209,8 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
 
 
 
+    print('{} Chip gap factor median is {:0.2f}'.format(mask['maskname'][0],np.median(slits['chip_gap_corr'])))
+
     # WRITE DMOST FILE
 #    dmost_create_maskfile.write_dmost(slits,mask,outfile)
         
