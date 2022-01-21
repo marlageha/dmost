@@ -91,7 +91,8 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux):
         fbest = 1.
 
     # ASSUME BAD FIT IF CHI2 HIGH
-    if (chi2_best > 300):
+    #print(chi2_best,fbest)
+    if (chi2_best > 10):
         fbest = 1.
 
     return fbest, chi2_best
