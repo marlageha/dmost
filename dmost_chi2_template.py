@@ -113,14 +113,11 @@ def faster_polyval(p, x):
     return y
 
 ###############################################
-def chi2_single_stellar_template(phx_flux,pwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,npoly):
+def chi2_single_stellar_template(phx_flux,pwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,cmask,chi2_mask,npoly):
     
 
     # CREATE MODEL 
     conv_spec = scipynd.gaussian_filter1d(phx_flux,losvd_pix,truncate=3)
-
-    # MASK TELLURIC REGIONS
-    cmask, chi2_mask = create_chi2_masks(data_wave)
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
     tmp_flux      = np.interp(data_wave,pwave,conv_spec)
@@ -201,6 +198,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
     # GRAB TEMPLATES FOR SPECIFIC SN
     phx_files, grid = get_stellar_template_files(f['collate1d_SN'])
     
+    cmask, chi2_mask = create_chi2_masks(data_wave)
 
 
     # CONTINUUM POLYNOMIAL SET BY SN LIMITS
@@ -226,7 +224,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
 
         # RUN ONE STELLAR TEMPLATE
         min_v,min_chi2 = chi2_single_stellar_template(phx_flux[mp],pwave[mp],data_wave,data_flux,\
-                                           data_ivar,losvd_pix,vrange,npoly)
+                                           data_ivar,losvd_pix,vrange,cmask,chi2_mask,npoly)
 
         final_file = ''
         if min_chi2 > 0.1:
@@ -302,7 +300,6 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
 
         
         fig,ax = plt.subplots(figsize=(20,5))
-        cmask, chi2_mask = create_chi2_masks(data_wave)
         plt.plot(data_wave,data_flux,'k',label='full spectrum',linewidth=0.9)
 
         plt.plot(data_wave[chi2_mask],data_flux[chi2_mask],'grey',label='fitted region',linewidth=0.8)
@@ -334,7 +331,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     print('{} Finding chi2 templates for {} stellar slits w/SN > {}'.format(mask['maskname'][0],np.sum(m), SNmin))
      
     # V RANGE FOR TEMPLATE FINDER
-    vrange = np.arange(-500,500,3)
+    vrange = np.arange(-500,500,5)
 
     for ii,obj in enumerate(slits): 
 
