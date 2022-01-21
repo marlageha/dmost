@@ -392,8 +392,8 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             normalize = matplotlib.colors.Normalize(vmin = vmn,vmax=vmx)
             cbar      = matplotlib.colorbar.ColorbarBase(cax,norm=normalize,cmap=matplotlib.cm.cool)
 
-            cbar.ax.set_ticks([v1])
-            cbar.ax.set_ticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
+            cbar.set_ticks([v1])
+            cbar.set_ticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
 
 #            cbar.ax.set_yticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
             cbar.ax.set_ylabel('chi2')
