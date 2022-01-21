@@ -511,19 +511,19 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     ax2.errorbar(fslits2['rSN'][m,nexp],fslits2['telluric_o2'][m,nexp],\
                  yerr=np.abs(fslits2['telluric_o2_err'][m,nexp]),fmt='.r',ecolor='grey')
 
-    ax2.set_title('O2 = {:0.3f}'.format(final_o2))
-    ax2.axhline(final_o2)
-    ax2.set_ylim(0.6,2.05)
-
-
     airmass_fit = 'Airmass fit value {:0.3f}'.format(get_o2_nodata(mask['airmass'][nexp]))
+    ax2.set_title('O2 = {:0.3f}'.format(final_o2))
+    ax2.axhline(final_o2,label=airmass_fit)
+    ax2.set_ylim(0.6,2.05)
+    ax2.legend()
+
+
     ax4.plot(fslits2['rSN'][:,nexp],fslits2['telluric_o2'][:,nexp],'.')
     ax4.errorbar(fslits2['rSN'][m,nexp],fslits2['telluric_o2'][m,nexp],\
               yerr=np.abs(fslits2['telluric_o2_err'][m,nexp]),fmt='.r',ecolor='grey')
 
     ax4.set_title('Full data range: O2 = {:0.3f}'.format(final_o2))
-    ax4.axhline(final_o2,label=airmass_fit)
-    ax4.legend()
+    ax4.axhline(final_o2)
 
 
     ax1.set_xlabel('SN')
