@@ -153,10 +153,9 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     sd  =  np.std(slits['fit_slope'][:,nexp])
     mu2 =  np.median(slits['fit_b'][:,nexp])
     sd2 =  np.std(slits['fit_b'][:,nexp])
-    mu3 =  np.median(slits['fit_lsf'][:,nexp])
+    mu3 =  np.median(slits['fit_lsf'][:,nexp])/mask['lsf_correction'][nexp]
     sd3 =  np.std(slits['fit_lsf'][:,nexp])
-    mu4 =  np.median(slits['fit_lsf'][:,nexp]/mask['lsf_correction'][nexp])
-
+    mu4 =  np.median(slits['fit_lsf'][:,nexp])
 
     fig, (ax1,ax2,ax3) = plt.subplots(1, 3,figsize=(22,5))
  
@@ -170,12 +169,12 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     ax2.set_xlabel('RA [deg]')
     ax2.set_title('Wave MEASURE: line intercept')
 
-    ax3.scatter(x,y,c=fit_los,cmap="cool",vmin = mu3-t*sd3,vmax=mu4+t*sd3)
+    ax3.scatter(x,y,c=fit_los,cmap="cool",vmin = mu3-t*sd3,vmax=mu3+t*sd3)
     ax3.set_ylabel('Dec [deg]')
     ax3.set_xlabel('RA [deg]')
     ax3.set_title('Wave MEASURE: line width')
     cax, _    = matplotlib.colorbar.make_axes(ax3)
-    normalize = matplotlib.colors.Normalize(vmin = mu3-t*sd3,vmax=mu4+t*sd3)
+    normalize = matplotlib.colors.Normalize(vmin = mu3-t*sd3,vmax=mu3+t*sd3)
     cbar      = matplotlib.colorbar.ColorbarBase(cax,norm=normalize,cmap=matplotlib.cm.cool)
 
     pdf.savefig()
@@ -197,12 +196,12 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     ax2.set_xlabel('RA [deg]')
     ax2.set_title('Wave fit: line intercept')
 
-    ax3.scatter(xslit,yslit,c=slits['fit_lsf'][:,nexp],cmap="cool",vmin = mu3-t*sd3,vmax=mu4+t*sd3)
+    ax3.scatter(xslit,yslit,c=slits['fit_lsf'][:,nexp],cmap="cool",vmin = mu4-t*sd3,vmax=mu4+t*sd3)
     ax3.set_ylabel('Dec [deg]')
     ax3.set_xlabel('RA [deg]')
     ax3.set_title('Wave fit: line width  w/seeing corr: {:0.2f}'.format(mask['lsf_correction'][nexp]))
     cax, _ = matplotlib.colorbar.make_axes(ax3)
-    normalize = matplotlib.colors.Normalize(vmin = mu3-t*sd3,vmax=mu4+t*sd3)
+    normalize = matplotlib.colors.Normalize(vmin = mu4-t*sd3,vmax=mu4+t*sd3)
     cbar = matplotlib.colorbar.ColorbarBase(cax, cmap=matplotlib.cm.cool,norm=normalize)
     
     
