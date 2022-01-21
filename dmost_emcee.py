@@ -323,7 +323,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
 
-        if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3) & \
+        if (slits['rSN'][arg,nexp] > SNmin) & (slits['marz_flag'][arg] < 3) & \
            (bool(slits['chi2_tfile'][arg].strip())) & (slits['reduce_flag'][arg,nexp] == 1):
             
             
