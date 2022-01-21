@@ -88,12 +88,11 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux):
 
     # ASSUME BAD FIT IF AT EDGE OF RANGE
     if (fbest == np.min(frange)) |  (fbest == np.max(frange)):
-        fbest = -1.
+        fbest = 1.
 
     # ASSUME BAD FIT IF CHI2 HIGH
-    if (chi2_best > 100):
-        print(chi2_best, fbest)
-        fbest = -1.
+    if (chi2_best > 300):
+        fbest = 1.
 
     return fbest, chi2_best
 
