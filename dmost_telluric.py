@@ -392,14 +392,10 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             normalize = matplotlib.colors.Normalize(vmin = vmn,vmax=vmx)
             cbar      = matplotlib.colorbar.ColorbarBase(cax,norm=normalize,cmap=matplotlib.cm.cool)
 
+            cbar.ax.set_ticks([v1])
+            cbar.ax.set_ticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
 
-            # THESE ARE TO AVOID A BUG
-            label_format = '{:4.1f}'
-            cbar.ax.set_yticks(cbar.ax.get_yticks().tolist())
-            cbar.ax.set_yticklabels([label_format.format(np.exp(x)) for x in cbar.ax.get_yticks().tolist()])
-
-            # THIS LINE PRODUCES A WARNING, BUT ITS A BUG
-            #cbar.ax.set_yticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
+#            cbar.ax.set_yticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
             cbar.ax.set_ylabel('chi2')
 
             ax2.plot(data_wave,data_flux,linewidth=0.9)
