@@ -391,7 +391,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             cax, _    = matplotlib.colorbar.make_axes(ax1,ticks=v1)
             normalize = matplotlib.colors.Normalize(vmin = vmn,vmax=vmx)
             cbar      = matplotlib.colorbar.ColorbarBase(cax,norm=normalize,cmap=matplotlib.cm.cool)
-            cbar.ax.set_yticklabels(["{:4.1f}".format(np.exp(i)) for i in v1])
+            cbar.ax.set_yticklabels(['{:4.1f}'.format(np.exp(i)) for i in v1])
             cbar.ax.set_ylabel('chi2')
 
             ax2.plot(data_wave,data_flux,linewidth=0.9)
@@ -514,7 +514,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     airmass_fit = 'Airmass fit value {:0.3f}'.format(get_o2_nodata(mask['airmass'][nexp]))
     ax2.set_title('O2 = {:0.3f}'.format(final_o2))
     ax2.axhline(final_o2,label='Final value')
-    ax2.axhline(get_o2_nodata(mask['airmass'][nexp]),label=airmass_fit,c='k',lw=0.9)
+    ax2.axhline(get_o2_nodata(mask['airmass'][nexp]),label=airmass_fit,c='k-',lw=0.8)
     ax2.set_ylim(0.6,2.05)
     ax2.legend()
 
