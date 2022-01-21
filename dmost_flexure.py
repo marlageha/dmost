@@ -197,7 +197,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     ax3.scatter(xslit,yslit,c=slits['fit_lsf'][:,nexp],cmap="cool",vmin = mu3-t*sd3,vmax=mu3+t*sd3)
     ax3.set_ylabel('Dec [deg]')
     ax3.set_xlabel('RA [deg]')
-    ax3.set_title('Wave fit: line width  w/seeing correction')
+    ax3.set_title('Wave fit: line width  w/seeing corr: {:0.2f}'.format(mask['lsf_correction'][nexp]))
     cax, _ = matplotlib.colorbar.make_axes(ax3)
     normalize = matplotlib.colors.Normalize(vmin = mu3-t*sd3,vmax=mu3+t*sd3)
     cbar = matplotlib.colorbar.ColorbarBase(cax, cmap=matplotlib.cm.cool,norm=normalize)
