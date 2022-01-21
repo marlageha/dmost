@@ -82,14 +82,20 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux):
         chi2 = np.append(chi2,tchi2)
 
 
-    n = np.argmin(chi2)
-    fbest = frange[n]
+    n         = np.argmin(chi2)
+    fbest     = frange[n]
+    chi2_best = chi2[n]
 
     # ASSUME BAD FIT IF AT EDGE OF RANGE
     if (fbest == np.min(frange)) |  (fbest == np.max(frange)):
         fbest = -1.
 
-    return fbest
+    # ASSUME BAD FIT IF CHI2 HIGH
+    if (chi2_best > 100):
+        print(chi2_best, fbest)
+        fbest = -1.
+
+    return fbest, chi2_best
 
 
 ######################################################
@@ -125,8 +131,8 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
             tflux     = np.interp(wave,twave,sm_tell)
 
 
-            wave_gap_b = slits['ccd_gap_b'][arg,nexp]
-            fbest      = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux)
+            wave_gap_b  = slits['ccd_gap_b'][arg,nexp]
+            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux)
 
             slits['chip_gap_corr'][arg,nexp] = fbest
 
@@ -167,8 +173,8 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
             tflux     = np.interp(wave,twave,sm_tell)
 
 
-            wave_gap_b = np.mean(slits['ccd_gap_b'][ii,:])
-            fbest      = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux)
+            wave_gap_b   = np.mean(slits['ccd_gap_b'][ii,:])
+            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux)
 
             slits['chip_gap_corr_collate1d'][ii] = fbest
 
@@ -203,9 +209,7 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
 
 
     # NEXT RUN ON COLLATE1D
-    for ii,obj in enumerate(slits): 
-
-        slits = chip_gap_single_collate1d(data_dir,slits, mask, telluric,SNmin)
+    slits = chip_gap_single_collate1d(data_dir,slits, mask, telluric,SNmin)
 
 
     mm = slits['chip_gap_corr'] != 1
