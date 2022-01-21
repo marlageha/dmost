@@ -470,7 +470,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
         final_h2o = np.average(good_h2o[mh],\
                                weights = 1./good_eh2o[mh]**2)
         final_o2 = np.average(good_o2[mo],\
-                               weights = 1./good_o2[mo]**2)
+                               weights = 1./good_eo2[mo]**2)
     else:
         # RELAX WHEN FEW POINTS
         m= (fslits2['telluric_chi2'][:,nexp] > 0)& \
