@@ -398,10 +398,6 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             labels = ['{:0.1f}'.format(np.exp(i)) for i in v1]
             cbar.ax.yaxis.set_major_locator(ticker.FixedLocator(positions))
             cbar.ax.yaxis.set_major_formatter(ticker.FixedFormatter(labels))
-
-
-
-            #cbar.ax.set_yticklabels(['{:0.1f}'.format(np.exp(i)) for i in v1])
             cbar.ax.set_ylabel('chi2')
 
             ax2.plot(data_wave,data_flux,linewidth=0.9)
@@ -603,13 +599,6 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
             # CALCULATE FINAL VALUES AND QA PLOTS
             final_h2o, final_o2, mask = final_telluric_values(data_dir, slits, mask, ii, hdu)
 
-
-        # CORRECTION LSF USING TELLURIC ABS
-       # if (mask['lsf_correction'] == -1):#
-
-#            lsf_corr = telluric_lsf_correction(data_dir, slits, mask, ii, hdu) #, twave,tflux,SNmin)
-#            mask['lsf_correction'][ii]  = lsf_corr
-#            slits['fit_lsf_corr'][:,ii] = lsf_corr * slits['fit_lsf'][:,ii]
 
 
         mask['flag_telluric'][ii] = 1
