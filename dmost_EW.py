@@ -36,7 +36,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
     ax1.set_xlim(8484, 8560)
     ax1.plot(nwave,cat_fit,'r')
     ax1.set_title('SN= {:0.1f} v = {:0.1f}'.format(this_slit['collate1d_SN'], this_slit['dmost_v']))
-    ax1.legend()
+    ax1.legend(loc=3)
 
     ax2.plot(nwave,nspec)
     ax2.set_xlim(8630,8680)
