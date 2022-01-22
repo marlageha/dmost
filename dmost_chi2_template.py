@@ -363,7 +363,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             data_flux,data_ivar = dmost_utils.correct_chip_gap(fcorr,bwave_gap,data_wave,data_flux,data_ivar)
 
             # LSF
-            losvd_pix = np.mean(mask['lsf_correction']) * np.mean(obj['fit_lsf'][obj['fit_lsf']>0])/ 0.02
+            losvd_pix = np.mean(obj['fit_lsf'][obj['fit_lsf']>0])/ 0.02
 
 
             tfile,f,pdf = chi2_best_template(obj,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot=1)
