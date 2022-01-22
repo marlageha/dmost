@@ -289,10 +289,16 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
 
     burnin=    slits['coadd_burnin'][arg]   
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
-    print(burnin,arg,theta)
-    
-
     slits['coadd_f_acc'][arg]    = np.mean(sampler.acceptance_fraction)
+
+    print(burnin,arg,theta)
+    print(slits['coadd_f_acc'][arg])
+
+    print(slits['emcee_v'][arg,:])
+    print(slits['emcee_f_acc'][arg,:])
+    print()
+
+
 
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
@@ -341,7 +347,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
     # PARAMETERS -- USE MEAN LSF
     m         = slits['fit_lsf'][arg,:] > 0
-    losvd_pix = np.mean(mask['lsf_correction']) * np.mean(obj['fit_lsf'][arg,m])/ 0.02
+    losvd_pix = np.mean(slits['fit_lsf'][arg,m])/ 0.02
 
 
     # TRIM WAVELENGTH OF TEMPLATES TO SPEED UP COMPUTATION
@@ -415,6 +421,10 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['collate1d_SN'][arg],\
                                               slits['coadd_lnprob'][arg]))
 
+    str1 = ['{:0.1f}'.format(x) for x in slits['emcee_v'][arg,:]]
+    str2 = ['{:0.2f}'.format(x) for x in slits['emcee_f_acc'][arg,:]]
+    plt.legend(title='v = '+', '.join(str1)+'\nfacc ='+', '.join(str2), loc=3)
+
     pdf.savefig()
     plt.close(fig)
 
@@ -454,8 +464,8 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
 
     nslits = np.sum(m)
-    print('{}  Coadd emcee with {} slits w/SN < {}'.format(mask['maskname'][0],\
-                                                                nslits,SNmax))
+    print('{}  Coadd emcee with {} slits {} < SN < {} and poor emcee result'.format(mask['maskname'][0],\
+                                                                nslits,SNmin,SNmax))
     
 
     # FOR EACH SLIT
@@ -475,6 +485,8 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
             
     pdf.close()
     plt.close('all')
+    mask['flag_coadd'][:] = 1
+
         
     return slits, mask
 
