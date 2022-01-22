@@ -399,6 +399,8 @@ def run_flexure(data_dir,slits,mask):
         # ADD TO TABLE
         slits = update_flexure_fit(slits, mask, ii, nslits, hdu, pmodel_m, pmodel_b,pmodel_los,sky)
   
+
+  
         # REFIT FOR QA PLOTS
         qa_flexure_plots(data_dir,nslits,slits,ii,sky,hdu,mask,fslope, fb, flos, x, y)
 
