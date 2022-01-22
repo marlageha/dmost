@@ -4,6 +4,8 @@ import os,sys
 
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
+from matplotlib import ticker
+
 
 from astropy.table import Table
 from astropy.io import ascii,fits
