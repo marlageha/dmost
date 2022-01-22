@@ -5,6 +5,7 @@ import os, sys
 
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
+from matplotlib import ticker
 
 from astropy.table import Table
 from astropy.io import ascii,fits
@@ -292,7 +293,12 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
         cax, _    = matplotlib.colorbar.make_axes(ax3,ticks=v1)
         normalize = matplotlib.colors.Normalize(vmin = vmn,vmax=vmx)
         cbar      = matplotlib.colorbar.ColorbarBase(cax,norm=normalize,cmap=matplotlib.cm.cool)
-        cbar.ax.set_yticklabels(["{:4.1f}".format(np.exp(i)) for i in v1])
+
+        positions = v1
+        labels = ['{:0.1f}'.format(np.exp(i)) for i in v1]
+        cbar.ax.yaxis.set_major_locator(ticker.FixedLocator(positions))
+        cbar.ax.yaxis.set_major_formatter(ticker.FixedFormatter(labels))
+        cbar.ax.set_ylabel('chi2')
 
         pdf.savefig()
         plt.close(fig)
