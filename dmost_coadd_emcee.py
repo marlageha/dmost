@@ -74,7 +74,7 @@ def faster_polyval(p, x):
 
 
 ############################
-def get_poly_fit(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly):
+def get_poly_fit(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly,pdf):
     
     # Velocity shift stellar model
     swave              = pwave * np.exp(theta[0]/2.997924e5)
@@ -93,9 +93,28 @@ def get_poly_fit(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly):
 
     # FIT CONTINUUM
     m  = (flux > np.percentile(flux,5)) & (flux < np.percentile(flux,99.9))
-    p  = np.polyfit(wave[m],flux[m]/conv_int_spec[m],npoly,w=ivar[m])
+    p  = np.polyfit(wave[m],flux[m]/conv_int_spec[m],npoly,w=np.sqrt(ivar[m]))
 
-       
+
+
+    fc = flux/conv_int_spec
+    md = np.median(fc)
+    m  = np.abs(fc) < md*10.
+
+    plt.figure(figsize=(20,5))
+    plt.plot(wave,conv_int_spec)
+    pdf.savefig()
+
+
+    plt.figure(figsize=(20,5))
+    plt.plot(wave,flux/conv_int_spec)
+    plt.plot(wave[m],fc[m])
+    pdf.savefig()
+
+
+
+
+
     return p
 
 
@@ -342,9 +361,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
     # CONTINUUM POLYNOMIAL SET BY SN LIMITS
     npoly = 5
-    if (slits['collate1d_SN'][arg]) > 100:
-        npoly=7
-
+ 
     # PARAMETERS -- USE MEAN LSF
     m         = slits['fit_lsf'][arg,:] > 0
     losvd_pix = np.mean(slits['fit_lsf'][arg,m])/ 0.02
@@ -357,7 +374,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     mp = (pwave > dmin) & (pwave<dmax)
 
 
-    # SMOOTH TEMPLATES 
+    # SMOOTH TEMPLATES
     sm_pflux  = scipynd.gaussian_filter1d(pflux[mp],losvd_pix,truncate=3)
     pwave     = pwave[mp]
 
@@ -371,7 +388,8 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
         wguess = 0
 
     pfit = get_poly_fit([vguess, wguess], wave, flux, ivar, twave,\
-                                          sm_tell,sm_pflux,pwave, npoly)
+                                          sm_tell,sm_pflux,pwave, npoly,pdf)
+
 
     # RUN EMCEE!!
     ###################
@@ -399,14 +417,20 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
-        ax1.axvline(burnin)
-        ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['coadd_v'][arg]))
-
+    ax1.axvline(burnin,label='burnin')
+    ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['coadd_v'][arg]))
 
     for ii in range(20):
         ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
-        ax2.axvline(burnin)
-        ax2.set_title('w = {:0.2f}'.format(slits['coadd_w'][arg]))
+    ax2.axvline(burnin)
+    ax2.set_title('w = {:0.2f}'.format(slits['coadd_w'][arg]))
+
+    str1 = ['{:0.1f}'.format(x) for x in slits['emcee_v'][arg,:]]
+    str2 = ['{:0.2f}'.format(x) for x in slits['emcee_f_acc'][arg,:]]
+    ax1.legend(title='v = '+', '.join(str1)+'\nfacc ='+', '.join(str2), loc=3)
+
+
+    
 
     pdf.savefig()
     plt.close(fig)
@@ -415,15 +439,14 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     # PLOT SPECTRUM
     plt.figure(figsize=(20,5))
     m = (flux > np.percentile(flux,0.1)) & (flux < np.percentile(flux,99.9))
-    #            plt.plot(wave,flux,linewidth=0.8)
+    plt.plot(wave,flux,linewidth=0.8)
     plt.plot(wave[m],flux[m],'k',linewidth=0.8)
     plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
     plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['collate1d_SN'][arg],\
                                               slits['coadd_lnprob'][arg]))
 
-    str1 = ['{:0.1f}'.format(x) for x in slits['emcee_v'][arg,:]]
-    str2 = ['{:0.2f}'.format(x) for x in slits['emcee_f_acc'][arg,:]]
-    plt.legend(title='v = '+', '.join(str1)+'\nfacc ='+', '.join(str2), loc=3)
+    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['rdet'][arg,0],\
+                         int(slits['rspat'][arg,0]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
 
     pdf.savefig()
     plt.close(fig)
