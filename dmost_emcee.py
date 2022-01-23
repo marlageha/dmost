@@ -286,9 +286,9 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
                                   backend=backend)
+        burnin=slits['emcee_burnin'][arg,nexp]
 
         
-    burnin=slits['emcee_burnin'][arg,nexp]
     theta = [np.mean(sampler.chain[:, 2*burnin:, i])  for i in [0,1]]
 
     slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
