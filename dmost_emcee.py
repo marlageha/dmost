@@ -275,7 +275,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
 
         sampler, convg, burnin = run_sampler(sampler, p0, max_n)
         if (burnin < 75):
-            burnin = 75.
+            burnin = 75
         slits['emcee_converge'][arg,nexp] = convg
         slits['emcee_burnin'][arg,nexp]   = burnin
 
@@ -288,7 +288,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                   backend=backend)
         burnin=slits['emcee_burnin'][arg,nexp]
 
-        
+
     theta = [np.mean(sampler.chain[:, 2*burnin:, i])  for i in [0,1]]
 
     slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
