@@ -163,51 +163,6 @@ def read_best_template(pfile):
 
     return plogwave, phx_flux
 
-######################################################
-def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
-
-    
-    fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
-
-    burnin=slits['emcee_burnin'][arg,nexp]
-
-    for ii in range(20):
-        ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
-    ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
-    ax1.axvline(burnin)
-
-    for ii in range(20):
-        ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
-    ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
-    ax2.axvline(burnin)
-
-    pdf.savefig()
-    plt.close(fig)
-
-
-    # PLOT SPECTRUM
-    plt.figure(figsize=(20,5))
-    m = (flux > np.percentile(flux,0.1)) & (flux < np.percentile(flux,99.9))
-    plt.plot(wave[m],flux[m],'k',linewidth=0.8)
-    plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
-    plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['rSN'][arg,nexp],\
-                                                  slits['emcee_lnprob'][arg,nexp]))
-    plt.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
-
-    pdf.savefig()
-    plt.close(fig)
-
-    # PLOT CORNER
-    labels=['v','w']
-    ndim=2
-    samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
-    fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
-
-    pdf.savefig()
-    plt.close('all')
-
-
-    return pdf
 
 ######################################################
 def run_sampler(sampler, p0, max_n):
@@ -446,6 +401,28 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     return slits
     
 
+def coadd_threshold(nexp, slt):
+    '''
+    Do coadd if less then 50% of exposures are good
+    Good exposure has facc > 0.7 and error < 10 kms
+    '''
+    do_coadd = 0
+
+    # SKIP IF EXPOSURE HAS 2 OR MORE GOOD SINGLE VALUES
+    ngood = 0.
+    for exp in np.arange(0,nexp,1):
+        err   = (slt['emcee_v_err84'][exp] - slt['emcee_v_err16'][exp])/2.
+        if (slt['emcee_f_acc'][exp] > 0.69) & (err < 10.):
+            ngood = ngood +1.
+
+    single_good   = ngood/nexp
+    coadd_thresh  = 0.5  
+
+    if single_good < coadd_thresh:
+        do_coadd = 1
+
+    return do_coadd
+
 ######################################################
 
 def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
@@ -462,8 +439,9 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     telluric = Table.read(tfile[0])
        
 
-    SNmax = 20
+    SNmax = 50
     SNmin = 2.
+    nexp = mask['nexp'][0]
 
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
 
@@ -476,12 +454,10 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     for ii,slt in enumerate(slits): 
 
 
-        # SKIP IF EXPOSURE HAS 2 OR MORE GOOD SINGLE VALUES
-        mm = slt['emcee_f_acc'] > 0.69
-        single_good_exp = np.sum(mm)
+        # THRESHOLD TO RUN COADD
+        do_coadd = coadd_threshold(nexp, slt)
 
-        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (slt['marz_flag'] < 3) & \
-                (single_good_exp < 2):
+        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (slt['marz_flag'] < 3) &  (do_coadd == 1):
       
 
             # RUN EMCEE ON COADD
