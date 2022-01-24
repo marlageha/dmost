@@ -293,7 +293,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
     wline3 = [8642, 8682]
 
 
-    CaT, CaT_err, p   = -99, -99, 0
+    CaT, CaT_err, p, chi2   = -99, -99, 0, -99
     gfit    = -99*wvl
 
     if np.mean(spec) > 0:
