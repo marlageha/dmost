@@ -44,6 +44,16 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
 
         v    = sum2/sum1
         verr = np.sqrt(1./sum1)
+
+        # IF ERROR IS LARGE AND COADD IS BETTER, REPLACE WITH COADD
+        err_thresh = 10.
+        terr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+        terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
+
+        if (verr > err_thresh) & (obj['coadd_f_acc'] > 0.65) & (verr > terr2):
+            v     = obj['coadd_v']+np.mean(mask['vhelio'])
+            verr   = np.sqrt(terr**2 + nexp*sys_exp**2)
+            ncomb = nexp + 100.
         
 
     # IF NONE, THEN USE COADD WITH LOWER THRESHOLD
@@ -51,8 +61,11 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
         if (obj['coadd_f_acc'] > 0.65):
             v     = obj['coadd_v']+np.mean(mask['vhelio'])
             terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-            verr   = np.sqrt(terr**2 + sys_exp**2)
-            ncomb = 1 + 100.
+            verr   = np.sqrt(terr**2 + nexp*sys_exp**2)
+            ncomb = nexp + 100.
+
+
+
 
     return v,verr,ncomb
   
@@ -100,6 +113,15 @@ def combine_exp(slits, mask, sys_exp = 0.25):
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
                         
+            print(obj['rSN'])
+            print(obj['emcee_v'])
+            print(obj['emcee_f_acc'])
+            print((obj['emcee_v_err84']-obj['emcee_v_err16'])/2.)
+
+            print(obj['coadd_v'],(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.,obj['coadd_f_acc'])
+            print(v-mask['vhelio'][0],verr,ncomb)
+            print()
+
             
     if (nexp == 1):
         for i,obj in enumerate(slits):
