@@ -96,25 +96,6 @@ def get_poly_fit(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly,pdf):
     p  = np.polyfit(wave[m],flux[m]/conv_int_spec[m],npoly,w=np.sqrt(ivar[m]))
 
 
-
-    fc = flux/conv_int_spec
-    md = np.median(fc)
-    m  = np.abs(fc) < md*10.
-
-    plt.figure(figsize=(20,5))
-    plt.plot(wave,conv_int_spec)
-    pdf.savefig()
-
-
-    plt.figure(figsize=(20,5))
-    plt.plot(wave,flux/conv_int_spec)
-    plt.plot(wave[m],fc[m])
-    pdf.savefig()
-
-
-
-
-
     return p
 
 
