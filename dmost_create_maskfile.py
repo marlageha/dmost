@@ -115,7 +115,8 @@ def create_slits(nslits,nexp):
             # MARZ
             filled_column('marz_flag',-1,nslits),
             filled_column('marz_z',-1.,nslits),
-            
+            filled_column('marz_tmpl',-1.,nslits),
+
             # FLEXURE
             filled_column('rSN',np.zeros(nexp),nslits),
             filled_column('bSN',np.zeros(nexp),nslits),
@@ -317,9 +318,9 @@ def add_marz(data_dir,mask,slits):
         m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],mz_gal['RA'],mz_gal['DEC'],1./3600)
         slits['marz_flag'][m1] = mz_gal['ZQUALITY'][m2]
         slits['marz_z'][m1]    = mz_gal['SPEC_Z'][m2]
+        slits['marz_tmpl'][m1] = mz_gal['TYPE'][m2]
 
         ngal   = np.sum(mz_gal['ZQUALITY'] > 2) # GALAXIES
-
         print('{} Add marz results with {} galaxies'.format(mask['maskname'][0],ngal))
 
 
