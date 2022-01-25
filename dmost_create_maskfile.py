@@ -189,10 +189,10 @@ def create_slits(nslits,nexp):
             filled_column('cat',-1.,nslits),
             filled_column('cat_err',-1.,nslits),
             filled_column('cat_chi2',-1.,nslits),
-            filled_column('naI',1.,nslits),
-            filled_column('naI_err',1.,nslits),
-            filled_column('mgI',1.,nslits),
-            filled_column('mgI_err',1.,nslits)
+            filled_column('naI',-1.,nslits),
+            filled_column('naI_err',-1.,nslits),
+            filled_column('mgI',-1.,nslits),
+            filled_column('mgI_err',-1.,nslits)
 
            ]
             
