@@ -46,7 +46,7 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
         verr = np.sqrt(1./sum1)
 
         # IF ERROR IS LARGE AND COADD IS BETTER, REPLACE WITH COADD
-        err_thresh = 10.
+        err_thresh = 10.  # 10 kms
         terr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
         terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
 
