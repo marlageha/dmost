@@ -193,7 +193,9 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
     plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['rSN'][arg,nexp],\
                                                   slits['emcee_lnprob'][arg,nexp]))
-    plt.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
+    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['rdet'][arg,nexp],\
+                         int(slits['rspat'][arg,nexp]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
+
 
     pdf.savefig()
     plt.close(fig)
@@ -289,13 +291,13 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
         burnin=slits['emcee_burnin'][arg,nexp]
 
 
-    theta = [np.mean(sampler.chain[:, 2*burnin:, i])  for i in [0,1]]
+    theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
 
     slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
     slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
 
     for ii in [0,1]:
-        mcmc = np.percentile(sampler.chain[:,2*burnin:, ii], [16, 50, 84])
+        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
             slits['emcee_v'][arg,nexp] = mcmc[1]
             slits['emcee_v_err16'][arg,nexp] = mcmc[0]
