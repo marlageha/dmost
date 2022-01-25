@@ -361,9 +361,11 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     ax2.axvline(burnin)
     ax2.set_title('w = {:0.2f}'.format(slits['coadd_w'][arg]))
 
+    err = (slits['emcee_v_err84'][arg,:] - slits['emcee_v_err16'][arg,:])/2.
     str1 = ['{:0.1f}'.format(x) for x in slits['emcee_v'][arg,:]]
-    str2 = ['{:0.2f}'.format(x) for x in slits['emcee_f_acc'][arg,:]]
-    ax1.legend(title='v = '+', '.join(str1)+'\nfacc ='+', '.join(str2), loc=3)
+    str2 = ['{:0.1f}'.format(x) for x in err]
+    str3 = ['{:0.2f}'.format(x) for x in slits['emcee_f_acc'][arg,:]]
+    ax1.legend(title='v = '+', '.join(str1)+'\nfacc ='+', '.join(str2)+'\nfacc ='+', '.join(str3), loc=3)
 
 
     
