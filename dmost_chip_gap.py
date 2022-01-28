@@ -57,7 +57,7 @@ def create_masks(data_wave):
     return continuum_mask
 
 ######################################################
-def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux):
+def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN):
 
     # SEARCH CORRECTION FACTORS 80-120% 
     frange = np.arange(0.8,1.2,0.01)
@@ -92,8 +92,30 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux):
 
     # ASSUME BAD FIT IF CHI2 HIGH
     #print(chi2_best,fbest)
-    if (chi2_best > 10):
+    if (chi2_best > 15) & (SN < 75):
         fbest = 1.
+
+
+    plot=0
+    if (plot == 1):
+        plt.figure(figsize=(18,5))
+        plt.title('chi2 = {:0.2f}, f= {:0.2f}'.format(chi2[n],  fbest))
+
+        plt.plot(frange,chi2)
+
+        plt.figure(figsize=(18,5))
+        scale_flux = data_flux.copy()
+        scale_ivar = data_ivar.copy()
+
+        m = data_wave < wave_gap_b
+        scale_flux[m] = fbest*data_flux[m]
+        scale_ivar[m] = data_ivar[m]/f**2
+
+
+        plt.plot(data_wave,data_flux,lw=0.5)
+        plt.plot(data_wave,scale_flux,lw=0.5)
+
+
 
     return fbest, chi2_best
 
@@ -132,7 +154,7 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
 
 
             wave_gap_b  = slits['ccd_gap_b'][arg,nexp]
-            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux)
+            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['rSN'][arg,nexp])
 
             slits['chip_gap_corr'][arg,nexp] = fbest
 
@@ -167,14 +189,14 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
             
 
             # SMOOTH TEMPLATES 
-            losvd_pix = np.mean(mask['lsf_correction'][:] * slits['fit_lsf'][ii,:]/ 0.02)           
+            losvd_pix = np.mean(slits['fit_lsf'][ii,:]/ 0.02)           
             sm_tell   = scipynd.gaussian_filter1d(telluric['flux'][mt],losvd_pix,truncate=3)
             twave     = telluric['wave'][mt]
             tflux     = np.interp(wave,twave,sm_tell)
 
 
             wave_gap_b   = np.mean(slits['ccd_gap_b'][ii,:])
-            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux)
+            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['collate1d_SN'][ii])
 
             slits['chip_gap_corr_collate1d'][ii] = fbest
 
@@ -188,7 +210,7 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
     Determine a factor to multiply blue chip to best match red chip flux
     '''   
 
-    SNmin = 10
+    SNmin = 8
        
     print('{} Calculate chip gap factor for stellar slits w/SN > {}'.format(mask['maskname'][0],SNmin))
    
