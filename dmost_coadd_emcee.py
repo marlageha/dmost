@@ -178,7 +178,7 @@ def run_sampler(sampler, p0, max_n):
         tau = sampler.get_autocorr_time(tol=0)
         burnin = int(2 * np.max(tau))
         converged = np.all(tau * 100 < sampler.iteration)
-        print(tau,burnin, converged)
+        print(burnin, converged)
         convg = np.sum(converged)
     except:
         convg=0
@@ -246,12 +246,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
     slits['coadd_f_acc'][arg]    = np.mean(sampler.acceptance_fraction)
 
-    print(burnin,arg,theta)
-    print(slits['coadd_f_acc'][arg])
-
-    print(slits['emcee_v'][arg,:])
-    print(slits['emcee_f_acc'][arg,:])
-    print()
+    print(theta)
 
 
 
@@ -365,7 +360,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     str1 = ['{:0.1f}'.format(x) for x in slits['emcee_v'][arg,:]]
     str2 = ['{:0.1f}'.format(x) for x in err]
     str3 = ['{:0.2f}'.format(x) for x in slits['emcee_f_acc'][arg,:]]
-    ax1.legend(title='v = '+', '.join(str1)+'\nfacc ='+', '.join(str2)+'\nfacc ='+', '.join(str3), loc=3)
+    ax1.legend(title='v = '+', '.join(str1)+'\nverr ='+', '.join(str2)+'\nfacc ='+', '.join(str3), loc=3)
 
 
     
