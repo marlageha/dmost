@@ -94,7 +94,7 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN):
     #print(chi2_best,fbest)
     if (chi2_best > 15) & (SN < 75):
         fbest = 1.
-    if (chi2_best > 100): 
+    if (chi2_best > 250): 
         fbest = 1.
 
 
