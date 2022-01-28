@@ -94,12 +94,15 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN):
     #print(chi2_best,fbest)
     if (chi2_best > 15) & (SN < 75):
         fbest = 1.
+    if (chi2_best > 100): 
+        fbest = 1.
+
 
 
     plot=0
     if (plot == 1):
         plt.figure(figsize=(18,5))
-        plt.title('chi2 = {:0.2f}, f= {:0.2f}'.format(chi2[n],  fbest))
+        plt.title('chi2 = {:0.2f}, sn ={:0.2f}, f= {:0.2f}'.format(chi2[n],  SN, fbest))
 
         plt.plot(frange,chi2)
 
