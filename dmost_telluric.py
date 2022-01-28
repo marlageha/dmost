@@ -210,9 +210,10 @@ def parse_tfile(tfile):
 def get_o2_nodata(airmass):
 
     # USING FIT TO ALL O2 DATA, DETERMINE BASED ON AIRMASS
-    m= 0.928719
-    b=0.09761
-    
+    # FIT IS DONE IN NOTEBOOK:  dmost/figure_telluric_all_O2fit
+    m= 0.8061839
+    b= 0.20933
+
     o2=m*airmass+b
     return o2
 
