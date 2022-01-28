@@ -48,7 +48,7 @@ def create_chi2_masks(data_wave):
     cmask3 = (data_wave > 7167) & (data_wave < 7320)
     cmask4 = (data_wave > 7590) & (data_wave < 7680) 
     cmask5 = (data_wave > 8160) & (data_wave < 8300)
-    cmask6 = (data_wave > 8960) & (data_wave < 9030)
+    cmask6 = (data_wave > 8970) & (data_wave < 9030)
 
     
     cmaski = cmask1 | cmask2 | cmask3 | cmask4 | cmask5 | cmask6
