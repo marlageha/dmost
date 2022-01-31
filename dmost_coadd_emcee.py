@@ -273,7 +273,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     # READ COADDED DATA
     jhdu = fits.open(data_dir+'/collate1d/'+slits['collate1d_filename'][arg])
 
-    jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(jhdu) 
+    jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(slits[arg],jhdu) 
     wave_lims = dmost_utils.vignetting_limits(slits[arg],0,jwave)
 
     wave = jwave[wave_lims]
