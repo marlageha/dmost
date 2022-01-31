@@ -346,7 +346,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
 
             jhdu = fits.open(data_dir+'collate1d/'+obj['collate1d_filename'])
 
-            jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(jhdu) 
+            jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(obj,jhdu) 
             vexp = 0
             if (obj['reduce_flag'][0] == 0):
                 m=obj['reduce_flag'] != 0
