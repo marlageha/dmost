@@ -285,7 +285,11 @@ def fit_mask_surfaces(fslope, fb, flos, x, y):
 
 #######################################################
 def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los,sky):
-
+    '''
+    Update Flexure fit and apply:
+        -- Determine chip gaps in flexure/air wavelength frame
+        -- Apply correction to LSF
+    '''
 
     # UPDATE FITS
     for arg in np.arange(0,nslits,1,dtype='int'):
@@ -298,6 +302,11 @@ def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los
         # APPLY CORRECTION FACTOR DETERMINED FROM ABSORPTION LINE FIT TO SEETING
         # 
         slits['fit_lsf'][arg,ii] = slits['fit_lsf'][arg,ii] * mask['lsf_correction'][ii]
+
+
+             
+        # SET CCD GAPS WITH FLEXURE CORRECTION
+        slits = dmost_utils.get_chip_gaps(slits,arg,ii,hdu)
 
 
         # CALCULATE RESIDUALS FROM FIT        
@@ -327,8 +336,6 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
                 
             r,b = dmost_utils.get_slit_name(slits[arg],ii)
 
-            # SET CCD GAPS WHILE WE ARE HERE
-            slits = dmost_utils.get_chip_gaps(slits,arg,ii,hdu,r,b)
             
             try:
                 # MEASURE SKY LINE DIFFERENCES
