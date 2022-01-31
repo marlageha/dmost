@@ -417,7 +417,7 @@ def create_slits_from_bintab(data_dir,mask,nexp):
             slits['collate1d_filename'][i] = names[0]
 
             chdu = fits.open(data_dir+'collate1d/'+names[0])
-            all_wave,all_flux,all_ivar, SN = dmost_utils.load_coadd_collate1d(chdu) 
+            all_wave,all_flux,all_ivar, SN = dmost_utils.load_coadd_collate1d(slits[i],chdu,flexure=0,chip_gap=0) 
             slits['collate1d_SN'][i]       = SN
             ncol1d+=1
             
