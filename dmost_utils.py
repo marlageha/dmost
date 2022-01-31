@@ -83,18 +83,29 @@ def get_slit_name(slits,i):
 
 ##################################################
 # GET CHIP GAP WAVELENGTHS
-def get_chip_gaps(slits,arg,nexp,hdu,r,b):
+def get_chip_gaps(slits,arg,nexp,hdu):
     
+    r,b = get_slit_name(slits[arg],nexp)
 
     try:
-        ccd_b = hdu[b].data['OPT_WAVE'][-1]
-        ccd_r = hdu[r].data['OPT_WAVE'][0]
+        ccd_b_raw = hdu[b].data['OPT_WAVE'][-1]
+        ccd_r_raw = hdu[r].data['OPT_WAVE'][0]
+
+        # CORRECTION FOR FLEXURE AND CONVERT TO AIR
+        ccd_bv = ccd_b_raw - (slits['fit_slope'][arg,nexp]*ccd_b_raw + slits['fit_b'][arg,nexp])
+        ccd_b  = ccd_bv / (1.0 + 2.735182E-4 + 131.4182 / ccd_bv**2 + 2.76249E8 / ccd_bv**4)
+        ccd_rv = ccd_r_raw - (slits['fit_slope'][arg,nexp]*ccd_r_raw + slits['fit_b'][arg,nexp])
+        ccd_r  = ccd_rv / (1.0 + 2.735182E-4 + 131.4182 / ccd_rv**2 + 2.76249E8 / ccd_rv**4)
+
+
     except:
         ccd_b=-1
         ccd_r=-1
         
     slits['ccd_gap_b'][arg,nexp] = ccd_b
     slits['ccd_gap_r'][arg,nexp] = ccd_r
+
+
 
     return slits
 
@@ -103,19 +114,19 @@ def get_chip_gaps(slits,arg,nexp,hdu,r,b):
 #######################################################
 #  LOAD A SPECTRUM
 ######################################################
-def load_spectrum(slits,nexp,hdu,vacuum=0,vignetted = 0):
+def load_spectrum(slit,nexp,hdu,vacuum=0,vignetted = 0):
 
 
-    r,b = get_slit_name(slits,nexp)
+    r,b = get_slit_name(slit,nexp)
 
     try:
         # READ IN DATA FROM SPEC1D, TRIM INNER ENDS
-        tmp_wave = np.concatenate((hdu[b].data['OPT_WAVE'][:-3],hdu[r].data['OPT_WAVE'][3:]),axis=None)
-        all_flux = np.concatenate((hdu[b].data['OPT_COUNTS'][:-3],hdu[r].data['OPT_COUNTS'][3:]),axis=None)
-        all_sky = np.concatenate((hdu[b].data['OPT_COUNTS_SKY'][:-3],hdu[r].data['OPT_COUNTS_SKY'][3:]),axis=None)
-        all_ivar = np.concatenate((hdu[b].data['OPT_COUNTS_IVAR'][:-3],hdu[r].data['OPT_COUNTS_IVAR'][3:]),axis=None)
+        tmp_wave = np.concatenate((hdu[b].data['OPT_WAVE'][:-4],hdu[r].data['OPT_WAVE'][3:]),axis=None)
+        all_flux = np.concatenate((hdu[b].data['OPT_COUNTS'][:-4],hdu[r].data['OPT_COUNTS'][3:]),axis=None)
+        all_sky = np.concatenate((hdu[b].data['OPT_COUNTS_SKY'][:-4],hdu[r].data['OPT_COUNTS_SKY'][3:]),axis=None)
+        all_ivar = np.concatenate((hdu[b].data['OPT_COUNTS_IVAR'][:-4],hdu[r].data['OPT_COUNTS_IVAR'][3:]),axis=None)
 
-        fitwave  = slits['fit_slope'][nexp]*tmp_wave + slits['fit_b'][nexp]
+        fitwave  = slit['fit_slope'][nexp]*tmp_wave + slit['fit_b'][nexp]
         vwave = tmp_wave - fitwave
 
         # CONVERT PYPEIT OUTPUT WAVELENGTHS FROM VACUUM TO AIR
@@ -156,7 +167,7 @@ def load_spectrum(slits,nexp,hdu,vacuum=0,vignetted = 0):
 
 ##################################################
 # LOAD COLLATE1D SPECTRUM
-def load_coadd_collate1d(hdu,vacuum=0,vignetted = 0):
+def load_coadd_collate1d(slit,hdu,vacuum=0,vignetted = 0,flexure=1,chip_gap =1):
 
     SN = 0
     data = hdu[1].data
@@ -166,13 +177,35 @@ def load_coadd_collate1d(hdu,vacuum=0,vignetted = 0):
         all_flux = data['flux']
         all_ivar = data['ivar']
 
-        # NO FLEXURE CORRECTION HAPPENING FOR COADDS, USE WITH CAUTION
-        vwave = tmp_wave #- fitwave
+        # AVERAGE FLEXURE -- USE WITH CAUTION
+        vwave = tmp_wave 
+        if (flexure == 1):
+            mfit = np.median(slit['fit_slope'])
+            bfit = np.median(slit['fit_b'])
+            fitwave  = mfit*tmp_wave + bfit
+            vwave    = tmp_wave - fitwave
+
+
 
         # CONVERT PYPEIT OUTPUT WAVELENGTHS FROM VACUUM TO AIR
         all_wave = vwave
         if (vacuum == 0):
             all_wave = vwave / (1.0 + 2.735182E-4 + 131.4182 / vwave**2 + 2.76249E8 / vwave**4)
+
+
+        # TRIM CHIP GAPS (NEEDS FLEXURE TO RUN)
+        if (chip_gap == 1):
+            rpix = np.median(slit['ccd_gap_r'])
+            bpix = np.median(slit['ccd_gap_b'])
+            mr = np.abs(all_wave-rpix) < 1
+            all_wave = np.delete(all_wave,mr)
+            all_flux = np.delete(all_flux,mr) 
+            all_ivar = np.delete(all_ivar,mr) 
+
+            mb = np.abs(all_wave-bpix) < 1
+            all_wave = np.delete(all_wave,mb)
+            all_flux = np.delete(all_flux,mb) 
+            all_ivar = np.delete(all_ivar,mb) 
 
 
         # TRIM ENDS
