@@ -63,8 +63,10 @@ def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux,npoly):
 
     
     # FIT CONTINUUM -- for weights use 1/sigma
-    ivar = data_ivar/synth_flux**2
-    p    = np.polyfit(data_wave[cmask],data_flux[cmask]/synth_flux[cmask],npoly,w=np.sqrt(ivar[cmask]))
+    m=(data_flux > np.percentile(data_flux,3)) & (data_flux < np.percentile(data_flux,99.5))
+
+    p    = np.polyfit(data_wave[cmask&m],data_flux[cmask&m]/synth_flux[cmask&m],\
+                      npoly,w=np.sqrt(data_ivar[cmask&m]))
 
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
     model_flux = synth_flux * faster_polyval(p, data_wave)
@@ -121,7 +123,7 @@ def chi2_single_stellar_template(phx_flux,pwave,data_wave,data_flux,data_ivar,lo
     conv_spec = scipynd.gaussian_filter1d(phx_flux,losvd_pix,truncate=3)
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
-    tmp_flux      = np.interp(data_wave,pwave,conv_spec)
+    tmp_flux      = np.interp(data_wave,pwave*np.e,conv_spec)
     cont_p, tmp = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
 
     
@@ -207,6 +209,9 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
     if (f['collate1d_SN']) > 100:
         npoly=7
 
+    dmin = np.min(data_wave) - 20
+    dmax = np.max(data_wave) + 20
+
     # LOOP THROUGH ALL TEMPLATES
     for phx_file in phx_files:
 
@@ -218,8 +223,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
 
 
         # TRIM WAVELENGTH OF TEMPLATES TO SPEED UP COMPUTATION
-        dmin = np.min(data_wave) - 20
-        dmax = np.max(data_wave) + 20
+
         pwave = np.e**(phx_logwave)
         mp = (pwave > dmin) & (pwave<dmax)
 
@@ -339,7 +343,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     # V RANGE FOR TEMPLATE FINDER
     vrange = np.arange(-500,500,5)
 
-    for ii,obj in enumerate(slits): 
+    for ii,obj in enumerate(slits[0:5]): 
 
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
         if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > SNmin) & (bool(obj['collate1d_filename'].strip())):
