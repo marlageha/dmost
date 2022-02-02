@@ -19,12 +19,6 @@ import dmost_utils
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 
 
-########################################################
-# Determine best stellar template using coadd1d spectrum
-# Use this template on indivudal exposures
-# Prepare templates using dmost_pheonix_templates
-
-
 #######################################################
 # Create masks for chi2 evaluation and continuum fitting
 # 
@@ -61,18 +55,38 @@ def create_chi2_masks(data_wave):
 ########################################
 def fit_continuum(data_wave,data_flux,data_ivar,cmask,synth_flux,npoly):
 
-    
     # FIT CONTINUUM -- for weights use 1/sigma
     m=(data_flux > np.percentile(data_flux,3)) & (data_flux < np.percentile(data_flux,99.5))
 
-    p    = np.polyfit(data_wave[cmask&m],data_flux[cmask&m]/synth_flux[cmask&m],\
-                      npoly,w=np.sqrt(data_ivar[cmask&m]))
+    
+    ivar = data_ivar
+    p    = np.polyfit(data_wave[cmask&m],data_flux[cmask&m]/synth_flux[cmask&m],npoly,w=np.sqrt(ivar[cmask&m]))
 
+    
     # ADD CONTNUMM TO SYNTHETIC SPECTRUM
     model_flux = synth_flux * faster_polyval(p, data_wave)
 
+    
     return p, model_flux
 
+
+########################################
+def fit_syn_continuum_telluric(data_wave,data_flux,data_ivar,cmask,synth_flux):
+
+    
+    # FIT CONTINUUM -- for weights use 1/sigma
+    ivar = data_ivar/synth_flux**2
+    p = np.polyfit(data_wave[cmask],data_flux[cmask]/synth_flux[cmask],5,w=np.sqrt(ivar[cmask]))
+    fit=np.poly1d(p)
+   
+    d = data_flux/fit(data_wave)
+    cmask2 = (d > np.percentile(d,15)) & (d < np.percentile(d,99))
+    p = np.polyfit(data_wave[cmask2],data_flux[cmask2]/synth_flux[cmask2],5,w=np.sqrt(ivar[cmask2]))
+
+    # ADD CONTNUMM TO SYNTHETIC SPECTRUM
+    continuum_syn_flux = synth_flux * faster_polyval(p, data_wave)
+
+    return continuum_syn_flux
 
 ###############################################
 def calc_chi2(data_flux,data_wave,data_ivar,final_fit,nparam=3):
@@ -116,14 +130,15 @@ def faster_polyval(p, x):
     return y
 
 ###############################################
-def chi2_single_stellar_template(phx_flux,pwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,cmask,chi2_mask,npoly):
+def chi2_single_stellar_template(phx_flux,pwave,data_wave,data_flux,data_ivar,losvd_pix,vrange,\
+                                 cmask,chi2_mask,npoly):
     
 
     # CREATE MODEL 
     conv_spec = scipynd.gaussian_filter1d(phx_flux,losvd_pix,truncate=3)
 
     # FIT CONTINUUM OUTSIDE LOOP TO SAVE TIME
-    tmp_flux      = np.interp(data_wave,pwave*np.e,conv_spec)
+    tmp_flux      = np.interp(data_wave,pwave,conv_spec)
     cont_p, tmp = fit_continuum(data_wave,data_flux,data_ivar,cmask,tmp_flux,npoly)
 
     
@@ -149,7 +164,8 @@ def chi2_single_stellar_template(phx_flux,pwave,data_wave,data_flux,data_ivar,lo
     n        = np.argmin(vchi2)
     min_v    = vrange[n]
     min_chi2 = vchi2[n]
-
+    
+           
     
     return min_v,min_chi2
 
@@ -172,6 +188,7 @@ def projected_chi_plot(x,y,z):
 
     return aa,bb,cc
 
+
 ###############################################
 def get_stellar_template_files(SN):
     
@@ -192,7 +209,7 @@ def get_stellar_template_files(SN):
     return pfiles, grid
 
 ###############################################
-def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot=0):
+def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot=1):
     
     best_chi, best_v, best_t       = [], [], []
     best_feh, best_teff, best_logg = [], [], []
@@ -209,9 +226,13 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
     if (f['collate1d_SN']) > 100:
         npoly=7
 
+
     dmin = np.min(data_wave) - 20
     dmax = np.max(data_wave) + 20
 
+    
+           
+        
     # LOOP THROUGH ALL TEMPLATES
     for phx_file in phx_files:
 
@@ -223,7 +244,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
 
 
         # TRIM WAVELENGTH OF TEMPLATES TO SPEED UP COMPUTATION
-
+ 
         pwave = np.e**(phx_logwave)
         mp = (pwave > dmin) & (pwave<dmax)
 
@@ -231,6 +252,11 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
         min_v,min_chi2 = chi2_single_stellar_template(phx_flux[mp],pwave[mp],data_wave,data_flux,\
                                            data_ivar,losvd_pix,vrange,cmask,chi2_mask,npoly)
 
+        
+
+        
+        
+        
         final_file = ''
         if min_chi2 > 0.1:
             best_chi = np.append(best_chi,min_chi2)
@@ -323,6 +349,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
         plt.close(fig)
 
     return final_file, f, pdf
+
 
 
 
