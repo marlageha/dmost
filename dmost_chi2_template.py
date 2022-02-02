@@ -343,7 +343,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     # V RANGE FOR TEMPLATE FINDER
     vrange = np.arange(-500,500,5)
 
-    for ii,obj in enumerate(slits[0:5]): 
+    for ii,obj in enumerate(slits): 
 
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
         if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > SNmin) & (bool(obj['collate1d_filename'].strip())):
