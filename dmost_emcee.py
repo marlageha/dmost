@@ -276,10 +276,6 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                                   backend=backend)#,pool=pool
 
         sampler, convg, burnin = run_sampler(sampler, p0, max_n)
-        if (burnin < 75):
-            burnin = 75
-        slits['emcee_converge'][arg,nexp] = convg
-        slits['emcee_burnin'][arg,nexp]   = burnin
 
         
     # OR JUST READ IN PREVIOUS RESULTS
@@ -288,7 +284,21 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
                                   backend=backend)
-        burnin=slits['emcee_burnin'][arg,nexp]
+        try:
+            tau    = sampler.get_autocorr_time(tol=0)
+            burnin = int(2 * np.max(tau))
+            converged = np.all(tau * 100 < sampler.iteration)
+            print(tau,burnin, converged)
+            convg = np.sum(converged)
+        except:
+            convg=0
+            burnin=100
+
+    if (burnin < 75):
+        burnin = 75
+
+    slits['emcee_converge'][arg,nexp] = convg
+    slits['emcee_burnin'][arg,nexp]   = burnin
 
 
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
