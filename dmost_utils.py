@@ -110,6 +110,16 @@ def get_chip_gaps(slits,arg,nexp,hdu):
     return slits
 
 
+#######################################################
+def correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar):
+
+    if (fcorr != -1):
+        m = wave < bwave_gap
+        flux[m] = fcorr * flux[m]
+        ivar[m] = ivar[m]/fcorr**2
+
+    return flux, ivar
+
 
 #######################################################
 #  LOAD A SPECTRUM
@@ -238,15 +248,6 @@ def load_coadd_collate1d(slit,hdu,vacuum=0,vignetted = 0,flexure=1,chip_gap =1):
 
     return all_wave,all_flux,all_ivar, SN
 
-
-def correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar):
-
-    if (fcorr != -1):
-        m = wave < bwave_gap
-        flux[m] = fcorr * flux[m]
-        ivar[m] = ivar[m]/fcorr**2
-
-    return flux, ivar
 
 
 ####################################################
