@@ -238,8 +238,14 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
     for i,spec1d in enumerate(spec1d_files):
 
         # HEADER VALUES
-        hdu      = fits.open(spec1d)
-        hdr      = hdu[0].header
+        try:
+            hdu      = fits.open(spec1d)
+            hdr      = hdu[0].header
+        except:
+            print('Cannot find file {}'.format(spec1d))
+            print('You probably need to run pypeit')
+            return
+            
         fnames   = hdr['FILENAME'].split('.')
 
         mask['maskname'][i]       = maskname
