@@ -311,11 +311,13 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
         errors = 1./np.sqrt(ivar[mw])
         
+
         try:
             p, pcov = curve_fit(CaT_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0,\
                             bounds=((0.5, 8540., 0.5, 0,0,0), (2, 8543.5, 1.5,2,2,2)))
         except:
             p, pcov = p0, None
+            return CaT, CaT_err, gfit, chi2
 
         perr = np.sqrt(np.diag(pcov))
 
