@@ -171,7 +171,7 @@ def run_sampler(sampler, p0, max_n):
     # POOL
     #with Pool() as pool:
     #sampler = sampler.sample(p0, iterations=max_n,progress = True)
-    pos, prob, state = sampler.run_mcmc(p0, max_n,progress=True)
+    pos, prob, state = sampler.run_mcmc(p0, max_n,progress=False)
 
     
     try:
