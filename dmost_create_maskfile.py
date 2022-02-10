@@ -336,7 +336,7 @@ def add_marz(data_dir,mask,slits):
         
     return slits
 
-
+#############################################################
 def add_seeing(data_dir,mask,slits):
 
     # FOR EACH EXPOSURE
@@ -559,9 +559,9 @@ def create_single_mask(maskname):
         slits = add_spec1d_fileinfo(data_dir,slits,mask,nexp)
 
 
-    # ADD MARZ
+    # ADD MARZ, ADD SEEING
     slits = add_marz(data_dir,mask,slits)
-
+    mask  = add_seeing(data_dir,mask,slits)
 
     return slits, mask, nexp, outfile
 
