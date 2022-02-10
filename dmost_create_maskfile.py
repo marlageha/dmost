@@ -186,12 +186,12 @@ def create_slits(nslits,nexp):
             filled_column('v_nexp',1,nslits),
            
            # EQUIVALENT WIDTHS FROM COADD1D FILES
-            filled_column('cat',-1.,nslits),
+            filled_column('cat',-99.,nslits),
             filled_column('cat_err',-1.,nslits),
             filled_column('cat_chi2',-1.,nslits),
-            filled_column('naI',-1.,nslits),
+            filled_column('naI',-99.,nslits),
             filled_column('naI_err',-1.,nslits),
-            filled_column('mgI',-1.,nslits),
+            filled_column('mgI',-99.,nslits),
             filled_column('mgI_err',-1.,nslits)
 
            ]
@@ -376,7 +376,14 @@ def create_slits_from_bintab(data_dir,mask,nexp):
     bintab    = rhdu['ObjectCat'].data
     bluslits  = rhdu['BluSlits'].data  
     desislits = rhdu['DesiSlits'].data
+    if (np.size(bintab) != np.size(bluslits)):
+        m1,m2,dd= sm.spherematch(desislits['slitRA'],desislits['slitDec'],bintab['RA_OBJ'],bintab['DEC_OBJ'],3./3600)
+        bintab = bintab[m2]
+
+
+    # REMOVE ALIGNMENT STARS!
     m         = bintab['ObjClass'] == 'Program_Target'
+
 
     bintab    = bintab[m]
     bluslits  = bluslits[m]
@@ -552,12 +559,8 @@ def create_single_mask(maskname):
         slits = add_spec1d_fileinfo(data_dir,slits,mask,nexp)
 
 
-
     # ADD MARZ
     slits = add_marz(data_dir,mask,slits)
-
-    # ADD SEEING
-    mask = add_seeing(data_dir,mask,slits)
 
 
     return slits, mask, nexp, outfile
