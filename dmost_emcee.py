@@ -175,12 +175,12 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
     ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
-    ax1.axvline(2*burnin)
+    ax1.axvline(burnin)
 
     for ii in range(20):
         ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
     ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
-    ax2.axvline(2*burnin)
+    ax2.axvline(burnin)
 
     pdf.savefig()
     plt.close(fig)
@@ -203,7 +203,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     # PLOT CORNER
     labels=['v','w']
     ndim=2
-    samples   = sampler.chain[:, 2*burnin:, :].reshape((-1, ndim))
+    samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
 
     pdf.savefig()
