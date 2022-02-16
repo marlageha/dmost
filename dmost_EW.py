@@ -15,6 +15,8 @@ from astropy.io import ascii,fits
 import emcee
 import corner
 import glob
+import warnings
+
 
 import dmost_utils, dmost_create_maskfile
 
@@ -28,7 +30,7 @@ DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
 
 ######################################################
-def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na_fit):
+def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na_fit,p_na,p_mg):
 
     fig, (ax1, ax2,ax3,ax4) = plt.subplots(1, 4,figsize=(22,5))
 
@@ -44,17 +46,20 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
     ax2.set_title('CaT EW= {:0.2f}  err={:0.2f}'.format(this_slit['cat'],this_slit['cat_err']))
 
 
-    ax3.plot(nwave,nspec)
+    mg_label = 'sig = {:0.2f}, cen = {:0.1f}'.format(p_mg[2],p_mg[3])
+    ax3.plot(nwave,nspec,label=mg_label)
     ax3.plot(nwave,mg_fit,'r')
     ax3.set_title(' MgI EW = {:0.2f}  err={:0.2f}'.format(this_slit['mgI'],this_slit['mgI_err']))
     ax3.set_xlim(8802,8811)
+    ax3.legend(loc=3)
 
 
-    ax4.plot(nawave,naspec)
+    na_label = 'sig = {:0.2f}, ratio= {:0.1f}, cen = {:0.1f}'.format(p_na[2],p_na[3],p_na[1])
+    ax4.plot(nawave,naspec,label=na_label)
     ax4.set_xlim(8150,8220)
     ax4.plot(nwave,na_fit,'r')
     ax4.set_title('Na1 EW={:0.2f} err={:0.2f}'.format(this_slit['naI'],this_slit['naI_err']))
-
+    ax4.legend(loc=3)
 
     ymax = 1.2
     if this_slit['collate1d_SN'] < 20:
@@ -70,28 +75,6 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
 
 
     return pdf
-
-
-######################################
-def NaI_double_gauss(x,*p) :
-    # A gaussian peak with:
-    #   Constant Background          : p[0]
-    #   Peak height above background : p[1]
-    #   Central value                : p[2]
-    #   Standard deviation           : p[3]
-    # 8183.3, 8194.8
-    return 1.0-p[0]*np.exp(-1.*(x-p[1])**2/(2.*p[2]**2)) \
-               -p[3]*np.exp(-1.*(x-(p[1]+11.5))**2/(2.*p[2]**2))
-
-########################################
-def NaI_guess(x,y):
-
-    N_guess   = np.max(y) - np.min(y)
-    wv_guess  = 8183.3
-    sig_guess = 0.8
-    p0 = [N_guess,wv_guess,sig_guess,N_guess]
-
-    return p0
 
 ########################################
 def NaI_normalize(wave,spec,ivar):
@@ -134,18 +117,42 @@ def NaI_normalize(wave,spec,ivar):
 
     return nwave,nspec,nivar
 
+
+######################################
+def NaI_double_gauss(x,*p) :
+    # A gaussian peak with:
+    #   Constant Background          : p[0]
+    #   Central value                : p[1]
+    #   Standard deviatio            : p[2]
+    #   Relative height              : p[3]
+    # 8183.3, 8194.8
+    return p[4]-p[0]*np.exp(-1.*(x-p[1])**2/(2.*p[2]**2)) \
+               -p[3]*p[0]*np.exp(-1.*(x-(p[1]+11.54))**2/(2.*p[2]**2))
+
 ########################################
-def NaI_fit_EW(wvl,spec,ivar):
+def NaI_guess(x,y):
+
+    N_guess   = np.max(y) - np.min(y)
+    wv_guess  = 8183.256
+    sig_guess = 0.6
+    p0 = [N_guess,wv_guess,sig_guess,1.,1.]
+
+    return p0
+
+
+########################################
+def NaI_fit_EW(wvl,spec,ivar,SN):
     
     wline = [8172., 8210.5]
 
     Na1_EW,Na1_EW_err     = -99, -99
-    gfit       = -99
+    gfit       = -99*wvl
+    p0 = [-99,-99,-99,-99,-99]
+
 
     mw  = (wvl > wline[0]) & (wvl < wline[1]) 
     mzero = spec[mw] == 0
     
-    p3=0
     if (np.sum(mzero) < 10):
     
         # GAUSSIAN FIT
@@ -154,30 +161,34 @@ def NaI_fit_EW(wvl,spec,ivar):
         
         try:
             p, pcov = curve_fit(NaI_double_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                       bounds=((0, 8181, 0.3, 0), (2, 8185, 1.5, 2)))
+                   bounds=((0, 8182, 0.4, 1.0,0.95), (2, 8185, 1., 1.6,1.05)))
+
+
             perr = np.sqrt(np.diag(pcov))
+       
+            # INTEGRATE PROFILE
+            Na1_EW1 = (p[0])*(p[2]*np.sqrt(2.*np.pi))
+            Na1_EW2 = (p[3])*p[0]*(p[2]*np.sqrt(2.*np.pi))
+            Na1_EW  = Na1_EW1+Na1_EW2
+            
+            # CALCUALTE ERROR
+            tmp1 = p[0] * perr[2]* np.sqrt(2*np.pi)
+            tmp2 = p[3] *p[0] * perr[2]* np.sqrt(2*np.pi)
+            Na1_EW_err = np.sqrt(tmp1**2 + tmp2**2)
+
+            # CREATE FIT FOR PLOTTING
+            gfit = NaI_double_gauss(wvl,*p)
+
+            if (Na1_EW > 5) | (Na1_EW_err > 5) | (Na1_EW_err == 0):
+                Na1_EW     = -99
+                Na1_EW_err = -99
+                p=p0
         except:
             p, pcov = p0, None
             perr = p0
 
-        # INTEGRATE PROFILE
-        Na1_EW1 = (p[0])*(p[2]*np.sqrt(2.*np.pi))
-        Na1_EW2 = (p[3])*(p[2]*np.sqrt(2.*np.pi))
-        Na1_EW  = Na1_EW1+Na1_EW2
         
-        # CALCUALTE ERROR
-        tmp1 = p[0] * perr[2]* np.sqrt(2*np.pi)
-        tmp2 = p[3] * perr[2]* np.sqrt(2*np.pi)
-        Na1_EW_err = np.sqrt(tmp1**2 + tmp2**2)
-
-        # CREATE FIT FOR PLOTTING
-        gfit = NaI_double_gauss(wvl,*p)
-
-        if (Na1_EW_err > 0.4):
-            Na1_EW_err = -99
-
-        
-    return Na1_EW,Na1_EW_err,gfit
+    return Na1_EW,Na1_EW_err,gfit,p
 
 ########################################
 def MgI_gaussian(x,*p) :
@@ -190,14 +201,14 @@ def MgI_gaussian(x,*p) :
 ########################################
 def MgI_guess(x,y):
     N_guess   = np.max(y) - np.min(y)
-    sig_guess = 0.8
+    sig_guess = 0.6
     p0 = [1.,N_guess,sig_guess, 8806.8]
 
     return p0
 
 
 ########################################
-def mgI_EW_fit(wvl,spec,ivar):
+def mgI_EW_fit(wvl,spec,ivar,SN):
     
     # CALCULATE in +/- 5A of MgI line
     # there is a line at 8804.6 (need to deal with this?)
@@ -205,16 +216,22 @@ def mgI_EW_fit(wvl,spec,ivar):
     wline = [mgI_line-5.,mgI_line+5.] 
     mw    = (wvl > wline[0]) & (wvl < wline[1]) 
 
-    mg1_EW, mg1_EW_err, p3     = -99, -99,  -99
+    mg1_EW, mg1_EW_err    = -99, -99
     mgfit       = -99*wvl
+    p0 =  [-99,-99,-99,-99]
        
 
     # GAUSSIAN FIT
     try:
         p0 = MgI_guess(wvl[mw],spec[mw])
+
         errors = 1./np.sqrt(ivar[mw])
-        p, pcov = curve_fit(MgI_gaussian,wvl[mw],spec[mw],sigma = errors,p0=p0, \
-                           bounds=((0.5, 0.0, 0.5, 8805), (2, 2, 1.25,8808)))
+        if SN > 5:
+            p, pcov = curve_fit(MgI_gaussian,wvl[mw],spec[mw],sigma = errors,p0=p0, \
+                            bounds=((0.5, 0.0, 0.45, 8805.8), (2, 2, 0.9,8807.8)))
+        if SN < 5:
+            p, pcov = curve_fit(MgI_gaussian,wvl[mw],spec[mw],sigma = errors,p0=p0, \
+                            bounds=((0.5, 0.0, 0.45, 8806.2), (2, 2, 0.8,8807.4)))
         perr = np.sqrt(np.diag(pcov))
      
         # INTEGRATE PROFILE
@@ -229,13 +246,14 @@ def mgI_EW_fit(wvl,spec,ivar):
         mgfit = MgI_gaussian(wvl,*p)
         p3=p[2]
 
-        if (p[2] > 2.0) | (np.abs(mg1_EW) > 10) | (mg1_EW_err == 0.):
-            mg1_EW=-99
+        if (np.abs(mg1_EW) > 10) | (mg1_EW_err == 0.) | (mg1_EW_err > 10.):
+            mg1_EW     = -99
             mg1_EW_err = -99
     except:
-        p3 = -1
+        p=p0
+
       
-    return mg1_EW,mg1_EW_err,mgfit, p3
+    return mg1_EW,mg1_EW_err,mgfit, p
 
 
 
@@ -475,6 +493,8 @@ def CaII_normalize(wave,spec,ivar):
 
 def calc_all_EW(data_dir, slits, mask, arg, pdf):
 
+    warnings.simplefilter('ignore')#, OptimizeWarning)
+
 
     # READ COADDED DATA
     jhdu = fits.open(data_dir+'/collate1d/'+slits['collate1d_filename'][arg])
@@ -508,19 +528,19 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
 
         ##########################
         # CALCULATE MgI LINES
-        MgI_EW,MgI_EW_err, MgI_fit,mg1_p3  = mgI_EW_fit(nwave,nspec,nivar)
+        MgI_EW,MgI_EW_err, MgI_fit,p_mg  = mgI_EW_fit(nwave,nspec,nivar,SN)
 
         slits['mgI'][arg]     = MgI_EW
         slits['mgI_err'][arg] = MgI_EW_err
 
         #############################
         # NaI LINES
-        nawave,naspec,naivar       = NaI_normalize(wave,flux,ivar)
-        NaI_EW,NaI_EW_err, NaI_fit = NaI_fit_EW(nawave,naspec,naivar)
+        nawave,naspec,naivar            = NaI_normalize(wave,flux,ivar)
+        NaI_EW,NaI_EW_err, NaI_fit,p_na = NaI_fit_EW(nawave,naspec,naivar,SN)
         slits['naI'][arg]     = NaI_EW
         slits['naI_err'][arg] = NaI_EW_err
 
-        mk_EW_plots(pdf, slits[arg], nwave, nspec, nawave, naspec, CaT_fit, MgI_fit, NaI_fit)
+        mk_EW_plots(pdf, slits[arg], nwave, nspec, nawave, naspec, CaT_fit, MgI_fit, NaI_fit,p_na,p_mg)
 
 
     return slits
