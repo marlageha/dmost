@@ -211,8 +211,8 @@ def get_o2_nodata(airmass):
 
     # USING FIT TO ALL O2 DATA, DETERMINE BASED ON AIRMASS
     # FIT IS DONE IN NOTEBOOK:  dmost/figure_telluric_all_O2fit
-    m= 0.8061839
-    b= 0.20933
+    m= 0.928209438
+    b= 0.07763335
 
     o2=m*airmass+b
     return o2
