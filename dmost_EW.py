@@ -163,7 +163,6 @@ def NaI_fit_EW(wvl,spec,ivar,SN):
             p, pcov = curve_fit(NaI_double_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0,\
                    bounds=((0, 8182, 0.4, 1.0,0.95), (2, 8185, 1., 1.6,1.05)))
 
-
             perr = np.sqrt(np.diag(pcov))
        
             # INTEGRATE PROFILE
@@ -173,8 +172,17 @@ def NaI_fit_EW(wvl,spec,ivar,SN):
             
             # CALCUALTE ERROR
             tmp1 = p[0] * perr[2]* np.sqrt(2*np.pi)
-            tmp2 = p[3] *p[0] * perr[2]* np.sqrt(2*np.pi)
-            Na1_EW_err = np.sqrt(tmp1**2 + tmp2**2)
+            tmp2 = p[2] * perr[0]* np.sqrt(2*np.pi)
+
+
+            tmp3 = p[3] *p[0] * perr[2]* np.sqrt(2*np.pi)
+            tmp4 = p[0] *p[2] * perr[3]* np.sqrt(2*np.pi)
+            tmp5 = p[3] *p[2] * perr[0]* np.sqrt(2*np.pi)
+
+
+            Na1_EW_err = np.sqrt(tmp1**2 + tmp2**2 + tmp3**2 + tmp4**2 + tmp5**2)
+            #print(Na1_EW_err)
+            #print(tmp1,tmp2,tmp3,tmp4,tmp5)
 
             # CREATE FIT FOR PLOTTING
             gfit = NaI_double_gauss(wvl,*p)
