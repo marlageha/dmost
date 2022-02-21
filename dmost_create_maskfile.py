@@ -184,7 +184,14 @@ def create_slits(nslits,nexp):
             filled_column('dmost_v',-1.,nslits),
             filled_column('dmost_v_err',-1.,nslits),
             filled_column('v_nexp',1,nslits),
-           
+
+            # SHORT BINARY FLAGS
+            filled_column('vv_merr',-1.,nslits),
+            filled_column('vv_std',-1.,nslits),
+            filled_column('vv_time',-1.,nslits),
+            filled_column('vv_flag',-1,nslits),
+
+
            # EQUIVALENT WIDTHS FROM COADD1D FILES
             filled_column('cat',-99.,nslits),
             filled_column('cat_err',-1.,nslits),
