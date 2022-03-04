@@ -484,14 +484,14 @@ def add_spec1d_fileinfo(data_dir,slits,mask,nexp):
             m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],[slit_header['RA']],[slit_header['DEC']],2./3600)
             
             
-            if (np.size(m1) > 0) & (slit_header['DET'] < 5):
+            if (np.size(m1) > 0) & (int(slit_header['DET']) < 5):
                 arg=m1[0]
                 slits['bdet'][arg,ii]       = slit_header['DET']
                 slits['bslit'][arg,ii]      = slit_header['SLITID']
                 slits['bspat'][arg,ii]      = round(slit_header['HIERARCH SPAT_PIXPOS'])
                 slits['rms_arc_b'][arg,ii]  = slit_header['WAVE_RMS']
 
-            if (np.size(m1) > 0) & (slit_header['DET'] >= 5):
+            if (np.size(m1) > 0) & (int(slit_header['DET']) >= 5):
                 arg=m1[0]
                 slits['rdet'][arg,ii]       = slit_header['DET']
                 slits['rslit'][arg,ii]      = slit_header['SLITID']
