@@ -38,7 +38,6 @@ def deimos_helio(mjd,ra,dec):
         heliocentric velocity correction
         This should be ADDED to the measured velocity
     '''
-    i=0
     t = Time(mjd,format='mjd')
     r = np.median(ra)
     d = np.median(dec)
@@ -294,6 +293,7 @@ def vignetting_limits(slits,nexp,wave):
     return wave_lims
 
 
+####################################################
 def arc_rms_limits(slits,nexp,vwmin,vwmax,wlim):
 
 
