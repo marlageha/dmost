@@ -181,8 +181,6 @@ def NaI_fit_EW(wvl,spec,ivar,SN):
 
 
             Na1_EW_err = np.sqrt(tmp1**2 + tmp2**2 + tmp3**2 + tmp4**2 + tmp5**2)
-            #print(Na1_EW_err)
-            #print(tmp1,tmp2,tmp3,tmp4,tmp5)
 
             # CREATE FIT FOR PLOTTING
             gfit = NaI_double_gauss(wvl,*p)
