@@ -484,7 +484,7 @@ def add_spec1d_fileinfo(data_dir,slits,mask,nexp):
             m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],[slit_header['RA']],[slit_header['DEC']],2./3600)
             
             det = slit_header['DET']
-            if (type(slit_header['DET']) == 'str':
+            if (type(slit_header['DET']) == 'str'):
                 tmp = slit_header['DET'].split('DET')
                 det = int(tmp[1]) 
             
