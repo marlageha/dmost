@@ -186,10 +186,10 @@ def create_slits(nslits,nexp):
             filled_column('v_nexp',1,nslits),
 
             # SHORT BINARY FLAGS
-            filled_column('vv_merr',-1.,nslits),
-            filled_column('vv_std',-1.,nslits),
-            filled_column('vv_time',-1.,nslits),
-            filled_column('vv_flag',-1,nslits),
+            filled_column('vv_short_pval',-1.,nslits),
+            filled_column('vv_short_max_v',-1.,nslits),
+            filled_column('vv_short_max_t',-1.,nslits),
+            filled_column('vv_short_flag',-1,nslits),
 
 
            # EQUIVALENT WIDTHS FROM COADD1D FILES
@@ -240,6 +240,11 @@ def parse_year(mjd):
 def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
 
     mask = create_mask(nexp)
+
+    # HACK TO MAKE SINGLE EXPOSURE MASKS RUN THROUGH PIPELINE
+    #if (nexp == 1):
+    #    mask = create_mask(2)
+
     
     print('{} Populating mask values for {} exposures'.format(maskname,nexp))
     for i,spec1d in enumerate(spec1d_files):
@@ -399,8 +404,13 @@ def create_slits_from_bintab(data_dir,mask,nexp):
     
     
 
-    # CREATE SLITS TABLE USING BINTABS
+    # CREATE SLITS TABLE USING BINTABS, 
     slits = create_slits(nslits,nexp)
+
+    # HACK FOR SINGLE EXPOSURES
+    if (nexp == 1):
+        slits = create_slits(nslits,2)
+
 
     # MATCH AGAINST COLLATE1D FILES
     collate1d = ascii.read(data_dir+'collate_report.dat')
@@ -544,6 +554,7 @@ def create_single_mask(maskname):
         print('No spec1d files found!')
         print(data_dir)
         return
+
 
 
     outfile      = data_dir+'/dmost/dmost_'+maskname+'.fits'
