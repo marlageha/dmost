@@ -1,6 +1,31 @@
 import numpy as np
 
 
+# SET BINARY FLAG WITHIN MASK
+def set_mask_binary_flag(slits, thresh = 2.0):
+
+    for i,obj in enumerate(slits):
+    
+        flag,merr,std = -1,-1,-1
+
+        terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+        err   = np.sqrt(terr**2 + 0.25**2)
+
+        m=obj['emcee_f_acc'] > 0.69
+        if np.sum(m) > 1:
+            std = np.std(obj['emcee_v'][m])
+            merr = np.mean(err[m])
+
+            ratio = std/merr
+            slits['vv_std'][i]  = std
+            slits['vv_merr'][i] = merr
+
+            if ratio > threshold:
+
+                slits['vv_flag'][i] = 1
+
+    return slits
+
 def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.65, sys_exp = 0.25):
 
     '''
@@ -56,6 +81,7 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
             ncomb = nexp + 100.
         
 
+
     # IF NONE, THEN USE COADD WITH LOWER THRESHOLD
     else:
         if (obj['coadd_f_acc'] > 0.65):
@@ -105,7 +131,7 @@ def combine_exp(slits, mask, sys_exp = 0.25):
 
 
     
-    if (nexp > 1):
+    if (nexp > 0):
         for i,obj in enumerate(slits):
 
             v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_exp=sys_exp)
@@ -113,17 +139,17 @@ def combine_exp(slits, mask, sys_exp = 0.25):
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
                         
-            print(obj['rSN'])
-            print(obj['emcee_v'])
-            print(obj['emcee_f_acc'])
-            print((obj['emcee_v_err84']-obj['emcee_v_err16'])/2.)
+#            print(obj['rSN'])
+#            print(obj['emcee_v'])
+#            print(obj['emcee_f_acc'])
+#            print((obj['emcee_v_err84']-obj['emcee_v_err16'])/2.)
 
-            print(obj['coadd_v'],(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.,obj['coadd_f_acc'])
-            print(v-mask['vhelio'][0],verr,ncomb)
-            print()
+#            print(obj['coadd_v'],(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.,obj['coadd_f_acc'])
+#            print(v-mask['vhelio'][0],verr,ncomb)
+#            print()
 
             
-    if (nexp == 1):
+    if (nexp == -1):
         for i,obj in enumerate(slits):
 
             v,verr,ncomb = combine_single_exp(obj,mask,sys_exp=sys_exp)
@@ -132,7 +158,7 @@ def combine_exp(slits, mask, sys_exp = 0.25):
             slits['v_nexp'][i]      = ncomb
     
 
-    print()
+    #print()
     nstar = np.size(slits)
     ngood = np.sum(slits['dmost_v'] != -1.0) 
     print('{} Velocities measured for {} of {} spectra'.format(mask['maskname'][0],ngood,nstar))
