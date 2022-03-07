@@ -1,28 +1,40 @@
 import numpy as np
+from scipy import stats
 
 
 # SET BINARY FLAG WITHIN MASK
-def set_mask_binary_flag(slits, thresh = 2.0):
+def set_mask_binary_flag(slits,mask):
 
     for i,obj in enumerate(slits):
     
-        flag,merr,std = -1,-1,-1
 
-        terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-        err   = np.sqrt(terr**2 + 0.25**2)
-
-        m=obj['emcee_f_acc'] > 0.69
+        m=obj['emcee_f_acc'] > 0.7
         if np.sum(m) > 1:
-            std = np.std(obj['emcee_v'][m])
-            merr = np.mean(err[m])
 
-            ratio = std/merr
-            slits['vv_std'][i]  = std
-            slits['vv_merr'][i] = merr
 
-            if ratio > threshold:
+            err = (obj['emcee_v_err84'] - obj['emcee_v_err16'])/2.
+            err = np.sqrt(err**2 + 0.25**2)
+            ivar = 1./err*2
+        
 
-                slits['vv_flag'][i] = 1
+            v_mean = np.average(obj['emcee_v'][m],weights=ivar[m])
+            chi2   = np.sum((obj['emcee_v'][m] - v_mean)**2/err[m]**2)
+            pv     = 1 - stats.chi2.cdf(chi2, np.sum(m))
+
+            if (pv == 0) | (pv < 1e-14):
+                pv = 1e-14
+
+            lpv = np.log10(pv)
+
+            slits['vv_short_pval'][i]  = lpv
+            slits['vv_short_max_v'][i] = np.max(obj['emcee_v'][m]) - np.min(obj['emcee_v'][m])
+            slits['vv_short_max_t'][i] = 24*(np.max(mask['mjd'][m])-np.min(mask['mjd'][m]))
+            slits['vv_short_flag'][i]  = 0
+
+            if lpv < -4:
+                slits['vv_short_flag'][i]  = 1
+
+
 
     return slits
 
@@ -139,24 +151,8 @@ def combine_exp(slits, mask, sys_exp = 0.25):
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
                         
-#            print(obj['rSN'])
-#            print(obj['emcee_v'])
-#            print(obj['emcee_f_acc'])
-#            print((obj['emcee_v_err84']-obj['emcee_v_err16'])/2.)
 
-#            print(obj['coadd_v'],(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.,obj['coadd_f_acc'])
-#            print(v-mask['vhelio'][0],verr,ncomb)
-#            print()
-
-            
-    if (nexp == -1):
-        for i,obj in enumerate(slits):
-
-            v,verr,ncomb = combine_single_exp(obj,mask,sys_exp=sys_exp)
-            slits['dmost_v'][i]     = v
-            slits['dmost_v_err'][i] = verr
-            slits['v_nexp'][i]      = ncomb
-    
+    slits = set_mask_binary_flag(slits,mask)
 
     #print()
     nstar = np.size(slits)
