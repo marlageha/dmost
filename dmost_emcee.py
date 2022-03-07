@@ -117,7 +117,7 @@ def lnprob_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,pfit):
 def lnprior_v(theta):
    
     #v = theta[0],  w = theta[1]
-    if (-500. < theta[0] < 500.) & (-40. < theta[1] < 40.):
+    if (-600. < theta[0] < 500.) & (-40. < theta[1] < 40.):
         return 0.0
     
     return -np.inf
@@ -173,12 +173,12 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     burnin=slits['emcee_burnin'][arg,nexp]
 
     for ii in range(20):
-        ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
+        ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5,alpha=0.8)
     ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
     ax1.axvline(burnin)
 
     for ii in range(20):
-        ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
+        ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5,alpha=0.8)
     ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
     ax2.axvline(burnin)
 
@@ -256,7 +256,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     if np.abs(wguess) > 40:
         wguess = 0
     ndim, nwalkers,p0         = initialize_walkers(vguess,wguess)
-    max_n = 2000
+    max_n = 3000
 
     # BACKEND FILENAME
     filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['maskdef_id'][arg]+'.h5'
