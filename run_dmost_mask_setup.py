@@ -71,10 +71,6 @@ def write_custom_pyfile(outfile):
     outfile.write('[[wavelengths]]\n')
     outfile.write('refframe= observed\n') 
     
-    # REDUCE DEFAULT PYPEIT OBJECT THRESHOLD DETECTION
-    outfile.write('[reduce]\n')
-    outfile.write('[[findobj]]\n')
-    outfile.write('sig_thresh = 7.0\n\n')
   
 
     # READ DEFAULT FILE
