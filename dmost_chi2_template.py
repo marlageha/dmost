@@ -342,7 +342,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
         model = single_stellar_template(final_file,data_wave,data_flux,data_ivar,losvd_pix,f['chi2_v'],npoly)
         plt.plot(data_wave,model,'r',label='Model',linewidth=0.8,alpha=0.8)
         plt.title('SN = {:0.1f}   chi2 = {:0.1f}   v = {:0.1f}'.format(f['collate1d_SN'],f['chi2_tchi2'],f['chi2_v']))
-        plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(f['DET'][0],int(f['SPAT_PIXPOS'][0]),f['chip_gap_corr_collate1d']))
+        plt.legend(title='det={}  xpos={}\n '.format(f['DET'][0],int(f['SPAT_PIXPOS'][0])))
 
 
         pdf.savefig()
@@ -368,20 +368,22 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     print('{} Finding chi2 templates for {} stellar slits w/SN > {}'.format(mask['maskname'][0],np.sum(m), SNmin))
      
     # V RANGE FOR TEMPLATE FINDER
-    vrange = np.arange(-500,500,5)
+    vrange = np.arange(-500,500,10)
+    nexp = mask['nexp'][0]
 
     for ii,obj in enumerate(slits): 
 
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
-        if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > SNmin) & (bool(obj['collate1d_filename'].strip())):
+        skip = np.sum(obj['flag_skip_exp'])
+        if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > SNmin) & (obj['flag_skip_slit'] != 1) &  (skip < nexp-1) & (bool(obj['collate1d_filename'].strip())):
 
             jhdu = fits.open(data_dir+'collate1d/'+obj['collate1d_filename'])
 
             jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(obj,jhdu) 
             vexp = 0
-            if (obj['skip_flag'][0] == 0):
-                m=obj['skip_flag'] != 0
-                vexp=m[0]
+            #if (obj['skip_flag'][0] == 0):
+            #    m=obj['skip_flag'] != 0
+            #    vexp=m[0]
             wave_lims = dmost_utils.vignetting_limits(obj,vexp,jwave)
 
             data_wave = jwave[wave_lims]
