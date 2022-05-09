@@ -14,7 +14,6 @@ from astropy.modeling import models, fitting
 import dmost_utils
 
 import warnings
-DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 
 ########################################################
 # Determine linear flexure fits for each slit
@@ -50,7 +49,7 @@ def sky_em_residuals(wave,flux,ivar,sky,plot=0):
             gfit = gaussian(wave[mw],*p)
             d = p[2] - line
 
-            #plot=0
+            plot=0
             if (plot==1):
                 plt.figure(figsize=(8,3)) 
                 plt.plot(wave[mw],gfit,'g')
@@ -66,7 +65,9 @@ def sky_em_residuals(wave,flux,ivar,sky,plot=0):
             los_err  = np.append(los_err,perr[3])
             
     m=(diff_err < 0.1) & (diff_err > 0.0)
+
     return dwave[m],diff[m],diff_err[m],los[m],los_err[m]
+
 
 #######################################################
 # CREATE QUALITY PLOTS
@@ -78,30 +79,23 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     plt.rcParams.update({'figure.max_open_warning': 0})
     for arg in np.arange(0,nslits,1,dtype='int'):
 
-         if (slits['reduce_flag'][arg,nexp] == 1):
-                
-            r,b = dmost_utils.get_slit_name(slits[arg],nexp)
- 
+        if (slits['flag_skip_exp'][arg,nexp] != 1):
+
+            pn = slits['pypeit_name'][arg,nexp]
 
             # SKY LINES FIRST
-            r_sky_line, r_sky_diff,r_sky_ediff,r_los,r_elos = sky_em_residuals(hdu[r].data['OPT_WAVE'], \
-                                                    hdu[r].data['OPT_COUNTS_SKY'],\
-                                                    hdu[r].data['OPT_COUNTS_IVAR'],sky)
+            sky_lines, sky_diff,sky_ediff,sky_los,sky_elos = sky_em_residuals(hdu[pn].data['OPT_WAVE'], \
+                                                    hdu[pn].data['OPT_COUNTS_SKY'],\
+                                                    hdu[pn].data['OPT_COUNTS_IVAR'],sky)
 
-            b_sky_line, b_sky_diff,b_sky_ediff,b_los,b_elos = sky_em_residuals(hdu[b].data['OPT_WAVE'], \
-                                                    hdu[b].data['OPT_COUNTS_SKY'],\
-                                                    hdu[b].data['OPT_COUNTS_IVAR'],sky)
 
             fig, (ax1,ax2) = plt.subplots(1, 2,figsize=(20,4))
-            ax1.plot(r_sky_line,r_sky_diff,'ro',alpha=0.8,label='Red chip: Sky Emission')
-            ax1.plot(b_sky_line,b_sky_diff,'bo',alpha=0.8,label='Blue chip: Sky Emission')
-            ax1.errorbar(b_sky_line,b_sky_diff,yerr=b_sky_ediff,fmt='none',ecolor='b',alpha=0.5)
-            ax1.errorbar(r_sky_line,r_sky_diff,yerr=r_sky_ediff,fmt='none',ecolor='r',alpha=0.5)
-            ax1.text(6320,0,'{}'.format(b),fontsize=11)
-            ax1.text(8500,0,'{}'.format(r),fontsize=11)
+            ax1.plot(sky_lines,sky_diff,'ko',alpha=0.8,label='Sky Emission')
+            ax1.errorbar(sky_lines,sky_diff,yerr=sky_ediff,fmt='none',ecolor='r',alpha=0.5)
+            #ax1.text(6320,0,'{}'.format(pn),fontsize=11)
             ax1.set_ylim(-0.45,0.45)
 
-            xx=np.arange(6000,9000,1)
+            xx=np.arange(6000,9200,1)
             l1 = slits['fit_slope'][arg,nexp]*xx + slits['fit_b'][arg,nexp]
             l2 = slits['fit_slope'][arg,nexp]*xx + slits['fit_b'][arg,nexp]
             ax1.plot(xx,l1,'-')
@@ -110,28 +104,22 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
             ax1.set_ylabel('Wavelength offset (AA)')
             ax1.set_xlabel('Wavelength (AA)')
             ax1.set_xlim(6300,9100)
-            t = 'Sky Line Fits = {:0.4f} AA, Arc = {:0.2f} AA'.format(slits['rms_sky'][arg,nexp],0.32*slits['rms_arc_r'][arg,nexp])
+            t = 'Sky RMS = {:0.3f} AA, Arc RMS = {:0.3f} AA'.format(slits['rms_sky'][arg,nexp],0.32*slits['rms_arc'][arg])
             ax1.set_title(t)
 
-            sky_diff  = np.concatenate((b_sky_diff,r_sky_diff),axis=None)
-            sky_lines = np.concatenate((b_sky_line,r_sky_line),axis=None)
-            sky_ediff = np.concatenate((b_sky_ediff,r_sky_ediff),axis=None)
-            sky_los   = np.concatenate((b_los,r_los),axis=None)
 
 
-            ax2.plot(r_sky_line,r_los,'ro',alpha=0.8,label='Red chip: Sky Emission')
-            ax2.plot(b_sky_line,b_los,'bo',alpha=0.8,label='Blue chip: Sky Emission')
-            ax2.errorbar(r_sky_line,r_los,yerr=r_elos,fmt='none',ecolor='r',alpha=0.5)
-            ax2.errorbar(b_sky_line,b_los,yerr=b_elos,fmt='none',ecolor='b',alpha=0.5)
-            ax2.axhline(slits['fit_lsf'][arg,nexp] / mask['lsf_correction'][nexp],linewidth=1, \
+            ax2.plot(sky_lines,sky_los,'ko',alpha=0.8,label='Sky Emission')
+            ax2.errorbar(sky_lines,sky_los,yerr=sky_elos,fmt='none',ecolor='k',alpha=0.5)
+            ax2.axhline(slits['fit_lsf'][arg,nexp] ,linewidth=1, \
                 color='grey',alpha=0.5,label='smooth fit value')
 
-            lsf_fit = create_lsf_parabola(sky_lines,slits['fit_lsf_p0'][arg,nexp],\
-                                    slits['fit_lsf_p1'][arg,nexp],slits['fit_lsf_p2'][arg,nexp])
-            ax2.plot(sky_lines,lsf_fit)
+            #lsf_fit = create_lsf_parabola(sky_lines,slits['fit_lsf_p0'][arg,nexp],\
+            #                        slits['fit_lsf_p1'][arg,nexp],slits['fit_lsf_p2'][arg,nexp])
+            #ax2.plot(sky_lines,lsf_fit)
             ax2.legend()
 
-            ax2.set_title('Line widths')
+            ax2.set_title('Line widths: {}'.format(pn))
             ax2.set_xlabel('Wavelength (AA)')
             ax2.set_ylim(0.3,0.8)
             ax2.set_xlim(6300,9100)
@@ -153,7 +141,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     sd  =  np.std(slits['fit_slope'][:,nexp])
     mu2 =  np.median(slits['fit_b'][:,nexp])
     sd2 =  np.std(slits['fit_b'][:,nexp])
-    mu3 =  np.median(slits['fit_lsf'][:,nexp])/mask['lsf_correction'][nexp]
+    mu3 =  np.median(slits['fit_lsf'][:,nexp])#/mask['lsf_correction'][nexp]
     sd3 =  np.std(slits['fit_lsf'][:,nexp])
     mu4 =  np.median(slits['fit_lsf'][:,nexp])
 
@@ -301,25 +289,20 @@ def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los
 
         # APPLY CORRECTION FACTOR DETERMINED FROM ABSORPTION LINE FIT TO SEETING
         # 
-        slits['fit_lsf'][arg,ii] = slits['fit_lsf'][arg,ii] * mask['lsf_correction'][ii]
+        slits['fit_lsf'][arg,ii] = slits['fit_lsf'][arg,ii] #* mask['lsf_correction'][ii]
 
-
-             
-        # SET CCD GAPS WITH FLEXURE CORRECTION
-        slits = dmost_utils.get_chip_gaps(slits,arg,ii,hdu)
 
 
         # CALCULATE RESIDUALS FROM FIT        
-        if (slits['reduce_flag'][arg,ii] == 1):
-
+        if (slits['flag_serendip'][arg] != 1) & (slits['flag_skip_exp'][arg,ii] != 1) :
             all_wave,all_flux,all_ivar,all_sky = dmost_utils.load_spectrum(slits[arg],ii,hdu,vacuum = 1)
             dwave,diff,diff_err,los,elos       = sky_em_residuals(all_wave,all_sky,all_ivar,sky,plot=0)
             
             m=np.isfinite(diff)
             if np.sum(m) > 0:
-                 sky_mean = np.average(np.abs(diff[m]), weights = 1./diff_err[m]**2)
-                 slits['rms_sky'][arg,ii] = sky_mean
-                 slits['rSN'][arg,ii]     = np.median(all_flux*np.sqrt(all_ivar))
+                sky_mean = np.average(np.abs(diff[m]), weights = 1./diff_err[m]**2)
+                slits['rms_sky'][arg,ii] = sky_mean
+                slits['SN'][arg,ii]     = np.median(all_flux*np.sqrt(all_ivar))
 
     return slits
 
@@ -332,26 +315,15 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
     
     for arg in np.arange(0,nslits,1,dtype='int'):
 
-         if (slits['reduce_flag'][arg,ii] == 1):
-                
-            r,b = dmost_utils.get_slit_name(slits[arg],ii)
+    
+        if slits['flag_skip_exp'][arg,ii] == 0:
+            pn = slits['pypeit_name'][arg,ii]
 
-            
             try:
                 # MEASURE SKY LINE DIFFERENCES
-                r_sky_line, r_sky_diff,r_sky_ediff,r_los,r_elos = sky_em_residuals(hdu[r].data['OPT_WAVE'], \
-                                                        hdu[r].data['OPT_COUNTS_SKY'],\
-                                                        hdu[r].data['OPT_COUNTS_IVAR'],sky)
-
-                b_sky_line, b_sky_diff,b_sky_ediff,b_los,b_elos = sky_em_residuals(hdu[b].data['OPT_WAVE'], \
-                                                        hdu[b].data['OPT_COUNTS_SKY'],\
-                                                        hdu[b].data['OPT_COUNTS_IVAR'],sky)
-
-                sky_diff  = np.concatenate((b_sky_diff,r_sky_diff),axis=None)
-                sky_lines = np.concatenate((b_sky_line,r_sky_line),axis=None)
-                sky_ediff = np.concatenate((b_sky_ediff,r_sky_ediff),axis=None)
-                sky_los   = np.concatenate((b_los,r_los),axis=None)
-                sky_elos   = np.concatenate((b_elos,r_elos),axis=None)
+                sky_lines, sky_diff,sky_ediff,sky_los,sky_elos = sky_em_residuals(hdu[pn].data['OPT_WAVE'], \
+                                                        hdu[pn].data['OPT_COUNTS_SKY'],\
+                                                        hdu[pn].data['OPT_COUNTS_IVAR'],sky)
 
                 # FIT SINGLE SLIT SKY LINES WITH A LINE           
                 fitted_line = fit_sky_linear(sky_lines,sky_diff,sky_ediff)
@@ -371,9 +343,9 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
                 slits['fit_lsf_p2'][arg,ii] = lsf_p[2]
 
             except:
-                print('  Skipping slit {} {}'.format(r,b))
-                slits['reduce_flag'][arg,ii] = 0
-                
+                print('  Skipping slit {}'.format(pn))
+                #slits['skip_flag'][arg,ii] = 1
+            
     return slits,fslope, fb, flos, x, y
 
 
@@ -381,8 +353,9 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
 def run_flexure(data_dir,slits,mask):
     
     # READ SKY LINES -- THESE ARE VACUUM WAVELENGTHS
-    sky_file = DEIMOS_RAW+'Other_data/sky_single_mg.dat'
-    sky=ascii.read(sky_file)
+    DEIMOS_RAW = os.getenv('DEIMOS_RAW')
+    sky_file   = DEIMOS_RAW+'Other_data/sky_single_mg.dat'
+    sky        = ascii.read(sky_file)
 
     warnings.simplefilter('ignore')#, OptimizeWarning)
 
@@ -405,7 +378,6 @@ def run_flexure(data_dir,slits,mask):
         
         # ADD TO TABLE
         slits = update_flexure_fit(slits, mask, ii, nslits, hdu, pmodel_m, pmodel_b,pmodel_los,sky)
-  
 
   
         # REFIT FOR QA PLOTS
