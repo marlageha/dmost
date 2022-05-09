@@ -84,42 +84,39 @@ def create_mask(nexp):
 # CREATE ALLSPEC DATA STRUCTURE
 def create_slits(nslits,nexp):
 
-    cols = [filled_column('slitname','                  ',nslits),
-            filled_column('maskdef_id','                ',nslits),
+    cols = [filled_column('maskdef_objname','                ',nslits),
             filled_column('RA',-1.,nslits),
             filled_column('DEC',-1.,nslits),
-          
-            filled_column('reduce_flag',-1*np.ones(nexp,dtype='int'),nslits),
-            
-            
-            # DETECTOR POSITION, USE TO READ SPEC1D FILES
-            # bname = 'SPAT{:04d}-SLIT{:04d}-DET{:02d}'.format(bspat,bslit,bdet)
-            filled_column('rdet',np.zeros(nexp,dtype='int'),nslits),
-            filled_column('bdet',np.zeros(nexp,dtype='int'),nslits),
-            filled_column('rspat',np.zeros(nexp,dtype='int'),nslits),
-            filled_column('bspat',np.zeros(nexp,dtype='int'),nslits),
-            filled_column('rslit',np.zeros(nexp,dtype='int'),nslits),
-            filled_column('bslit',np.zeros(nexp,dtype='int'),nslits),
-            filled_column('rms_arc_r',np.zeros(nexp),nslits),
-            filled_column('rms_arc_b',np.zeros(nexp),nslits),
-            filled_column('opt_fwhm',np.zeros(nexp),nslits),
-            filled_column('ccd_gap_b',np.zeros(nexp),nslits),
-            filled_column('ccd_gap_r',np.zeros(nexp),nslits),
-            filled_column('xpos',-1.,nslits),
-            filled_column('ypos',-1.,nslits),
-            
-            # COLLATE1D
-            filled_column('collate1d_filename','                                         ',nslits),
+
+            # REDUCTION FLAGS
+            filled_column('flag_serendip',0,nslits),
+            filled_column('flag_skip_exp',-1*np.ones(nexp,dtype='int'),nslits),
+            filled_column('flag_skip_slit',-1,nslits),
+
+
+            # PYPEIT DETECTOR POSITION, USE TO READ SPEC1D FILES            
+            filled_column('pypeit_name',['                       ']*nexp,nslits),
+            filled_column('SPAT_PIXPOS',np.zeros(nexp),nslits),
+            filled_column('DET',['     ']*nexp,nslits),
+
+            # SLIT INFO
+            filled_column('rms_arc',-1.,nslits),
+            filled_column('collate1d_filename','                                                  ',nslits),
             filled_column('collate1d_SN',-1.,nslits),
-         
+
+            # CHIP GAP + SEEING
+            filled_column('opt_fwhm',np.zeros(nexp),nslits),
+            filled_column('chip_gap_b',np.zeros(nexp),nslits),
+            filled_column('chip_gap_r',np.zeros(nexp),nslits),
+
+                     
             # MARZ
             filled_column('marz_flag',-1,nslits),
             filled_column('marz_z',-1.,nslits),
             filled_column('marz_tmpl',-1.,nslits),
 
             # FLEXURE
-            filled_column('rSN',np.zeros(nexp),nslits),
-            filled_column('bSN',np.zeros(nexp),nslits),
+            filled_column('SN',np.zeros(nexp),nslits),
             filled_column('fit_slope',np.zeros(nexp),nslits),
             filled_column('fit_b',np.zeros(nexp),nslits),
             filled_column('fit_lsf_p0',np.zeros(nexp),nslits),
@@ -138,10 +135,7 @@ def create_slits(nslits,nexp):
             filled_column('telluric_w',np.zeros(nexp),nslits),
             filled_column('telluric_chi2',np.zeros(nexp),nslits),
 
-            # CHIP GAP CORRECTION TO BLUE SIDE
-            filled_column('chip_gap_corr',np.ones(nexp),nslits),
-            filled_column('chip_gap_corr_collate1d',1.,nslits),
-
+          
 
             # CHI2 TEMPLATE
             filled_column('chi2_tfile','                                    ',nslits),
@@ -234,64 +228,13 @@ def parse_year(mjd):
     return b[0]
 
 
+def parse_spat(pname):
+    tmp = pname.split('-')
+    tmp1 = tmp[1]
+    tmp2 = tmp1.split('SLIT')
+    spat = float(tmp2[1])
 
-#############################################################
-# POPULATE MASK VALUES
-def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
-
-    mask = create_mask(nexp)
-
-    # HACK TO MAKE SINGLE EXPOSURE MASKS RUN THROUGH PIPELINE
-    #if (nexp == 1):
-    #    mask = create_mask(2)
-
-    
-    print('{} Populating mask values for {} exposures'.format(maskname,nexp))
-    for i,spec1d in enumerate(spec1d_files):
-
-        # HEADER VALUES
-        try:
-            hdu      = fits.open(spec1d)
-            hdr      = hdu[0].header
-        except:
-            print('Cannot find file {}'.format(spec1d))
-            print('You probably need to run pypeit')
-            return
-            
-        fnames   = hdr['FILENAME'].split('.')
-
-        mask['maskname'][i]       = maskname
-        mask['year'][i]           = parse_year(hdr['mjd'])
-        mask['deimos_maskname'][i]= hdr['TARGET'].strip()
-        mask['nexp'][i]           = nexp
-
-
-        mask['spec1d_filename'][i]= spec1d.split('Science')[1]
-        mask['rawfilename'][i]    = hdr['FILENAME']
-        mask['fname'][i]          = fnames[2]
-
-        # AIRMASS, EXP FOR EACH EXPOSURE
-        mask['airmass'][i] = hdr['AIRMASS']
-        mask['exptime'][i] = hdr['EXPTIME']
-        mask['mask_ra'][i] = hdr['RA']
-        mask['mask_dec'][i]= hdr['DEC']
-
-        mask['mjd'][i]     = hdr['MJD']
-
-        # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
-        mask['vhelio'][i]  = dmost_utils.deimos_helio(hdr['MJD'],hdr['RA'],hdr['DEC'])
-        
-        
-        # GET TELLURIC VALUES FROM DIRECTORIES
-        tfile = glob.glob(data_dir+'/dmost/telluric_*'+mask['fname'][i]+'*.fits')
-        if np.size(tfile) == 1:
-            h2o,o2 = dmost_parse_telluric(tfile[0],mask['fname'][i])
-            mask['telluric_h2o'][i] = h2o
-            mask['telluric_o2'][i]  = o2
-
-
-    return mask
-
+    return spat
 
 #############################################################
 def read_marz_output(marz_file):
@@ -349,177 +292,178 @@ def add_marz(data_dir,mask,slits):
     return slits
 
 #############################################################
-def add_seeing(data_dir,mask,slits):
-
-    # FOR EACH EXPOSURE
-    for nexp,spec1d_file in enumerate(mask['spec1d_filename']): 
-
-        min_SN = 10.
-        mstar = (slits['collate1d_SN'] > min_SN) & (slits['marz_flag'] < 2)
-        if (np.sum(mstar) < 3):
-            min_SN = 3.
-            mstar = (slits['collate1d_SN'] > min_SN) & (slits['marz_flag'] < 2)
+def add_chipgap_seeing(data_dir,mask,slits):
 
 
+    for ii,msk in enumerate(mask):
 
-        # SET SEEING VALUE FROM EXTRACTED STAR FWMH
-        mask['seeing'][nexp] = np.nanmedian(slits['opt_fwhm'][mstar,nexp])
+        hdu = fits.open(data_dir + '/Science/' +msk['spec1d_filename'])
 
+        for arg,obj in enumerate(slits):
+            if obj['flag_skip_exp'][ii] != 1:
+
+                # GET CHIP GAP
+                data = hdu[obj['pypeit_name'][ii]].data
+                flux = data['OPT_COUNTS']
+                pmin,pmax = dmost_utils.find_chip_gap(flux)  
+                slits['chip_gap_r'][arg,ii] = pmax
+                slits['chip_gap_b'][arg,ii] = pmin
+
+                # GET FWHM
+                shdr = hdu[obj['pypeit_name'][ii]].header
+                slits['opt_fwhm'][arg,ii] = 0.1185 * shdr['FWHM']
+
+
+
+        # ADD OVERALL SEEING VALUE
+        seeing_min_SN = 10. 
+        mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
+        mask['seeing'][ii] = np.nanmedian(slits['opt_fwhm'][mstar,ii])
+
+
+        # ADD SLITWIDTH TO MASKS    
+        DEIMOS_RAW = os.getenv('DEIMOS_RAW')
+        rhdu       = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][ii]+'/'+mask['rawfilename'][ii])
+        desislits  = rhdu['DesiSlits'].data
+        median_slitwidth      = np.median(desislits['slitWid'])
+        mask['slitwidth'][ii] = 0.01*(round(median_slitwidth/0.01))
+        
 
         # SET LSF CORRECTION -- DETERMINED FROM FIT
-        mask = set_lsf_correction(mask,nexp)
+        mask = set_lsf_correction(mask,ii)
 
-        print('{} {} Slitwidth is {:0.1f}, Seeing is {:0.2f} arcsec, LSF correction is {:0.2f}'.format(mask['maskname'][0], mask['fname'][nexp],\
-                                                                            mask['slitwidth'][nexp],mask['seeing'][nexp],mask['lsf_correction'][nexp]))
+
+        print('{} {} Slitwidth is {:0.1f}, Seeing is {:0.2f} arcsec, LSF correction is {:0.2f}'.format(mask['maskname'][0], mask['fname'][ii],\
+                                                                            mask['slitwidth'][ii],mask['seeing'][ii],mask['lsf_correction'][ii]))
+
+
+    return mask, slits
+
+
+#############################################################
+# POPULATE MASK VALUES
+def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
+
+    mask = create_mask(nexp)
+
+    
+    print('{} Populating mask values for {} exposures'.format(maskname,nexp))
+    for i,spec1d in enumerate(spec1d_files):
+
+        # HEADER VALUES
+        try:
+            hdu      = fits.open(spec1d)
+            hdr      = hdu[0].header
+        except:
+            print('Cannot find file {}'.format(spec1d))
+            print('You probably need to run pypeit')
+            return
+            
+
+        mask['maskname'][i]       = maskname
+        mask['mjd'][i]     = hdr['MJD']
+        mask['year'][i]           = parse_year(hdr['mjd'])
+
+        mask['deimos_maskname'][i]= hdr['TARGET'].strip()
+        mask['nexp'][i]           = nexp
+
+        mask['spec1d_filename'][i]= spec1d.split('Science/')[1]
+        mask['rawfilename'][i]    = hdr['FILENAME']
+        mask['fname'][i]          = hdr['FILENAME'].split('.')[2]
+
+        # AIRMASS, EXP FOR EACH EXPOSURE
+        mask['airmass'][i] = hdr['AIRMASS']
+        mask['exptime'][i] = hdr['EXPTIME']
+        mask['mask_ra'][i] = hdr['RA']
+        mask['mask_dec'][i]= hdr['DEC']
+
+
+        # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
+        mask['vhelio'][i]  = dmost_utils.deimos_helio(hdr['MJD'],hdr['RA'],hdr['DEC'])
+        
 
 
     return mask
 
 
-
 #############################################################
 # POPULATE SLIT VALUES
-def create_slits_from_bintab(data_dir,mask,nexp):
+def create_slits_from_collate1d(data_dir,mask,nexp):
 
     
-    # CREATE TABLE USING BINTABS
-    # BluSlits contains mask design x/y positions
-    rhdu      = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][0]+'/'+mask['rawfilename'][0])
-    bintab    = rhdu['ObjectCat'].data
-    bluslits  = rhdu['BluSlits'].data  
-    desislits = rhdu['DesiSlits'].data
-    if (np.size(bintab) != np.size(bluslits)):
-        m1,m2,dd= sm.spherematch(desislits['slitRA'],desislits['slitDec'],bintab['RA_OBJ'],bintab['DEC_OBJ'],3./3600)
-        bintab = bintab[m2]
+    # READ COLLATE_REPORT
+    cfile     = data_dir+'collate_report.dat'
+    collate1d = ascii.read(cfile) 
 
 
-    # REMOVE ALIGNMENT STARS!
-    m         = bintab['ObjClass'] == 'Program_Target'
+    collate1d.sort('spec1d_filename')
 
-
-    bintab    = bintab[m]
-    bluslits  = bluslits[m]
-    desislits = desislits[m]
-    nslits    = np.sum(m)
+    # FIND ALL UNIQUE OBJECTS BASED ON FILENAME
+    obj_filenames   = np.unique(collate1d['filename'])
+    nslits          = np.size(obj_filenames)
     
     
-
-    # CREATE SLITS TABLE USING BINTABS, 
+    # CREATE SLITS TABLE USING COLLATE FILE 
     slits = create_slits(nslits,nexp)
 
     # HACK FOR SINGLE EXPOSURES
     if (nexp == 1):
         slits = create_slits(nslits,2)
 
+    
 
-    # MATCH AGAINST COLLATE1D FILES
-    collate1d = ascii.read(data_dir+'collate_report.dat')
-    collate1d_files = np.unique(collate1d['filename'])
+    # FOR EACH UNIQUE COLLATE1D FILE
+    nserendip = 0
+    for i,objname in enumerate(obj_filenames):
 
-    # ADD SLITWIDTH TO MASKS
-    median_slitwidth = np.median(desislits['slitWid'])
-    mask['slitwidth']  = 0.01*(round(median_slitwidth/0.01))
+        m        = np.in1d(collate1d['filename'],objname)
+        this_obj = collate1d[m]
 
-    # POPULATE USING BINTABS AND COLLATE1D DATA
-    ncol1d = 0
+        slits['collate1d_filename'][i] = this_obj['filename'][0]
+        slits['maskdef_objname'][i]    = this_obj['maskdef_objname'][0]
+        slits['collate1d_SN'][i]       = np.sqrt(np.sum(this_obj['s2n']**2))
+
+        slits['RA'][i]      = this_obj['objra'][0]
+        slits['DEC'][i]     = this_obj['objdec'][0]
+        slits['rms_arc'][i] = this_obj['wave_rms'][0]
+
+        large_arc_rms = 0.2
+        if (this_obj['wave_rms'][0] > large_arc_rms):
+            slits['flag_skip_slit'][i] = 1
+
+        # SET IF SEREDIP SLIT
+        if (this_obj['maskdef_objname'][0] == 'SERENDIP'):
+            slits['flag_serendip'][i]   = 1
+            nserendip += 1
+
+        for ii,this_exp in enumerate(mask['spec1d_filename']):
+
+            # ENSURE EXPOSURES MATCH
+            m = this_obj['spec1d_filename'] == mask['spec1d_filename'][ii] 
+
+            slits['flag_skip_exp'][i,ii] = 1
+            if (np.sum(m) == 1):
+                this_exp = this_obj[m][0]
+                slits['pypeit_name'][i,ii]   = this_exp['pypeit_name']
+                slits['SN'][i,ii]            = this_exp['s2n']
+                slits['DET'][i,ii]           = this_exp['det'].strip()
+                slits['SPAT_PIXPOS'][i,ii]   = parse_spat(this_exp['pypeit_name']) 
+                slits['flag_skip_exp'][i,ii] = 0
 
 
-    for i,(obj,bsl,dsl) in enumerate(zip(bintab,bluslits,desislits)):
-        slits['RA'][i]         = obj['RA_OBJ']
-        slits['DEC'][i]        = obj['DEC_OBJ']
-        slits['slitname'][i]   = obj['OBJECT']
-        slits['maskdef_id'][i] = obj['OBJECTID']
-        slits['xpos'][i]       = (bsl['slitX1']+bsl['slitX2'])/2.
-        slits['ypos'][i]       = bsl['slitY1']
 
-        
-        # GENERAL REDUCE FLAG
-        slits['reduce_flag'][i,:] = 1
-
-        
-        # MATCHING COLLATE1D ON RA/DEC
-        m = np.in1d(collate1d['maskdef_objname'],obj['OBJECT'])
-        m1,m,dd = sm.spherematch(obj['RA_OBJ'], obj['DEC_OBJ'],collate1d['objra'],collate1d['objdec'],1./3600)
-
-        # READ COLLATE1D AND ADD SN
-        if (np.size(m) > 0):
-            names = collate1d['filename'][m]
-            slits['collate1d_filename'][i] = names[0]
-
-            chdu = fits.open(data_dir+'collate1d/'+names[0])
-            all_wave,all_flux,all_ivar, SN = dmost_utils.load_coadd_collate1d(slits[i],chdu,flexure=0,chip_gap=0) 
-            slits['collate1d_SN'][i]       = SN
-            ncol1d+=1
-            
-        else:
-            slits['reduce_flag'][i,:] = 0
-        
     # SORT BY SN
     slits.sort('collate1d_SN')
     slits.reverse()
     
-    print('{} Created slit table with {} slits'.format(mask['maskname'][0],nslits))
-    print('{} Collate1d slit matches  {} slits'.format(mask['maskname'][0],ncol1d))
-    
+
+    print('{} Created slit table with {} slits ({} serendips)'.format(mask['maskname'][0],nslits,nserendip))
+
+
 
     return slits
     
 
-
-#############################################################
-def add_spec1d_fileinfo(data_dir,slits,mask,nexp):
-
-    # FOR EACH EXPOSURE
-    for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
-
-        hdu         = fits.open(data_dir+'Science/'+spec1d_file)
-        header      = hdu[0].header
-        nspec       = header['NSPEC']
-        
-        # SLIT HEADERS START AT ONE (NOT ZERO!)
-        for i in np.arange(1,nspec+1,1,dtype='int'):
-
-            slit_header = hdu[i].header
-    
-            m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],[slit_header['RA']],[slit_header['DEC']],2./3600)
-            
-            det = slit_header['DET']
-            if (type(slit_header['DET']) == str):
-                tmp = slit_header['DET'].split('DET')
-                det = int(tmp[1]) 
-            
-            if (np.size(m1) > 0) & (det < 5):
-                arg=m1[0]
-                slits['bdet'][arg,ii]       = det
-                slits['bslit'][arg,ii]      = slit_header['SLITID']
-                slits['bspat'][arg,ii]      = round(slit_header['HIERARCH SPAT_PIXPOS'])
-                slits['rms_arc_b'][arg,ii]  = slit_header['WAVE_RMS']
-
-            if (np.size(m1) > 0) & (det >= 5):
-                arg=m1[0]
-                slits['rdet'][arg,ii]       = det
-                slits['rslit'][arg,ii]      = slit_header['SLITID']
-                slits['rspat'][arg,ii]      = round(slit_header['HIERARCH SPAT_PIXPOS'])
-                slits['rms_arc_r'][arg,ii]  = slit_header['WAVE_RMS']
-                slits['opt_fwhm'][arg,ii]   = slit_header['FWHM']*0.12  # DEIMOS SPATIAL PIXEL SCALE
-
-            if (np.size(m1) == 0) & (slit_header['HIERARCH MASKDEF_OBJNAME'] != 'SERENDIP'):
-                print('MISSING SLITS',slit_header['NAME'])
-                print(slit_header['HIERARCH MASKDEF_OBJNAME'])
-                
-                
-                
-        nbmiss = np.sum((slits['bdet'][:,ii] == 0)) 
-        nrmiss = np.sum((slits['rdet'][:,ii] == 0)) 
-
-        # SKIP SLITS WITH ONLY ONE DETECTOR, BUT COULD RECOVER THESE.
-        slits['reduce_flag'][slits['bdet'][:,ii] == 0] = 0 
-        slits['reduce_flag'][slits['rdet'][:,ii] == 0] = 0 
-
-        print('{} {} There are {} blue and {} red slits missing data'.format(mask['maskname'][0],\
-                                                                             mask['fname'][ii],nbmiss, nrmiss))
-        
-    return slits
 
 
 
@@ -532,7 +476,7 @@ def write_dmost(slits,mask,outfile):
     fhdu = fits.HDUList([hdup, hdu1,hdu2])
     fhdu.writeto(outfile,overwrite=True)
     
-    
+#############################################################    
 def read_dmost(outfile):
     
     hdu   = fits.open(outfile)
@@ -543,25 +487,27 @@ def read_dmost(outfile):
 
 
 #############################################################
-def create_single_mask(maskname):
+def create_single_mask(data_dir, maskname):
     '''
+    Construct dmost table based on size of PyPeIT spec1d files
 
     '''
 
     # DEFINE DIRECTORIES, GRAB SPEC1D FILES
-    DEIMOS_REDUX = os.getenv('DEIMOS_REDUX')
-    data_dir     = DEIMOS_REDUX+maskname+'/'
-    spec1d_files = glob.glob(data_dir+'Science/spec1d*fits')
+    spec1d_files = glob.glob(data_dir+'/Science/spec1d*fits')
+    spec1d_files = np.sort(spec1d_files)
     nexp         = np.size(spec1d_files)
 
     if (nexp == 0):
         print('No spec1d files found!')
         print(data_dir)
-        return
+        quit()
 
 
 
+    # DMOST TABLE NAME
     outfile      = data_dir+'/dmost/dmost_'+maskname+'.fits'
+
 
     # IF DMOST FILE EXISTS, READ DMOST IN
     if os.path.isfile(outfile):
@@ -574,16 +520,16 @@ def create_single_mask(maskname):
         # CREATE MASK
         mask = populate_mask_info(data_dir,nexp,maskname,spec1d_files)
 
-        # CREATE SLITS, POPULATE WITH BINTAB AND COLLATE1D
-        slits = create_slits_from_bintab(data_dir,mask,nexp)
+        # CREATE SLITS FROM COLLATE1D
+        slits = create_slits_from_collate1d(data_dir,mask,nexp)
 
-        # ADD SPEC1d_FILE INFO
-        slits = add_spec1d_fileinfo(data_dir,slits,mask,nexp)
+        # ADD EXPOSURE LEVEL DATA
+        mask,slits  = add_chipgap_seeing(data_dir,mask,slits)
 
 
-    # ADD MARZ, ADD SEEING
+
+    # ADD OR UPDATE MARZ
     slits = add_marz(data_dir,mask,slits)
-    mask  = add_seeing(data_dir,mask,slits)
 
     return slits, mask, nexp, outfile
 
@@ -593,7 +539,6 @@ def main(*args):
 
     mask = sys.argv[1]
     
-    DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
     DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
     
     s,m = create_single_mask(mask)
