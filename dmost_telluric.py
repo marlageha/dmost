@@ -306,21 +306,22 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
     nslits      = np.size(slits)
 
     # DETERMINE MIN SN TO GET 50 SLITS
-    min_SN, ngood = telluric_min_SN(slits['rSN'][:,nexp])
+    min_SN, ngood = telluric_min_SN(slits['SN'][:,nexp])
 
     print('{} {} Telluric with {} slits w/SN > {:0.1f}'.format(mask['maskname'][0],\
                                                                 mask['fname'][nexp],ngood,min_SN))
     
     #ncount = 0
     for arg in np.arange(0,nslits,1,dtype='int'):
-        if (slits['rSN'][arg,nexp] > min_SN) & (slits['rSN'][arg,nexp] < 155) & (slits['marz_flag'][arg] < 3):
+        if (slits['SN'][arg,nexp] > min_SN) & (slits['SN'][arg,nexp] < 155) & (slits['marz_flag'][arg] < 3)\
+                                                                   & (slits['flag_serendip'][arg] != 1):
 
             losvd_pix =  slits['fit_lsf'][arg,nexp]/ 0.02
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
 
            # CORRECT CHIP GAP
-            flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],\
-                                                    wave,flux,ivar)
+            #flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],\
+            #                                        wave,flux,ivar)
 
             wave_lims = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
             data_wave = wave[wave_lims]
@@ -411,8 +412,8 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             ax2.plot(data_wave,model,'k',label='model',linewidth=0.8)
             ax2.plot(data_wave[chi2_mask],model[chi2_mask],'r',label='telluric fitted region',linewidth=0.8,alpha=0.8)
 
-            ax2.set_title('chi2 = {:0.1f}     SN={:0.1f}'.format(np.min(tmp_chi),slits['rSN'][arg,nexp]))
-            ax2.legend(title='det={}  xpos={}'.format(slits['rdet'][arg,nexp],int(slits['rspat'][arg,nexp])))
+            ax2.set_title('chi2 = {:0.1f}     SN={:0.1f}'.format(np.min(tmp_chi),slits['SN'][arg,nexp]))
+            ax2.legend(title='det={}  xpos={}'.format(slits['DET'][arg,nexp],int(slits['SPAT_PIXPOS'][arg,nexp])))
 
 
             pdf.savefig()
@@ -500,9 +501,9 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
             final_o2  = get_o2_nodata(mask['airmas'][nexp])
 
     # PLOT H20-- zoom in and all data
-    ax1.plot(fslits2['rSN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
-    ax1.plot(fslits2['rSN'][m,nexp],fslits2['telluric_h2o'][m,nexp],'r.')
-    ax1.errorbar(fslits2['rSN'][m,nexp],fslits2['telluric_h2o'][m,nexp],\
+    ax1.plot(fslits2['SN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
+    ax1.plot(fslits2['SN'][m,nexp],fslits2['telluric_h2o'][m,nexp],'r.')
+    ax1.errorbar(fslits2['SN'][m,nexp],fslits2['telluric_h2o'][m,nexp],\
                  yerr=np.abs(fslits2['telluric_h2o_err'][m,nexp]),fmt='.r',ecolor='grey')
 
     ax1.axhline(final_h2o)
@@ -510,9 +511,9 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     ax1.set_title('H2O = {:0.3f}'.format(final_h2o))
     ax1.set_ylim(0,105)
 
-    ax3.plot(fslits2['rSN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
-    ax3.plot(fslits2['rSN'][m,nexp],fslits2['telluric_h2o'][m,nexp],'r.')
-    ax3.errorbar(fslits2['rSN'][m,nexp],fslits2['telluric_h2o'][m,nexp],\
+    ax3.plot(fslits2['SN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
+    ax3.plot(fslits2['SN'][m,nexp],fslits2['telluric_h2o'][m,nexp],'r.')
+    ax3.errorbar(fslits2['SN'][m,nexp],fslits2['telluric_h2o'][m,nexp],\
                  yerr=np.abs(fslits2['telluric_h2o_err'][m,nexp]),fmt='.r',ecolor='grey')
 
     ax3.axhline(final_h2o)
@@ -520,8 +521,8 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
 
 
     # PLOT OXYGEN-- zoom in and all data
-    ax2.plot(fslits2['rSN'][:,nexp],fslits2['telluric_o2'][:,nexp],'.')
-    ax2.errorbar(fslits2['rSN'][m,nexp],fslits2['telluric_o2'][m,nexp],\
+    ax2.plot(fslits2['SN'][:,nexp],fslits2['telluric_o2'][:,nexp],'.')
+    ax2.errorbar(fslits2['SN'][m,nexp],fslits2['telluric_o2'][m,nexp],\
                  yerr=np.abs(fslits2['telluric_o2_err'][m,nexp]),fmt='.r',ecolor='grey')
 
     airmass_fit = 'Airmass fit value {:0.3f}'.format(get_o2_nodata(mask['airmass'][nexp]))
@@ -532,8 +533,8 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     ax2.legend(loc=4)
 
 
-    ax4.plot(fslits2['rSN'][:,nexp],fslits2['telluric_o2'][:,nexp],'.')
-    ax4.errorbar(fslits2['rSN'][m,nexp],fslits2['telluric_o2'][m,nexp],\
+    ax4.plot(fslits2['SN'][:,nexp],fslits2['telluric_o2'][:,nexp],'.')
+    ax4.errorbar(fslits2['SN'][m,nexp],fslits2['telluric_o2'][m,nexp],\
               yerr=np.abs(fslits2['telluric_o2_err'][m,nexp]),fmt='.r',ecolor='grey')
 
     ax4.set_title('Full data range: O2 = {:0.3f}'.format(final_o2))
