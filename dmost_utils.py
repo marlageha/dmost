@@ -55,58 +55,36 @@ def deimos_helio(mjd,ra,dec):
 #######################################################
 # CALC SN
 #######################################################
-def calc_rb_SN(r1,b1, hdu):
+def calc_SN(pn, hdu):
 
     # TRY SPECTRUM AND CALCULATE SN
     try:
-        rSN = np.median(hdu[r1].data['OPT_COUNTS'] * np.sqrt(hdu[r1].data['OPT_COUNTS_IVAR']))
-        bSN = np.median(hdu[b1].data['OPT_COUNTS'] * np.sqrt(hdu[b1].data['OPT_COUNTS_IVAR']))
-        aa=hdu[b1].data['OPT_WAVE'] * hdu[r1].data['OPT_WAVE']        
+        SN = np.median(hdu[pn].data['OPT_COUNTS'] * np.sqrt(hdu[pn].data['OPT_COUNTS_IVAR']))
     except:
-        rSN=0
-        bSN=0
-
-    return rSN, bSN                
-
-
-
-
-#############################################
-# NAME TO READ SPEC1d FILES
-def get_slit_name(slits,i):
-    
-    rname = 'SPAT{:04d}-SLIT{:04d}-DET{:02d}'.format(slits['rspat'][i],slits['rslit'][i],slits['rdet'][i])
-    bname = 'SPAT{:04d}-SLIT{:04d}-DET{:02d}'.format(slits['bspat'][i],slits['bslit'][i],slits['bdet'][i])
-    
-    return rname, bname
-
-##################################################
-# GET CHIP GAP WAVELENGTHS
-def get_chip_gaps(slits,arg,nexp,hdu):
-    
-    r,b = get_slit_name(slits[arg],nexp)
-
-    try:
-        ccd_b_raw = hdu[b].data['OPT_WAVE'][-1]
-        ccd_r_raw = hdu[r].data['OPT_WAVE'][0]
-
-        # CORRECTION FOR FLEXURE AND CONVERT TO AIR
-        ccd_bv = ccd_b_raw - (slits['fit_slope'][arg,nexp]*ccd_b_raw + slits['fit_b'][arg,nexp])
-        ccd_b  = ccd_bv / (1.0 + 2.735182E-4 + 131.4182 / ccd_bv**2 + 2.76249E8 / ccd_bv**4)
-        ccd_rv = ccd_r_raw - (slits['fit_slope'][arg,nexp]*ccd_r_raw + slits['fit_b'][arg,nexp])
-        ccd_r  = ccd_rv / (1.0 + 2.735182E-4 + 131.4182 / ccd_rv**2 + 2.76249E8 / ccd_rv**4)
-
-
-    except:
-        ccd_b=-1
-        ccd_r=-1
+        SN=0
         
-    slits['ccd_gap_b'][arg,nexp] = ccd_b
-    slits['ccd_gap_r'][arg,nexp] = ccd_r
+    return SN
 
+#######################################################
+def find_chip_gap(flux):
 
+    mflux =0
+    pix_min,pix_max = int(flux.size/2), int(flux.size/2)
+    while mflux == 0:
+        pix_min = pix_min-1
+        mflux   = flux[pix_min]
+    last_zero_pix_min = pix_min +1
 
-    return slits
+    mflux =0
+    while mflux == 0:
+        pix_max = pix_max+1
+        mflux   = flux[pix_max]
+    last_zero_pix_max = pix_max -1
+
+    pix_min_final = last_zero_pix_min -4
+    pix_max_final = last_zero_pix_max +4
+
+    return pix_min_final,pix_max_final
 
 
 #######################################################
@@ -123,17 +101,17 @@ def correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar):
 #######################################################
 #  LOAD A SPECTRUM
 ######################################################
-def load_spectrum(slit,nexp,hdu,vacuum=0,vignetted = 0):
+def load_spectrum(slit,nexp,hdu,vacuum=0,vignetted = 0,fix_flux = 1):
 
 
-    r,b = get_slit_name(slit,nexp)
+    pn = slit['pypeit_name'][nexp]
 
     try:
         # READ IN DATA FROM SPEC1D, TRIM INNER ENDS
-        tmp_wave = np.concatenate((hdu[b].data['OPT_WAVE'][:-4],hdu[r].data['OPT_WAVE'][3:]),axis=None)
-        all_flux = np.concatenate((hdu[b].data['OPT_COUNTS'][:-4],hdu[r].data['OPT_COUNTS'][3:]),axis=None)
-        all_sky = np.concatenate((hdu[b].data['OPT_COUNTS_SKY'][:-4],hdu[r].data['OPT_COUNTS_SKY'][3:]),axis=None)
-        all_ivar = np.concatenate((hdu[b].data['OPT_COUNTS_IVAR'][:-4],hdu[r].data['OPT_COUNTS_IVAR'][3:]),axis=None)
+        tmp_wave = hdu[pn].data['OPT_WAVE'][10:-10]
+        all_flux = hdu[pn].data['OPT_COUNTS'][10:-10]
+        all_sky  = hdu[pn].data['OPT_COUNTS_SKY'][10:-10]
+        all_ivar = hdu[pn].data['OPT_COUNTS_IVAR'][10:-10]
 
         fitwave  = slit['fit_slope'][nexp]*tmp_wave + slit['fit_b'][nexp]
         vwave = tmp_wave - fitwave
@@ -144,24 +122,40 @@ def load_spectrum(slit,nexp,hdu,vacuum=0,vignetted = 0):
             all_wave = vwave / (1.0 + 2.735182E-4 + 131.4182 / vwave**2 + 2.76249E8 / vwave**4)
 
 
-        # TRIM ENDS
-        all_wave=all_wave[5:-15]
-        all_flux=all_flux[5:-15]
-        all_ivar=all_ivar[5:-15]
-        all_sky=all_sky[5:-15]
+
+        # FIND CHIP GAP
+        pix_min, pix_max = find_chip_gap(all_flux)        
+
+
 
         # REMOVE CRAZY  VALUES
-        sn = all_flux*np.sqrt(all_ivar)
-        cmask = (sn > np.percentile(sn,0.1)) & (sn < np.percentile(sn,99.9))
+        sn = all_flux * np.sqrt(all_ivar)
+        m1 = (all_wave > np.min(all_wave)+100) & (all_wave < np.max(all_wave)-100)
+        m2 = (all_wave > 7580) & (all_wave < 7700)
+        m3 = all_ivar != 0.0
+        m4 = (sn > np.percentile(sn,0.1)) & (sn < np.percentile(sn,99.9))
 
-        m=np.median(sn[cmask])
-        s=np.std(sn[cmask])
-        mm = (sn > 15.*s + m) | (sn < m-20.*s)
-        all_flux[mm] = np.median(all_flux)
-        all_ivar[mm] = 1e-6
+
+        m=np.median(sn[m1&~m2&m3&m4])
+        s=np.std(sn[m1&~m2&m3&m4])
+        mm = (sn > 10.*s + m) | (sn < m-15.*s)
+
+        mask = mm | (sn < -10)
+
+        if (fix_flux == 1):
+            all_flux[mask] = np.nanmedian(all_flux)
+            all_ivar[mask] = 0
+
+
+          # FIX CHIP GAP
+            med1 = np.nanmedian(all_flux[pix_min-50:pix_min])
+            med2 = np.nanmedian(all_flux[pix_max:pix_max+50])
+            all_flux[pix_min:pix_max] = np.nanmedian(all_flux)
+            all_ivar[pix_min:pix_max] = 0.
+
         if (np.sum(mm) > 50):
-            print('  Removing more than 50 pixels of data')
-        
+            print('  Removing more than 50 pixels of data: {} {}'.format(nexp,pn))
+            
         
        
     except:
@@ -229,8 +223,8 @@ def load_coadd_collate1d(slit,hdu,vacuum=0,vignetted = 0,flexure=1,chip_gap =1):
         m=np.median(sn[cmask])
         s=np.std(sn[cmask])
         mm = (sn > 25.*s + m) | (sn < m-20.*s)
-        all_flux[mm] = np.median(all_flux)
-        all_ivar[mm] = 1e-6
+        #all_flux[mm] = np.median(all_flux)
+        #all_ivar[mm] = 1e-6
         if (np.sum(mm) > 50):
             print('  Removing more than 50 pixels of data')
         
@@ -250,17 +244,17 @@ def load_coadd_collate1d(slit,hdu,vacuum=0,vignetted = 0,flexure=1,chip_gap =1):
 
 
 ####################################################
-def vignetting_limits(slits,nexp,wave):
+def vignetting_limits(slit,nexp,wave):
     
     # DEFAULT SET TO FULL WAVELENGTH RANGE
     vwave_min = np.min(wave)
     vwave_max = np.max(wave)
 
-
+    xpos = slit['SPAT_PIXPOS'][nexp]
+    det  = slit['DET'][nexp]
     
     # FOR DETECTOR 1+5, APPLY VIGNETTING FIT
-    xpos = slits['rspat'][nexp]
-    if (slits['rdet'][nexp] == 5) & (xpos < 1350):
+    if (det == 'MSC01') & (xpos < 1350):
         p5 = [ 1.05254130e-04, -4.26541379e-01 , 4.20569201e+02] 
         pfit5 = np.poly1d(p5)
         wlim5 = pfit5(xpos) 
@@ -270,12 +264,10 @@ def vignetting_limits(slits,nexp,wave):
         vwave_min = np.min(wave) + wlim5  + fdg 
         vwave_max = np.max(wave) - wlim5
 
-        vwave_min,vwave_max = arc_rms_limits(slits, nexp, vwave_min,vwave_max, wlim5)
-
 
 
     # FOR DETECTOR 4+8, APPLY VIGNETTING FIT
-    if (slits['rdet'][nexp] == 8) & (xpos > 700):
+    if (det == 'MSC04') & (xpos > 700):
         p8=[ 1.37190021e-04, -3.30255017e-02, -6.38328134e+00]  
         pfit8 = np.poly1d(p8)
         wlim8 = pfit8(xpos)
@@ -283,7 +275,6 @@ def vignetting_limits(slits,nexp,wave):
         vwave_min = np.min(wave) + wlim8
         vwave_max = np.max(wave) - wlim8
             
-        vwave_min,vwave_max = arc_rms_limits(slits, nexp, vwave_min,vwave_max,wlim8)
 
 
     # RETURN NON-VIGNETTED WAVELENGTH REGION
@@ -291,26 +282,6 @@ def vignetting_limits(slits,nexp,wave):
     
 
     return wave_lims
-
-
-####################################################
-def arc_rms_limits(slits,nexp,vwmin,vwmax,wlim):
-
-
-    # IF RED ARC SOLUTION BAD, REMOVE RED CHIP
-    if (slits['rms_arc_r'][nexp] > 0.2):
-        vwmax = slits['ccd_gap_b'][nexp] 
-        if (vwmin < vwmax - 4096*0.32):
-            vwmin = vwmax - 4096*0.32  + wlim
-
-
-   # IF BLUE ARC SOLUTION BAD, REMOVE BLUE CHIP
-    if (slits['rms_arc_b'][nexp] > 0.175):
-        vwmin = slits['ccd_gap_r'][nexp] 
-        if (vwmax > vwmin + 4096*0.31):  
-            vwmax = vwmin + 4096*0.31
-
-    return vwmin,vwmax
 
 ####################################################
 def read_dmost(outfile):
