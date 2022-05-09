@@ -116,6 +116,13 @@ def create_marz_input(mask,working_dir):
             # MARZ REQUIRES AIR WAVELENTHS CONVERT FROM PYPEIT VACUUM
             awave = vwave / (1.0 + 2.735182e-4 + 131.4182 / vwave**2 + 2.76249E8 / vwave**4)
 
+            # REMOVE WAVELENGTH ZERO VALUES FOR DISPLAY
+            if (np.sum(awave) > 0):
+                mzero = awave == 0
+                awave[mzero] = 6000.
+                data_flux[mzero] =0.
+
+
             if i==0:
                 specs_flux = data_flux
                 specs_var  = 1./data_ivar
