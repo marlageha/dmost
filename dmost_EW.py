@@ -281,16 +281,17 @@ def CaT_gauss_plus_lorentzian(x,*p):
 
     norm  = 1./ (np.sqrt(2*np.pi) * p[2])
 
-    gauss = -1.*p[4]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) - \
-            p[5]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) - \
+    gauss = p[4]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) + \
+            p[5]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) + \
             p[6]*norm*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
     
-    lorentz = -1.*p[7]*p[3]/( (x-p[1])**2 + (p[3]/2.)**2 ) - \
-              p[8]*p[3]/( (x-p[1]*0.994841)**2 + (p[3]/2.)**2 ) - \
-              p[9]*p[3]/( (x-p[1]*1.01405)**2 + (p[3]/2.)**2 )
+    norm2   = p[3] / (2.*np.pi)
+    lorentz = (p[7]*norm2/( (x-p[1])**2 + (p[3]/2.)**2 )) + \
+              (p[8]*norm2/( (x-p[1]*0.994841)**2 + (p[3]/2.)**2 )) + \
+              (p[9]*norm2/( (x-p[1]*1.01405)**2 + (p[3]/2.)**2 ))
 
 
-    return p[0] + gauss + lorentz
+    return p[0] - gauss - lorentz
 
 
 ########################################
@@ -317,7 +318,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
     errors = 1./np.sqrt(ivar[mw])
     try:
         p, pcov = curve_fit(CaT_gauss_plus_lorentzian,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                                bounds=((0.9, 8540., 0.5,0.5, 0,0,0, 0,0,0), (1.5, 8543.5, 5,3, 2,2,2, 2,2,2)))
+                                bounds=((0.9, 8540., 0.5,0.5, 0,0,0, 0,0,0), (1.5, 8543.5, 5,3, 3,3,3, 3,3,3)))
 
 
         perr = np.sqrt(np.diag(pcov))
@@ -334,21 +335,20 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 
 
         # INTEGRATE LORENTIAN
-        lint1 = 2.*np.pi*p[7] #* perr[3]
-        lint2 = 2.*np.pi*p[8] #* perr[3]
-        lint3 = 2.*np.pi*p[9] #* perr[3]
+        lint1 = p[7] 
+        lint2 = p[8] 
+        lint3 = p[9] 
 
 
-        lerr1 = np.pi*perr[7] #* perr[3]
-        lerr2 = np.pi*perr[8] #* perr[3]
-        lerr3 = np.pi*perr[9] #* perr[3]
-
-        # PUT IT ALL TOGETHER
-        #print('CA1 = ',gint1+lint1)
-        #print('CA2 = ',gint2+lint2)
-        #print('CA3 = ',gint3+lint3)
+        lerr1 = perr[7] 
+        lerr2 = perr[8] 
+        lerr3 = perr[9] 
+        print(gint1,gint2, gint3 ,lint1 ,lint2 ,lint3)
+        print(gerr1,gerr1,gerr3,lerr1,lerr2,lerr3)
+        print()
 
         CaT = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
+
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
                           lerr1**2 + lerr2**2 + lerr3**2)
 
@@ -365,7 +365,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
         chi2    = -99
          
         # OMG, WHY 0.85??
-    return 0.85*CaT, CaT_err, gfit, chi2
+    return CaT, 0.4*CaT_err, gfit, chi2
 
 
 ###########################################
