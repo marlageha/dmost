@@ -18,7 +18,7 @@ import glob
 import warnings
 
 
-import dmost_utils, dmost_create_maskfile
+import dmost_utils_old, dmost_create_maskfile
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
@@ -42,8 +42,10 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
 
     ax2.plot(nwave,nspec)
     ax2.set_xlim(8630,8680)
-    ax2.plot(nwave,cat_fit,'r',label='_nolegend_')
+    tt = 'teff = {}  feh = {}'.format(this_slit['chi2_teff'],this_slit['chi2_feh'])
+    ax2.plot(nwave,cat_fit,'r',label=tt)
     ax2.set_title('CaT EW= {:0.2f}  err={:0.2f}'.format(this_slit['cat'],this_slit['cat_err']))
+    ax2.legend(loc=3)
 
 
     mg_label = 'sig = {:0.2f}, cen = {:0.1f}'.format(p_mg[2],p_mg[3])
@@ -276,9 +278,12 @@ def CaT_gauss_plus_lorentzian(x,*p):
 #P[8] = LORENTZIAN HEIGHT/DEPTH FOR 8498 CAT LINE
 #P[9] = LORENTZIAN HEIGHT/DEPTH FOR 8662 CAT LINE
  
-    gauss = -1.*p[4]*np.exp(-0.5*( (x-p[1])/p[2] )**2) - \
-            p[5]*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) - \
-            p[6]*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
+
+    norm  = 1./ (np.sqrt(2*np.pi) * p[2])
+
+    gauss = -1.*p[4]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) - \
+            p[5]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) - \
+            p[6]*norm*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
     
     lorentz = -1.*p[7]*p[3]/( (x-p[1])**2 + (p[3]/2.)**2 ) - \
               p[8]*p[3]/( (x-p[1]*0.994841)**2 + (p[3]/2.)**2 ) - \
@@ -286,6 +291,82 @@ def CaT_gauss_plus_lorentzian(x,*p):
 
 
     return p[0] + gauss + lorentz
+
+
+########################################
+def CaII_EW_fit_GL(wvl,spec,ivar):
+    
+    # CALCULATE IN CENARRO (2001) DEFINED WINDOWS, TABLE 4
+    # lines  = [8498.02,8542.09,8662.14]
+    wline1 = [8484, 8513]
+    wline2 = [8522, 8562]
+    wline3 = [8642, 8682]
+
+    CaT, CaT_err, p   = -99, -99, 0
+    gfit    = -99*wvl
+
+    # FIT SIMULTANOUSLY IN THE THREE WINDOWS
+    mw1  = (wvl > wline1[0]) & (wvl < wline1[1]) 
+    mw2  = (wvl > wline2[0]) & (wvl < wline2[1]) 
+    mw3  = (wvl > wline3[0]) & (wvl < wline3[1]) 
+    mw = mw1 | mw2 | mw3
+        
+
+    # GAUSSIAN +  LORENTZ FIT
+    p0 = CaT_GL_guess(wvl[mw],spec[mw])
+    errors = 1./np.sqrt(ivar[mw])
+    try:
+        p, pcov = curve_fit(CaT_gauss_plus_lorentzian,wvl[mw],spec[mw],sigma = errors,p0=p0,\
+                                bounds=((0.9, 8540., 0.5,0.5, 0,0,0, 0,0,0), (1.5, 8543.5, 5,3, 2,2,2, 2,2,2)))
+
+
+        perr = np.sqrt(np.diag(pcov))
+        print(p)
+
+        # INTEGRATE PROFILE -- GAUSSIAN FIRST
+        gint1 = p[4] 
+        gint2 = p[5] 
+        gint3 = p[6] 
+            
+        gerr1 = perr[4]
+        gerr2 = perr[5]
+        gerr3 = perr[6]
+
+
+        # INTEGRATE LORENTIAN
+        lint1 = 2.*np.pi*p[7] #* perr[3]
+        lint2 = 2.*np.pi*p[8] #* perr[3]
+        lint3 = 2.*np.pi*p[9] #* perr[3]
+
+
+        lerr1 = np.pi*perr[7] #* perr[3]
+        lerr2 = np.pi*perr[8] #* perr[3]
+        lerr3 = np.pi*perr[9] #* perr[3]
+
+        # PUT IT ALL TOGETHER
+        #print('CA1 = ',gint1+lint1)
+        #print('CA2 = ',gint2+lint2)
+        #print('CA3 = ',gint3+lint3)
+
+        CaT = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
+        CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
+                          lerr1**2 + lerr2**2 + lerr3**2)
+
+        # CREATE FIT FOR PLOTTING
+        gfit = CaT_gauss_plus_lorentzian(wvl,*p)
+        chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
+
+        if (CaT > 14.0) | ~(np.isfinite(CaT_err)):
+            CaT, CaT_err   = -99, -99
+
+
+    except:
+        p, pcov = p0, None
+        chi2    = -99
+         
+        # OMG, WHY 0.85??
+    return 0.85*CaT, CaT_err, gfit, chi2
+
 
 ###########################################
 def CaT_gauss(x,*p):
@@ -298,14 +379,6 @@ def CaT_gauss(x,*p):
 
     return p[0] + gauss
 
-
-########################################
-def CaT_GL_guess(x,y):
-
-    Ng, sg  = 0.2, 1.5
-    p0 = [1.,8542.09,sg,0.8*sg, Ng,Ng,Ng,Ng,Ng,Ng]
-
-    return p0
 
 ########################################
 def CaII_EW_fit_gauss(wvl,spec,ivar):
@@ -373,84 +446,14 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
     return CaT, CaT_err, gfit, chi2
 
+
 ########################################
-def CaII_EW_fit_GL(wvl,spec,ivar):
-    
-    # CALCULATE IN CENARRO (2001) DEFINED WINDOWS, TABLE 4
-    # lines  = [8498.02,8542.09,8662.14]
-    wline1 = [8484, 8513]
-    wline2 = [8522, 8562]
-    wline3 = [8642, 8682]
+def CaT_GL_guess(x,y):
 
-    CaT, CaT_err, p   = -99, -99, 0
-    gfit    = -99*wvl
+    Ng, sg  = 0.2, 1.5
+    p0 = [1.,8542.09,sg,0.8*sg, Ng,Ng,Ng,Ng,Ng,Ng]
 
-    # FIT SIMULTANOUSLY IN THE THREE WINDOWS
-    mw1  = (wvl > wline1[0]) & (wvl < wline1[1]) 
-    mw2  = (wvl > wline2[0]) & (wvl < wline2[1]) 
-    mw3  = (wvl > wline3[0]) & (wvl < wline3[1]) 
-    mw = mw1 | mw2 | mw3
-        
-
-    # GAUSSIAN +  LORENTZ FIT
-    p0 = CaT_GL_guess(wvl[mw],spec[mw])
-    errors = 1./np.sqrt(ivar[mw])
-    try:
-        p, pcov = curve_fit(CaT_gauss_plus_lorentzian,wvl[mw],spec[mw],sigma = errors,p0=p0)
-    
-        perr = np.sqrt(np.diag(pcov))
-
-        # INTEGRATE PROFILE -- GAUSSIAN FIRST
-        gint2 = p[4] * p[2] * np.sqrt(2.*np.pi)
-        gint1 = p[5] * p[2] * np.sqrt(2.*np.pi)
-        gint3 = p[6] * p[2] * np.sqrt(2.*np.pi)
-        
-         # CALCUALTE GAUSSIAN ERROR
-        tmp1 = p[4] * perr[2]* np.sqrt(2.*np.pi)
-        tmp2 = p[2] * perr[4]* np.sqrt(2.*np.pi)
-        gerr2 = np.sqrt(tmp1**2 + tmp2**2)
-        tmp1 = p[5] * perr[2]* np.sqrt(2.*np.pi)
-        tmp2 = p[2] * perr[5]* np.sqrt(2.*np.pi)
-        gerr1 = np.sqrt(tmp1**2 + tmp2**2)
-        tmp1 = p[6] * perr[2]* np.sqrt(2.*np.pi)
-        tmp2 = p[2] * perr[6]* np.sqrt(2.*np.pi)
-        gerr3 = np.sqrt(tmp1**2 + tmp2**2)
-
-        # INTEGRATE LORENTIAN
-        lint1 = 2.*np.pi*p[7] #* perr[3]
-        lint2 = 2.*np.pi*p[8] #* perr[3]
-        lint3 = 2.*np.pi*p[9] #* perr[3]
-
-
-        lerr1 = np.pi*perr[7] #* perr[3]
-        lerr2 = np.pi*perr[8] #* perr[3]
-        lerr3 = np.pi*perr[9] #* perr[3]
-
-        # PUT IT ALL TOGETHER
-        #print('CA1 = ',gint1+lint1)
-        #print('CA2 = ',gint2+lint2)
-        #print('CA3 = ',gint3+lint3)
-
-        CaT = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
-        CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
-                          lerr1**2 + lerr2**2 + lerr3**2)
-
-        # CREATE FIT FOR PLOTTING
-        gfit = CaT_gauss_plus_lorentzian(wvl,*p)
-        chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
-
-        if (CaT > 14.0) | ~(np.isfinite(CaT_err)):
-            CaT, CaT_err   = -99, -99
-
-
-    except:
-        p, pcov = p0, None
-        chi2    = -99
-         
-        # OMG, WHY 0.85??
-    return 0.85*CaT, CaT_err, gfit, chi2
-
-
+    return p0
 def calc_chi2_ew(wave,spec,ivar,mwindow, fit):
 
     model = fit[mwindow]
@@ -460,6 +463,8 @@ def calc_chi2_ew(wave,spec,ivar,mwindow, fit):
     chi2 = np.sum((data - model)**2 * ivar)/np.size(data)
 
     return chi2
+
+
 
 ########################################
 def CaII_normalize(wave,spec,ivar):
@@ -505,8 +510,8 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     # READ COADDED DATA
     jhdu = fits.open(data_dir+'/collate1d/'+slits['collate1d_filename'][arg])
 
-    jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(slits[arg],jhdu) 
-    wave_lims = dmost_utils.vignetting_limits(slits[arg],0,jwave)
+    jwave,jflux,jivar, SN = dmost_utils_old.load_coadd_collate1d(slits[arg],jhdu) 
+    wave_lims = dmost_utils_old.vignetting_limits(slits[arg],0,jwave)
 
     wvl  = jwave[wave_lims]
     flux = jflux[wave_lims]
@@ -524,7 +529,7 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
         CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar)
 
-        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 30) |  (CaT_EW < 0):
+        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 20) |  (CaT_EW < 0):
             CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
@@ -584,6 +589,3 @@ def run_coadd_EW(data_dir, slits, mask):
 
         
     return slits, mask
-
-
-    
