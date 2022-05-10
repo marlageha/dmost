@@ -191,10 +191,10 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     m = (flux > np.percentile(flux,0.1)) & (flux < np.percentile(flux,99.9))
     plt.plot(wave[m],flux[m],'k',linewidth=0.8)
     plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
-    plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['rSN'][arg,nexp],\
+    plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['SN'][arg,nexp],\
                                                   slits['emcee_lnprob'][arg,nexp]))
-    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['rdet'][arg,nexp],\
-                         int(slits['rspat'][arg,nexp]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
+    plt.legend(title='det={}  xpos={}'.format(slits['DET'][arg,nexp],\
+                         int(slits['SPAT_PIXPOS'][arg,nexp])),loc=1)
 
 
     pdf.savefig()
@@ -259,7 +259,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     max_n = 3000
 
     # BACKEND FILENAME
-    filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['maskdef_id'][arg]+'.h5'
+    filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['maskdef_objname'][arg]+'.h5'
 
 
     # SETUP BACKEND
@@ -335,8 +335,8 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
 
-        if (slits['rSN'][arg,nexp] > SNmin) & (slits['marz_flag'][arg] < 3) & \
-           (bool(slits['chi2_tfile'][arg].strip())) & (slits['reduce_flag'][arg,nexp] == 1):
+        if (slits['SN'][arg,nexp] > SNmin) & (slits['marz_flag'][arg] < 3) & \
+           (bool(slits['chi2_tfile'][arg].strip())) & (slits['flag_skip_exp'][arg,nexp] != 1):
             
             
             # READ DATA AND SET VIGNETTING LIMITS
@@ -347,7 +347,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             ivar = ivar[wave_lims]
 
             # CORRECT CHIP GAP
-            flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],wave,flux,ivar)
+            #flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],wave,flux,ivar)
 
 
             # READ STELLAR TEMPLATE 
@@ -356,7 +356,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             
             # CONTINUUM POLYNOMIAL SET BY SN LIMITS
             npoly = 5
-            if (slits['rSN'][arg][nexp]) > 100:
+            if (slits['SN'][arg][nexp]) > 100:
                 npoly=7
 
                 
@@ -381,7 +381,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             if np.abs(wguess) > 40:
                 wguess = 0
             
-            print('SN = {:0.1f} det={}  xpos={}'.format(slits['rSN'][arg,nexp],slits['rdet'][arg,0],int(slits['rspat'][arg,0])))
+            print('SN = {:0.1f} det={}  xpos={}'.format(slits['SN'][arg,nexp],slits['DET'][arg,0],int(slits['SPAT_PIXPOS'][arg,0])))
 
             try:
                 pfit = get_poly_fit([vguess, wguess], wave, flux, ivar, twave,\
@@ -440,7 +440,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
 
         # WRITE TO SCREEN
         SNmin = 3.
-        m = (slits['rSN'][:,ii] > SNmin) & (slits['marz_flag'] < 3)
+        m = (slits['SN'][:,ii] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
                                                                 mask['fname'][ii],nslits,SNmin))
