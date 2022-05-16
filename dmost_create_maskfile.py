@@ -108,6 +108,9 @@ def create_slits(nslits,nexp):
             filled_column('opt_fwhm',np.zeros(nexp),nslits),
             filled_column('chip_gap_b',np.zeros(nexp),nslits),
             filled_column('chip_gap_r',np.zeros(nexp),nslits),
+            filled_column('chip_gap_corr',np.zeros(nexp),nslits),
+            filled_column('chip_gap_corr_collate1d',1.,nslits),
+
 
                      
             # MARZ
@@ -305,9 +308,10 @@ def add_chipgap_seeing(data_dir,mask,slits):
                 # GET CHIP GAP
                 data = hdu[obj['pypeit_name'][ii]].data
                 flux = data['OPT_COUNTS']
+                wave = data['OPT_WAVE']
                 pmin,pmax = dmost_utils.find_chip_gap(flux)  
-                slits['chip_gap_r'][arg,ii] = pmax
-                slits['chip_gap_b'][arg,ii] = pmin
+                slits['chip_gap_r'][arg,ii] = wave[int(pmax)]
+                slits['chip_gap_b'][arg,ii] = wave[int(pmin)]
 
                 # GET FWHM
                 shdr = hdu[obj['pypeit_name'][ii]].header
