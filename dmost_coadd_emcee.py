@@ -282,7 +282,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
     # CORRECT CHIP GAP
     fcorr = slits['chip_gap_corr_collate1d'][arg]
-    bwave_gap = np.median(slits['ccd_gap_b'][arg,:])
+    bwave_gap = np.median(slits['chip_gap_b'][arg,:])
     flux,ivar = dmost_utils.correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar)
 
 

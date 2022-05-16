@@ -81,7 +81,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
 
         if (slits['flag_skip_exp'][arg,nexp] != 1):
 
-            pn = slits['pypeit_name'][arg,nexp]
+            pn = slits['slitname'][arg,nexp]
 
             # SKY LINES FIRST
             sky_lines, sky_diff,sky_ediff,sky_los,sky_elos = sky_em_residuals(hdu[pn].data['OPT_WAVE'], \
@@ -317,7 +317,7 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
 
     
         if slits['flag_skip_exp'][arg,ii] == 0:
-            pn = slits['pypeit_name'][arg,ii]
+            pn = slits['slitname'][arg,ii]
 
             try:
                 # MEASURE SKY LINE DIFFERENCES

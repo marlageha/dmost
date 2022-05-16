@@ -157,7 +157,7 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
 
             wave_gap_b  = slits['chip_gap_b'][arg,nexp]
 
-            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['SN'][arg,nexp],slits['pypeit_name'][arg,nexp])
+            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['SN'][arg,nexp],slits['spec1d_name'][arg,nexp])
 
             slits['chip_gap_corr'][arg,nexp] = fbest
 
