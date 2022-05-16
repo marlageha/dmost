@@ -57,15 +57,14 @@ def create_masks(data_wave):
     return continuum_mask
 
 ######################################################
-def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN):
+def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN, name):
 
     # SEARCH CORRECTION FACTORS 80-120% 
-    frange = np.arange(0.8,1.2,0.01)
+    frange = np.arange(0.85,1.15,0.01)
     fbest  = -1. 
 
-    m = data_wave < wave_gap_b
+    m     = data_wave < wave_gap_b
     cmask = create_masks(data_wave)
-
 
     chi2 = []
     for f in frange:
@@ -99,7 +98,7 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN):
 
 
 
-    plot=0
+    plot=1
     if (plot == 1):
         plt.figure(figsize=(18,5))
         plt.title('chi2 = {:0.2f}, sn ={:0.2f}, f= {:0.2f}'.format(chi2[n],  SN, fbest))
@@ -114,11 +113,11 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN):
         scale_flux[m] = fbest*data_flux[m]
         scale_ivar[m] = data_ivar[m]/f**2
 
-
+        t = 'corrected f={:0.2f}'.format(fbest)
         plt.plot(data_wave,data_flux,lw=0.5)
-        plt.plot(data_wave,scale_flux,lw=0.5)
-
-
+        plt.plot(data_wave,scale_flux,lw=0.5,label=t)
+        plt.title(name)
+        plt.legend()
 
     return fbest, chi2_best
 
@@ -132,7 +131,7 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
 
-        if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3)  & (slits['reduce_flag'][arg,nexp] == 1):
+        if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3)  & (slits['flag_skip_exp'][arg,nexp] != 1):
             
             
             # READ DATA AND SET VIGNETTING LIMITS
@@ -150,14 +149,15 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
             
 
             # SMOOTH TEMPLATES 
-            losvd_pix = mask['lsf_correction'][nexp] * slits['fit_lsf'][arg,nexp]/ 0.02            
+            losvd_pix = slits['fit_lsf'][arg,nexp]/ 0.02            
             sm_tell   = scipynd.gaussian_filter1d(telluric['flux'][mt],losvd_pix,truncate=3)
             twave     = telluric['wave'][mt]
             tflux     = np.interp(wave,twave,sm_tell)
 
 
-            wave_gap_b  = slits['ccd_gap_b'][arg,nexp]
-            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['rSN'][arg,nexp])
+            wave_gap_b  = slits['chip_gap_b'][arg,nexp]
+
+            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['SN'][arg,nexp],slits['pypeit_name'][arg,nexp])
 
             slits['chip_gap_corr'][arg,nexp] = fbest
 
@@ -175,8 +175,8 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
 
             jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(obj,jhdu,chip_gap =0) 
             vexp = 0
-            if (obj['reduce_flag'][0] == 0):
-                m=obj['reduce_flag'] != 0
+            if (obj['flag_skip_exp'][0] == 0):
+                m=obj['flag_skip_exp'] != 0
                 vexp=m[0]
             wave_lims = dmost_utils.vignetting_limits(obj,vexp,jwave)
 
@@ -198,8 +198,8 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
             tflux     = np.interp(wave,twave,sm_tell)
 
 
-            wave_gap_b   = np.mean(slits['ccd_gap_b'][ii,:])
-            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['collate1d_SN'][ii])
+            wave_gap_b   = np.mean(slits['chip_gap_b'][ii,:])
+            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['collate1d_SN'][ii],obj['pypeit_name'][0])
 
             slits['chip_gap_corr_collate1d'][ii] = fbest
 
