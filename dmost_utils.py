@@ -198,8 +198,8 @@ def load_coadd_collate1d(slit,hdu,vacuum=0,vignetted = 0,flexure=1,chip_gap =1):
 
         # TRIM CHIP GAPS (NEEDS FLEXURE TO RUN)
         if (chip_gap == 1):
-            rpix = np.median(slit['ccd_gap_r'])
-            bpix = np.median(slit['ccd_gap_b'])
+            rpix = np.median(slit['chip_gap_r'])
+            bpix = np.median(slit['chip_gap_b'])
             mr = np.abs(all_wave-rpix) < 1
             all_wave = np.delete(all_wave,mr)
             all_flux = np.delete(all_flux,mr) 
