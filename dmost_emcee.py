@@ -193,8 +193,8 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
     plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['SN'][arg,nexp],\
                                                   slits['emcee_lnprob'][arg,nexp]))
-    plt.legend(title='det={}  xpos={}'.format(slits['DET'][arg,nexp],\
-                         int(slits['SPAT_PIXPOS'][arg,nexp])),loc=1)
+    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['DET'][arg,nexp],\
+                         int(slits['SPAT_PIXPOS'][arg,nexp]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
 
 
     pdf.savefig()
@@ -347,7 +347,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             ivar = ivar[wave_lims]
 
             # CORRECT CHIP GAP
-            #flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],wave,flux,ivar)
+            flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['chip_gap_b'][arg,nexp],wave,flux,ivar)
 
 
             # READ STELLAR TEMPLATE 
