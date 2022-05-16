@@ -90,6 +90,7 @@ def find_chip_gap(flux):
 #######################################################
 def correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar):
 
+    # CORRECTION IS APPLIED TO BLUE CHIP
     if (fcorr != -1):
         m = wave < bwave_gap
         flux[m] = fcorr * flux[m]
@@ -104,7 +105,7 @@ def correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar):
 def load_spectrum(slit,nexp,hdu,vacuum=0,vignetted = 0,fix_flux = 1):
 
 
-    pn = slit['pypeit_name'][nexp]
+    pn = slit['spec1d_name'][nexp]
 
     try:
         # READ IN DATA FROM SPEC1D, TRIM INNER ENDS
@@ -250,8 +251,8 @@ def vignetting_limits(slit,nexp,wave):
     vwave_min = np.min(wave)
     vwave_max = np.max(wave)
 
-    xpos = slit['SPAT_PIXPOS'][nexp]
-    det  = slit['DET'][nexp]
+    xpos = slit['spat_pixpos'][nexp]
+    det  = slit['det'][nexp]
     
     # FOR DETECTOR 1+5, APPLY VIGNETTING FIT
     if (det == 'MSC01') & (xpos < 1350):
