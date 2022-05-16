@@ -364,8 +364,8 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
         p, pcov = p0, None
         chi2    = -99
          
-        # OMG, WHY 0.85??
-    return CaT, 0.4*CaT_err, gfit, chi2
+    # OMG, WHY 0.3?
+    return CaT, 0.3*CaT_err, gfit, chi2
 
 
 ###########################################
