@@ -320,8 +320,8 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
 
            # CORRECT CHIP GAP
-            #flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['ccd_gap_b'][arg,nexp],\
-            #                                        wave,flux,ivar)
+            flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['chip_gap_b'][arg,nexp],\
+                                                    wave,flux,ivar)
 
             wave_lims = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
             data_wave = wave[wave_lims]
