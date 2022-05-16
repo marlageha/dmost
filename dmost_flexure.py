@@ -344,7 +344,7 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
 
             except:
                 print('  Skipping slit {}'.format(pn))
-                #slits['skip_flag'][arg,ii] = 1
+                slits['flag_skip_exp'][arg] = 1
             
     return slits,fslope, fb, flos, x, y
 
