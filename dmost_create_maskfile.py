@@ -43,35 +43,36 @@ def filled_column(name, fill_value, size):
 # CREATE MASK STRUCTURE
 def create_mask(nexp):
 
-    cols = [filled_column('spec1d_filename','                                                                           ',nexp),
+    cols = [filled_column('maskname','        ',nexp), 
+            filled_column('mask_ra',-1.,nexp),
+            filled_column('mask_dec',-1.,nexp),
+            filled_column('spec1d_filename','                                                                           ',nexp),
             filled_column('rawfilename','                          ',nexp), 
             filled_column('deimos_maskname','                 ',nexp), 
-            filled_column('maskname','        ',nexp), 
+
             filled_column('fname','        ',nexp),
             filled_column('mjd',-1.,nexp),
             filled_column('year','    ',nexp),
-            filled_column('airmass',-1.,nexp),
             filled_column('exptime',-1.,nexp),
+            filled_column('nexp',-1,nexp),
             filled_column('vhelio',-1.,nexp),
 
             # SEEING AND SEEING-BASED CORRECTION TO LSF
+            filled_column('airmass',-1.,nexp),
+            filled_column('slitwidth',-1.,nexp),
             filled_column('seeing',-1.,nexp),
             filled_column('lsf_correction',-1.,nexp),  
-            filled_column('slitwidth',-1.,nexp),
 
+            # dmost VALUES AND PROGRESS FLAGS
             filled_column('telluric_h2o',-1.,nexp),
             filled_column('telluric_o2',-1.,nexp),
-            filled_column('flag_flexure',0,nexp),
-            filled_column('flag_telluric',0,nexp),
-            filled_column('flag_template',0,nexp),
-            filled_column('flag_emcee',0,nexp),
-            filled_column('flag_coadd',0,nexp),
-            filled_column('nexp',-1,nexp),
-            
-            # MASK DATA
-            filled_column('mask_ra',-1.,nexp),
-            filled_column('mask_dec',-1.,nexp)
 
+            filled_column('flag_flexure',-1,nexp),
+            filled_column('flag_telluric',-1,nexp),
+            filled_column('flag_template',-1,nexp),
+            filled_column('flag_emcee',-1,nexp),
+            filled_column('flag_coadd',-1,nexp)
+            
            ]
 
  
@@ -84,20 +85,20 @@ def create_mask(nexp):
 # CREATE ALLSPEC DATA STRUCTURE
 def create_slits(nslits,nexp):
 
-    cols = [filled_column('maskdef_objname','                ',nslits),
+    cols = [filled_column('objname','                ',nslits),
+            filled_column('objid','                ',nslits),
             filled_column('RA',-1.,nslits),
             filled_column('DEC',-1.,nslits),
+            filled_column('slitname',['                       ']*nexp,nslits),
 
             # REDUCTION FLAGS
-            filled_column('flag_serendip',0,nslits),
-            filled_column('flag_skip_exp',-1*np.ones(nexp,dtype='int'),nslits),
+            filled_column('flag_serendip',-1,nslits),
             filled_column('flag_skip_slit',-1,nslits),
-
+            filled_column('flag_skip_exp',-1*np.ones(nexp,dtype='int'),nslits),
 
             # PYPEIT DETECTOR POSITION, USE TO READ SPEC1D FILES            
-            filled_column('pypeit_name',['                       ']*nexp,nslits),
-            filled_column('SPAT_PIXPOS',np.zeros(nexp),nslits),
-            filled_column('DET',['     ']*nexp,nslits),
+            filled_column('spat_pixpos',np.zeros(nexp),nslits),
+            filled_column('det',['     ']*nexp,nslits),
 
             # SLIT INFO
             filled_column('rms_arc',-1.,nslits),
@@ -110,8 +111,6 @@ def create_slits(nslits,nexp):
             filled_column('chip_gap_r',np.zeros(nexp),nslits),
             filled_column('chip_gap_corr',np.zeros(nexp),nslits),
             filled_column('chip_gap_corr_collate1d',1.,nslits),
-
-
                      
             # MARZ
             filled_column('marz_flag',-1,nslits),
@@ -306,7 +305,7 @@ def add_chipgap_seeing(data_dir,mask,slits):
             if obj['flag_skip_exp'][ii] != 1:
 
                 # GET CHIP GAP
-                data = hdu[obj['pypeit_name'][ii]].data
+                data = hdu[obj['slitname'][ii]].data
                 flux = data['OPT_COUNTS']
                 wave = data['OPT_WAVE']
                 pmin,pmax = dmost_utils.find_chip_gap(flux)  
@@ -314,7 +313,7 @@ def add_chipgap_seeing(data_dir,mask,slits):
                 slits['chip_gap_b'][arg,ii] = wave[int(pmin)]
 
                 # GET FWHM
-                shdr = hdu[obj['pypeit_name'][ii]].header
+                shdr = hdu[obj['slitname'][ii]].header
                 slits['opt_fwhm'][arg,ii] = 0.1185 * shdr['FWHM']
 
 
@@ -424,7 +423,9 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
         this_obj = collate1d[m]
 
         slits['collate1d_filename'][i] = this_obj['filename'][0]
-        slits['maskdef_objname'][i]    = this_obj['maskdef_objname'][0]
+        slits['objname'][i]    = this_obj['maskdef_objname'][0]
+        slits['objid'][i]      = this_obj['maskdef_id'][0]
+
         slits['collate1d_SN'][i]       = np.sqrt(np.sum(this_obj['s2n']**2))
 
         slits['RA'][i]      = this_obj['objra'][0]
@@ -448,10 +449,10 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
             slits['flag_skip_exp'][i,ii] = 1
             if (np.sum(m) == 1):
                 this_exp = this_obj[m][0]
-                slits['pypeit_name'][i,ii]   = this_exp['pypeit_name']
+                slits['slitname'][i,ii]      = this_exp['pypeit_name']
                 slits['SN'][i,ii]            = this_exp['s2n']
-                slits['DET'][i,ii]           = this_exp['det'].strip()
-                slits['SPAT_PIXPOS'][i,ii]   = parse_spat(this_exp['pypeit_name']) 
+                slits['det'][i,ii]           = this_exp['det'].strip()
+                slits['spat_pixpos'][i,ii]   = parse_spat(this_exp['pypeit_name']) 
                 slits['flag_skip_exp'][i,ii] = 0
 
 
