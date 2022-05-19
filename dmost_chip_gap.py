@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 import numpy as np
-import os,sys
-import time
-    
+import glob
+
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 
@@ -11,16 +10,11 @@ from astropy.table import Table
 from astropy import units as u
 from astropy.io import ascii,fits
 
-import glob
-
-import dmost_utils, dmost_create_maskfile
-
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
 
+import dmost_utils, dmost_create_maskfile
 
-DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
-DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
 
 ########################################
@@ -149,7 +143,7 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
             
 
             # SMOOTH TEMPLATES 
-            losvd_pix = slits['fit_lsf'][arg,nexp]/ 0.02            
+            losvd_pix = slits['fit_lsf_corr'][arg,nexp]/ 0.02            
             sm_tell   = scipynd.gaussian_filter1d(telluric['flux'][mt],losvd_pix,truncate=3)
             twave     = telluric['wave'][mt]
             tflux     = np.interp(wave,twave,sm_tell)
@@ -157,7 +151,7 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
 
             wave_gap_b  = slits['chip_gap_b'][arg,nexp]
 
-            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['SN'][arg,nexp],slits['spec1d_name'][arg,nexp])
+            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['SN'][arg,nexp],slits['slitname'][arg,nexp])
 
             slits['chip_gap_corr'][arg,nexp] = fbest
 
@@ -199,7 +193,7 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
 
 
             wave_gap_b   = np.mean(slits['chip_gap_b'][ii,:])
-            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['collate1d_SN'][ii],obj['pypeit_name'][0])
+            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['collate1d_SN'][ii],obj['slitname'][0])
 
             slits['chip_gap_corr_collate1d'][ii] = fbest
 
