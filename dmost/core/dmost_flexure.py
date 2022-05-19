@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 
 from scipy.optimize import curve_fit
-import dmost_utils
+from dmost import dmost_utils
 
 import warnings
 
