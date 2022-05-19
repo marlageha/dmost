@@ -378,8 +378,8 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['collate1d_SN'][arg],\
                                               slits['coadd_lnprob'][arg]))
 
-    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['rdet'][arg,0],\
-                         int(slits['rspat'][arg,0]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
+    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['det'][arg,0],\
+                         int(slits['spat_pixpos'][arg,0]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
 
     pdf.savefig()
     plt.close(fig)
