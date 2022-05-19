@@ -193,8 +193,8 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
     plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['SN'][arg,nexp],\
                                                   slits['emcee_lnprob'][arg,nexp]))
-    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['DET'][arg,nexp],\
-                         int(slits['SPAT_PIXPOS'][arg,nexp]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
+    plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['det'][arg,nexp],\
+                         int(slits['spat_pixpos'][arg,nexp]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
 
 
     pdf.savefig()
@@ -368,7 +368,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             
 
             # SMOOTH TEMPLATES 
-            losvd_pix = slits['fit_lsf'][arg,nexp]/ 0.02
+            losvd_pix = slits['fit_lsf_corr'][arg,nexp]/ 0.02
             sm_pflux  = scipynd.gaussian_filter1d(pflux[mp],losvd_pix,truncate=3)
             pwave     = plogwave[mp]
             
