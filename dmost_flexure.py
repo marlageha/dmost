@@ -5,12 +5,12 @@ import os,sys
 
 from astropy.table import Table,Column
 from astropy.io import ascii,fits
+from astropy.modeling import models, fitting
 
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 
 from scipy.optimize import curve_fit
-from astropy.modeling import models, fitting
 import dmost_utils
 
 import warnings
@@ -289,7 +289,7 @@ def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los
 
         # APPLY CORRECTION FACTOR DETERMINED FROM ABSORPTION LINE FIT TO SEETING
         # 
-        slits['fit_lsf'][arg,ii] = slits['fit_lsf'][arg,ii] #* mask['lsf_correction'][ii]
+        slits['fit_lsf_corr'][arg,ii] = slits['fit_lsf'][arg,ii] * mask['lsf_correction'][ii]
 
 
 
@@ -357,7 +357,7 @@ def run_flexure(data_dir,slits,mask):
     sky_file   = DEIMOS_RAW+'Other_data/sky_single_mg.dat'
     sky        = ascii.read(sky_file)
 
-    warnings.simplefilter('ignore')#, OptimizeWarning)
+    warnings.simplefilter('ignore')
 
     
     # FOR EACH EXPOSURE
