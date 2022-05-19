@@ -2,32 +2,21 @@
 
 import numpy as np
 import os,sys
+import glob
 
 import matplotlib.pyplot as plt
 
-
 from astropy.table import Table,Column,vstack
 from astropy.io import ascii,fits
-import glob
-import time
-
-import matplotlib.backends.backend_pdf
-
-import astropy.units as u
 from astropy.time import Time
+import astropy.units as u
 
 import pyspherematch as sm
 
-import  dmost_utils,dmost_flexure
-import dmost_telluric, dmost_chi2_template, dmost_emcee, dmost_coadd_emcee, dmost_combine_exp
-
+import dmost_utils
 
 
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
-DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
-
-c = 299792.
-
 
 
 ######################################################
@@ -274,7 +263,7 @@ def set_lsf_correction(mask,nexp):
 #############################################################
 def add_marz(data_dir,mask,slits):
     
-    marz_file = DEIMOS_REDUX+'marz_files/marz_'+mask['maskname'][0]+'_MG.mz'
+    marz_file = data_dir+'../marz_files/marz_'+mask['maskname'][0]+'_MG.mz'
     if os.path.isfile(marz_file):
         mz_gal    = read_marz_output(marz_file)
 
