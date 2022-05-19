@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 import numpy as np
-import os, sys
+import os
 
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 from matplotlib import ticker
 
 from astropy.table import Table
-from astropy.io import ascii,fits
+from astropy.io import fits
 import glob
 import time
 
@@ -342,7 +342,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
         model = single_stellar_template(final_file,data_wave,data_flux,data_ivar,losvd_pix,f['chi2_v'],npoly)
         plt.plot(data_wave,model,'r',label='Model',linewidth=0.8,alpha=0.8)
         plt.title('SN = {:0.1f}   chi2 = {:0.1f}   v = {:0.1f}'.format(f['collate1d_SN'],f['chi2_tchi2'],f['chi2_v']))
-        plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(f['DET'][0],int(f['SPAT_PIXPOS'][0]),f['chip_gap_corr_collate1d']))
+        plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(f['det'][0],int(f['spat_pixpos'][0]),f['chip_gap_corr_collate1d']))
 
         pdf.savefig()
         plt.close(fig)
@@ -395,7 +395,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             data_flux,data_ivar = dmost_utils.correct_chip_gap(fcorr,bwave_gap,data_wave,data_flux,data_ivar)
 
             # LSF
-            losvd_pix = np.mean(obj['fit_lsf'][obj['fit_lsf']>0])/ 0.02
+            losvd_pix = np.mean(obj['fit_lsf_corr'][obj['fit_lsf_corr']>0])/ 0.02
 
 
             tfile,f,pdf = chi2_best_template(obj,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot=1)
