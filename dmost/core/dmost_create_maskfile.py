@@ -13,7 +13,7 @@ import astropy.units as u
 
 import pyspherematch as sm
 
-import dmost_utils
+from dmost import dmost_utils
 
 
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
