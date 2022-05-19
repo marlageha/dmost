@@ -19,7 +19,7 @@ from numba import njit
 import h5py
 
 from dmost import dmost_utils
-from dmost.dmost_create_maskfile import write_dmost
+#from dmost.dmost_create_maskfile import write_dmost
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
@@ -259,7 +259,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     max_n = 1000
 
     # BACKEND FILENAME
-    filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['maskdef_objname'][arg]+'.h5'
+    filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['objname'][arg]+'.h5'
 
 
     # SETUP BACKEND
@@ -381,7 +381,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
             if np.abs(wguess) > 40:
                 wguess = 0
             
-            print('SN = {:0.1f} det={}  xpos={}'.format(slits['SN'][arg,nexp],slits['DET'][arg,0],int(slits['SPAT_PIXPOS'][arg,0])))
+            print('SN = {:0.1f} det={}  xpos={}'.format(slits['SN'][arg,nexp],slits['det'][arg,0],int(slits['spat_pixpos'][arg,0])))
 
             try:
                 pfit = get_poly_fit([vguess, wguess], wave, flux, ivar, twave,\
@@ -450,7 +450,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         mask['flag_emcee'][ii] = 1
         
         # WRITE DMOST FILE
-        write_dmost(slits,mask,outfile)
+#        write_dmost(slits,mask,outfile)
         
     return slits, mask
 

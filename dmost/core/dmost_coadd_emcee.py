@@ -20,7 +20,7 @@ import h5py
 
 
 from dmost import dmost_utils
-from dmost.dmost_create_maskfile import write_dmost
+#from dmost.dmost_create_maskfile import write_dmost
 
 
 import scipy.ndimage as scipynd
