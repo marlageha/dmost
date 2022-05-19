@@ -31,18 +31,20 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
     slits, mask, nexp, outfile = dmost_create_maskfile.create_single_mask(data_dir, maskname)
 
 
-
     # RUN FLEXURE + CHIP GAP
     if ~(np.sum(mask['flag_flexure']) == nexp):
         slits,mask = dmost_flexure.run_flexure(data_dir,slits,mask)
-        slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
         write_dmost(slits,mask,outfile)
+
+
 
 
     # RUN TELLURIC -- USE OLD FILES IF AVAILABLE
     tfile = glob.glob(data_dir+'/dmost/telluric_'+maskname+'*.fits')
     if ~(np.sum(mask['flag_telluric']) == nexp) | ~(np.size(tfile) == nexp):
         slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
+        slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
+
         write_dmost(slits,mask,outfile)
 
 
@@ -58,7 +60,7 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
         slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
         write_dmost(slits,mask,outfile)
 
-    # RUN LOW SN EMCEE
+    # RUN LOW SN EMCEE ON COADDED SPECTRA
     if ~(np.sum(mask['flag_coadd']) == nexp) | (rerun_coadd == 1):
         slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
         write_dmost(slits,mask,outfile)
