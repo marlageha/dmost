@@ -105,7 +105,7 @@ def correct_chip_gap(fcorr,bwave_gap,wave,flux,ivar):
 def load_spectrum(slit,nexp,hdu,vacuum=0,vignetted = 0,fix_flux = 1):
 
 
-    pn = slit['spec1d_name'][nexp]
+    pn = slit['slitname'][nexp]
 
     try:
         # READ IN DATA FROM SPEC1D, TRIM INNER ENDS
