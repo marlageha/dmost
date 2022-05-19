@@ -15,7 +15,7 @@ from astropy.convolution import Gaussian1DKernel, convolve
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
 
-import dmost_utils
+from dmost import dmost_utils
 
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 
