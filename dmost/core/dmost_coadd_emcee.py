@@ -12,13 +12,16 @@ from astropy import units as u
 from astropy.io import ascii,fits
 
 
-import emcee
-import corner
+import emcee, corner
+
 import glob
 import numba
 import h5py
 
-import dmost_utils, dmost_create_maskfile
+
+from dmost import dmost_utils
+from dmost.dmost_create_maskfile import write_dmost
+
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit

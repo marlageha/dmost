@@ -15,7 +15,7 @@ import time
 from scipy.optimize import curve_fit
 import scipy.ndimage as scipynd
 
-import dmost_utils
+from dmost import dmost_utils
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 
 

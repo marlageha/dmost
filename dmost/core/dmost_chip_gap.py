@@ -13,7 +13,8 @@ from astropy.io import ascii,fits
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
 
-import dmost_utils, dmost_create_maskfile
+from dmost import dmost_utils
+
 
 
 
@@ -235,8 +236,6 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
     if np.sum(mm) > 0:
         print('{} Chip gap factor median is {:0.2f}'.format(mask['maskname'][0],np.median(slits['chip_gap_corr'][mm])))
 
-    # WRITE DMOST FILE
-#    dmost_create_maskfile.write_dmost(slits,mask,outfile)
         
     return slits, mask
 

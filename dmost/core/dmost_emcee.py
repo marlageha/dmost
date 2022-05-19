@@ -12,14 +12,14 @@ from astropy import units as u
 from astropy.io import ascii,fits
 
 
-import emcee
-import corner
+import emcee, corner
 import glob
 import numba
 from numba import njit
 import h5py
 
-import dmost_utils, dmost_create_maskfile
+from dmost import dmost_utils
+from dmost.dmost_create_maskfile import write_dmost
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
@@ -450,7 +450,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         mask['flag_emcee'][ii] = 1
         
         # WRITE DMOST FILE
-        dmost_create_maskfile.write_dmost(slits,mask,outfile)
+        write_dmost(slits,mask,outfile)
         
     return slits, mask
 

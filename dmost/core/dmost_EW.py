@@ -11,14 +11,10 @@ from astropy.table import Table
 from astropy import units as u
 from astropy.io import ascii,fits
 
-
-import emcee
-import corner
 import glob
 import warnings
 
-
-import dmost_utils_old, dmost_create_maskfile
+from dmost import dmost_utils
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
