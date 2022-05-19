@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
-import os,sys
+import os
+import glob
 
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
@@ -9,14 +10,10 @@ from matplotlib import ticker
 
 from astropy.table import Table
 from astropy.io import ascii,fits
-import glob
+from astropy.convolution import Gaussian1DKernel, convolve
 
 import scipy.ndimage as scipynd
-from scipy import ndimage
-
 from scipy.optimize import curve_fit
-from astropy import  convolution
-from astropy.convolution import Gaussian1DKernel, convolve
 
 import dmost_utils
 
@@ -316,12 +313,12 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
         if (slits['SN'][arg,nexp] > min_SN) & (slits['SN'][arg,nexp] < 155) & (slits['marz_flag'][arg] < 3)\
                                                                    & (slits['flag_serendip'][arg] != 1):
 
-            losvd_pix =  slits['fit_lsf'][arg,nexp]/ 0.02
+            losvd_pix =  slits['fit_lsf_corr'][arg,nexp]/ 0.02
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)
 
-           # CORRECT CHIP GAP
-            flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['chip_gap_b'][arg,nexp],\
-                                                    wave,flux,ivar)
+           # CORRECT CHIP GAP - can't run w/o telluric!
+#            flux,ivar = dmost_utils.correct_chip_gap(slits['chip_gap_corr'][arg,nexp],slits['chip_gap_b'][arg,nexp],\
+#                                                    wave,flux,ivar)
 
             wave_lims = dmost_utils.vignetting_limits(slits[arg],nexp,wave)
             data_wave = wave[wave_lims]
@@ -413,7 +410,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             ax2.plot(data_wave[chi2_mask],model[chi2_mask],'r',label='telluric fitted region',linewidth=0.8,alpha=0.8)
 
             ax2.set_title('chi2 = {:0.1f}     SN={:0.1f}'.format(np.min(tmp_chi),slits['SN'][arg,nexp]))
-            ax2.legend(title='det={}  xpos={}'.format(slits['DET'][arg,nexp],int(slits['SPAT_PIXPOS'][arg,nexp])))
+            ax2.legend(title='det={}  xpos={}'.format(slits['det'][arg,nexp],int(slits['spat_pixpos'][arg,nexp])))
 
 
             pdf.savefig()
