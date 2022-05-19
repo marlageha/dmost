@@ -10,12 +10,13 @@ from astropy.table import Table
 from astropy.io import ascii
 
 
+from dmost import *
 
-import dmost_utils,dmost_flexure, dmost_create_maskfile
-import dmost_telluric, dmost_chi2_template,dmost_chip_gap, dmost_emcee
-import dmost_coadd_emcee, dmost_combine_exp, dmost_EW
+#import dmost_utils,dmost_flexure, dmost_create_maskfile
+#import dmost_telluric, dmost_chi2_template,dmost_chip_gap, dmost_emcee
+#import dmost_coadd_emcee, dmost_combine_exp, dmost_EW
 
-from dmost_create_maskfile import write_dmost
+from dmost.dmost_create_maskfile import write_dmost
 
 
 def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
