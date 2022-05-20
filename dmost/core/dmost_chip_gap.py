@@ -52,10 +52,14 @@ def create_masks(data_wave):
     return continuum_mask
 
 ######################################################
-def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN, name):
+def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, det,SN, name):
 
-    # SEARCH CORRECTION FACTORS 80-120% 
-    frange = np.arange(0.85,1.15,0.01)
+    # SEARCH CORRECTION FACTORS MSC4 gain flucuates more than other chips
+    frange = np.arange(0.95,1.05,0.01)
+    if (det[0] == 'MSC04'):
+        frange = np.arange(0.85,1.15,0.01)
+
+
     fbest  = -1. 
 
     m     = data_wave < wave_gap_b
@@ -93,7 +97,7 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, SN, nam
 
 
 
-    plot=1
+    plot=0
     if (plot == 1):
         plt.figure(figsize=(18,5))
         plt.title('chi2 = {:0.2f}, sn ={:0.2f}, f= {:0.2f}'.format(chi2[n],  SN, fbest))
@@ -152,7 +156,7 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
 
             wave_gap_b  = slits['chip_gap_b'][arg,nexp]
 
-            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['SN'][arg,nexp],slits['slitname'][arg,nexp])
+            fbest, chi2 = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['det'][arg],slits['SN'][arg,nexp],slits['slitname'][arg,nexp])
 
             slits['chip_gap_corr'][arg,nexp] = fbest
 
@@ -194,7 +198,7 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
 
 
             wave_gap_b   = np.mean(slits['chip_gap_b'][ii,:])
-            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,slits['collate1d_SN'][ii],obj['slitname'][0])
+            fbest, chi2  = find_chip_gap_factor(wave, flux, ivar,wave_gap_b,tflux,obj['det'],obj['collate1d_SN'],obj['slitname'][0])
 
             slits['chip_gap_corr_collate1d'][ii] = fbest
 
