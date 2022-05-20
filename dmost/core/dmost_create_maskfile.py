@@ -495,7 +495,7 @@ def create_single_mask(data_dir, maskname):
     if (nexp == 0):
         print('No spec1d files found!')
         print(data_dir)
-        quit()
+        return [],[],[],[]
 
 
 
