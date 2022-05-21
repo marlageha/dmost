@@ -310,8 +310,14 @@ def add_chipgap_seeing(data_dir,mask,slits):
         # ADD OVERALL SEEING VALUE
         seeing_min_SN = 10. 
         mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
-        mask['seeing'][ii] = np.nanmedian(slits['opt_fwhm'][mstar,ii])
 
+        # IN CASE NO STARS WITH GOOD SN, LOWER THRESHOLD
+        seeing_min_SN = 5
+        while (np.sum(mstar) < 2):
+            mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
+            seeing_min_SN = seeing_min_SN - 0.5
+
+        mask['seeing'][ii] = np.nanmedian(slits['opt_fwhm'][mstar,ii])
 
         # ADD SLITWIDTH TO MASKS    
         DEIMOS_RAW = os.getenv('DEIMOS_RAW')
