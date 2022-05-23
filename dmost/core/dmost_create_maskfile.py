@@ -570,6 +570,8 @@ def create_single_mask(data_dir, maskname):
     # ADD OR UPDATE MARZ
     slits = add_marz(data_dir,mask,slits)
 
+
+
     return slits, mask, nexp, outfile
 
 #####################################################    
