@@ -5,6 +5,8 @@ import os,sys
 import glob
 
 import matplotlib.pyplot as plt
+import matplotlib.backends.backend_pdf
+
 
 from astropy.table import Table,Column,vstack
 from astropy.io import ascii,fits
@@ -191,6 +193,7 @@ def create_slits(nslits,nexp):
     slits = Table(cols)
     return slits
 
+
 #############################################################
 def dmost_parse_telluric(tfile,fname):
     '''
@@ -336,6 +339,42 @@ def add_chipgap_seeing(data_dir,mask,slits):
 
 
     return mask, slits
+
+
+ 
+#############################################################
+# MAKE SOME PLOTS
+def mk_histograms(data_dir,mask,slits,nexp):
+
+    hfile  = data_dir + '/QA/histograms_'+mask['maskname'][0]+'.pdf'
+    pdf   = matplotlib.backends.backend_pdf.PdfPages(hfile)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
+    plt.rcParams.update({'font.size': 16})
+
+    ax1.hist(slits['rms_arc'])
+    ax1.set_xlabel('RMS_ARC [pixels]')
+    ax1.set_title('Arc Solutions')
+    ax1.axvline(0.2,c='r',label='RMS Threshold')
+    ax1.legend()
+
+    for n in np.arange(0,nexp,1):
+        
+        m=slits['marz_flag'] < 2
+        ax2.hist(slits['opt_fwhm'][m,n],bins=20,alpha=0.5,\
+                 label = 'seeing = {:0.2f}'.format(mask['seeing'][n]))
+        
+    ax2.legend()
+        
+    ax2.set_xlabel('Seeing:  OPT_FWHM [Arcsec]')
+    ax2.set_title('Seeing')
+
+    pdf.savefig()
+    pdf.close()
+    plt.close(fig)
+
+
+    return
 
 
 #############################################################
@@ -525,7 +564,7 @@ def create_single_mask(data_dir, maskname):
 
         # ADD EXPOSURE LEVEL DATA
         mask,slits  = add_chipgap_seeing(data_dir,mask,slits)
-
+        mk_histograms(data_dir,mask,slits,nexp)
 
 
     # ADD OR UPDATE MARZ
