@@ -12,7 +12,7 @@ from astropy.io import ascii
 
 from dmost import *
 
-from dmost.core.dmost_create_maskfile import write_dmost 
+from dmost.core.dmost_utils import write_dmost 
 
 
 def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
@@ -39,7 +39,7 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
     # RUN TELLURIC -- USE OLD FILES IF AVAILABLE
     tfile = glob.glob(data_dir+'/dmost/telluric_'+maskname+'*.fits')
     if ~(np.sum(mask['flag_telluric']) == nexp) | ~(np.size(tfile) == nexp):
-        slits,mask  = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
+        slits,mask = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
         slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
         write_dmost(slits,mask,outfile)
 
