@@ -284,13 +284,23 @@ def vignetting_limits(slit,nexp,wave):
 
     return wave_lims
 
-####################################################
+
+
+#############################################################
+def write_dmost(slits,mask,outfile):
+
+    hdup = fits.PrimaryHDU(np.float32([1,2]))
+    hdu1 = fits.BinTableHDU(mask,name = 'mask')
+    hdu2 = fits.BinTableHDU(slits,name = 'slits')
+    fhdu = fits.HDUList([hdup, hdu1,hdu2])
+    fhdu.writeto(outfile,overwrite=True)
+    
+
+#############################################################    
 def read_dmost(outfile):
     
     hdu   = fits.open(outfile)
-    mask  = Table(hdu[1].data)
-    slits = Table(hdu[2].data)
-    hdu.close()
-    
-    return slits, mask
+    mask  = hdu[1].data
+    slits = hdu[2].data
 
+    return slits, mask
