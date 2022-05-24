@@ -505,26 +505,6 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
 
 
 
-
-#############################################################
-def write_dmost(slits,mask,outfile):
-
-    hdup = fits.PrimaryHDU(np.float32([1,2]))
-    hdu1 = fits.BinTableHDU(mask,name = 'mask')
-    hdu2 = fits.BinTableHDU(slits,name = 'slits')
-    fhdu = fits.HDUList([hdup, hdu1,hdu2])
-    fhdu.writeto(outfile,overwrite=True)
-    
-#############################################################    
-def read_dmost(outfile):
-    
-    hdu   = fits.open(outfile)
-    mask  = hdu[1].data
-    slits = hdu[2].data
-
-    return slits, mask
-
-
 #############################################################
 def create_single_mask(data_dir, maskname):
     '''
@@ -551,7 +531,7 @@ def create_single_mask(data_dir, maskname):
     # IF DMOST FILE EXISTS, READ DMOST IN
     if os.path.isfile(outfile):
         print('Reading existing file: ',outfile)
-        slits,mask = read_dmost(outfile)
+        slits,mask = dmost_utils.read_dmost(outfile)
         print('{} Slit table with {} slits'.format(mask['maskname'][0],np.size(slits)))
 
     else:
