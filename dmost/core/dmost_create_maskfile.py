@@ -83,13 +83,13 @@ def create_slits(nslits,nexp):
             filled_column('slitname',['                       ']*nexp,nslits),
 
             # REDUCTION FLAGS
-            filled_column('flag_serendip',-1,nslits),
             filled_column('flag_skip_slit',-1,nslits),
             filled_column('flag_skip_exp',-1*np.ones(nexp,dtype='int'),nslits),
 
             # PYPEIT DETECTOR POSITION, USE TO READ SPEC1D FILES            
             filled_column('spat_pixpos',np.zeros(nexp),nslits),
             filled_column('det',['     ']*nexp,nslits),
+            filled_column('serendip',-1,nslits),
 
             # SLIT INFO
             filled_column('rms_arc',-1.,nslits),
@@ -450,7 +450,7 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
     
 
     # FOR EACH UNIQUE COLLATE1D FILE
-    nserendip = 0
+    nserendip = 1
     for i,objname in enumerate(obj_filenames):
 
         m        = np.in1d(collate1d['filename'],objname)
@@ -472,7 +472,7 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
 
         # SET IF SEREDIP SLIT
         if (this_obj['maskdef_objname'][0] == 'SERENDIP'):
-            slits['flag_serendip'][i]   = 1
+            slits['serendip'][i]   = nserendip
             nserendip += 1
 
         for ii,this_exp in enumerate(mask['spec1d_filename']):
