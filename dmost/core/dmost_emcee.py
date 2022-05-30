@@ -261,7 +261,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     # BACKEND FILENAME
     filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['objid'][arg]+'.h5'
     if slits['objname'][arg] == 'SERENDIP':
-        filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['objid'][arg]+'_SERENDIP.h5'
+        filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['objid'][arg]+'_SERENDIP'+str(slits['serendip'][arg])+'.h5'
 
 
 
