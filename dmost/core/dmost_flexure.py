@@ -294,7 +294,7 @@ def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los
 
 
         # CALCULATE RESIDUALS FROM FIT        
-        if (slits['flag_serendip'][arg] != 1) & (slits['flag_skip_exp'][arg,ii] != 1) :
+        if (slits['serendip'][arg] < 1) & (slits['flag_skip_exp'][arg,ii] != 1) :
             all_wave,all_flux,all_ivar,all_sky = dmost_utils.load_spectrum(slits[arg],ii,hdu,vacuum = 1)
             dwave,diff,diff_err,los,elos       = sky_em_residuals(all_wave,all_sky,all_ivar,sky,plot=0)
             
