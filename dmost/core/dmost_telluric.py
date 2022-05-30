@@ -386,6 +386,11 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
             vmn = np.log(np.min(tmp_chi))
             vmx = np.log(vmn + np.percentile(tmp_chi,25))
 
+            # CATCH PROBLEM CHI2 values
+            if vmx <=vmn:
+                vmx = vmn+0.5
+
+
             aa,bb,cc = projected_chi_plot(tmp_o2,tmp_h2o,tmp_chi)
             ax1.scatter(aa,bb,c=np.log(cc),vmin=vmn,vmax=vmx,cmap='cool')
             ax1.plot(tmp_o2[n],tmp_h2o[n],'o',mfc='none',mec='k',ms=15)
@@ -487,7 +492,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
         m= (fslits2['telluric_chi2'][:,nexp] > 0)& \
         (fslits2['telluric_h2o'][:,nexp] > 1) & (fslits2['telluric_h2o'][:,nexp] < 120) & \
         (fslits2['telluric_o2'][:,nexp] > 0.6) & (fslits2['telluric_o2'][:,nexp] < 2.5) 
-        print('No slits, using fit for O2:',np.sum(m))
+        print('Not enough slits, using fit for O2')
 
         if np.sum(m) > 0:
             final_h2o = np.nanmean(fslits2['telluric_h2o'][m,nexp])

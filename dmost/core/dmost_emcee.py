@@ -259,7 +259,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     max_n = 1000
 
     # BACKEND FILENAME
-    filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['objname'][arg]+'.h5'
+    filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['objid'][arg]+'.h5'
 
 
     # SETUP BACKEND
