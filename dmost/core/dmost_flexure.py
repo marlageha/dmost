@@ -87,23 +87,25 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
             sky_lines, sky_diff,sky_ediff,sky_los,sky_elos = sky_em_residuals(hdu[pn].data['OPT_WAVE'], \
                                                     hdu[pn].data['OPT_COUNTS_SKY'],\
                                                     hdu[pn].data['OPT_COUNTS_IVAR'],sky)
+            fitted_line = fit_sky_linear(sky_lines,sky_diff,sky_ediff)
 
 
             fig, (ax1,ax2) = plt.subplots(1, 2,figsize=(20,4))
             ax1.plot(sky_lines,sky_diff,'ko',alpha=0.8,label='Sky Emission')
-            ax1.errorbar(sky_lines,sky_diff,yerr=sky_ediff,fmt='none',ecolor='r',alpha=0.5)
+            ax1.errorbar(sky_lines,sky_diff,yerr=sky_ediff,fmt='none',ecolor='k',alpha=0.5)
             #ax1.text(6320,0,'{}'.format(pn),fontsize=11)
             ax1.set_ylim(-0.45,0.45)
 
             xx=np.arange(6000,9200,1)
             l1 = slits['fit_slope'][arg,nexp]*xx + slits['fit_b'][arg,nexp]
-            l2 = slits['fit_slope'][arg,nexp]*xx + slits['fit_b'][arg,nexp]
-            ax1.plot(xx,l1,'-')
-            ax1.plot(xx,l2,'--')
+            l2 = fitted_line[1]*xx + fitted_line[0]
+            ax1.plot(xx,l1,'-',label='mask fit')
+            ax1.plot(xx,l2,'--',label='slit fit')
             ax1.axhline(linewidth=1, color='grey',alpha=0.5)
             ax1.set_ylabel('Wavelength offset (AA)')
             ax1.set_xlabel('Wavelength (AA)')
             ax1.set_xlim(6300,9100)
+            ax1.legend(fontsize=12)
             t = 'Sky RMS = {:0.3f} AA, Arc RMS = {:0.3f} AA'.format(slits['rms_sky'][arg,nexp],0.32*slits['rms_arc'][arg])
             ax1.set_title(t)
 
@@ -117,7 +119,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
             #lsf_fit = create_lsf_parabola(sky_lines,slits['fit_lsf_p0'][arg,nexp],\
             #                        slits['fit_lsf_p1'][arg,nexp],slits['fit_lsf_p2'][arg,nexp])
             #ax2.plot(sky_lines,lsf_fit)
-            ax2.legend()
+            ax2.legend(fontsize=12)
 
             ax2.set_title('Line widths: {}'.format(pn))
             ax2.set_xlabel('Wavelength (AA)')
