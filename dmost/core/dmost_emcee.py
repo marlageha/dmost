@@ -179,7 +179,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
 
     for ii in range(20):
         ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5,alpha=0.8)
-    ax2.set_title('w = {:0.2f}'.format(slits['emcee_w'][arg,nexp]))
+    ax2.set_title('w = {:0.2f}  converge = {}'.format(slits['emcee_w'][arg,nexp],slits['emcee_converge'][arg,nexp]))
     ax2.axvline(burnin)
 
     pdf.savefig()
