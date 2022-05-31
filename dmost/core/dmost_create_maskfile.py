@@ -100,7 +100,7 @@ def create_slits(nslits,nexp):
             filled_column('opt_fwhm',np.zeros(nexp),nslits),
             filled_column('chip_gap_b',np.zeros(nexp),nslits),
             filled_column('chip_gap_r',np.zeros(nexp),nslits),
-            filled_column('chip_gap_corr',np.zeros(nexp),nslits),
+            filled_column('chip_gap_corr',np.ones(nexp),nslits),
             filled_column('chip_gap_corr_collate1d',1.,nslits),
                      
             # MARZ
