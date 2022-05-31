@@ -236,9 +236,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
                                   backend=backend)#,pool=pool
 
         sampler, convg, burnin = run_sampler(sampler, p0, max_n)
-        slits['coadd_converge'][arg] = convg
-        slits['coadd_burnin'][arg]   = burnin
-        
+         
     # OR JUST READ IN PREVIOUS RESULTS
     if (erun == 0): 
         print('Reading previous chains')
@@ -247,10 +245,22 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
                                   backend=backend)
 
+    try:
+        tau    = sampler.get_autocorr_time(tol=0)
+        burnin = int(2 * np.max(tau))
+        converged = np.all(tau * 100 < sampler.iteration)
+        print(tau,burnin, converged)
+        convg = np.sum(converged)
+    except:
+        convg=0
+        burnin=100
 
-    burnin=    slits['coadd_burnin'][arg]   
-    theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
+
+    slits['coadd_converge'][arg] = convg
+    slits['coadd_burnin'][arg]   = burnin
     slits['coadd_f_acc'][arg]    = np.mean(sampler.acceptance_fraction)
+     
+    theta  = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
 
     print(theta)
 
@@ -360,7 +370,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     for ii in range(20):
         ax2.plot(sampler.chain[ii,:,1], color="k",linewidth=0.5)
     ax2.axvline(burnin)
-    ax2.set_title('w = {:0.2f}'.format(slits['coadd_w'][arg]))
+    ax2.set_title('w = {:0.2f}  converge = {}'.format(slits['coadd_w'][arg],slits['coadd_converge'][arg]))
 
     err = (slits['emcee_v_err84'][arg,:] - slits['emcee_v_err16'][arg,:])/2.
     str1 = ['{:0.1f}'.format(x) for x in slits['emcee_v'][arg,:]]
