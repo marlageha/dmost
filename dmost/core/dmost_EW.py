@@ -506,8 +506,8 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     # READ COADDED DATA
     jhdu = fits.open(data_dir+'/collate1d/'+slits['collate1d_filename'][arg])
 
-    jwave,jflux,jivar, SN = dmost_utils_old.load_coadd_collate1d(slits[arg],jhdu) 
-    wave_lims = dmost_utils_old.vignetting_limits(slits[arg],0,jwave)
+    jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(slits[arg],jhdu) 
+    wave_lims = dmost_utils.vignetting_limits(slits[arg],0,jwave)
 
     wvl  = jwave[wave_lims]
     flux = jflux[wave_lims]
