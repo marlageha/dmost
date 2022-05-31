@@ -218,10 +218,9 @@ def run_sampler(sampler, p0, max_n):
     # POOL
     #with Pool() as pool:
     #sampler = sampler.sample(p0, iterations=max_n,progress = True)
+    pos, prob, state = sampler.run_mcmc(p0, max_n,progress=False)
     
     try:
-        pos, prob, state = sampler.run_mcmc(p0, max_n,progress=False)
-
         tau    = sampler.get_autocorr_time(tol=0)
         burnin = int(2 * np.max(tau))
         converged = np.all(tau * 100 < sampler.iteration)
@@ -274,6 +273,8 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     
     # IF SAVED FILE DOESN"T EXIST, CREATE AND RUN
     if (erun == 1): 
+        #plt.plot(wave,flux)
+        print(flux)
         backend.reset(nwalkers, ndim)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
