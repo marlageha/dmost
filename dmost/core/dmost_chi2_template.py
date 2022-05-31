@@ -345,7 +345,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
         model = single_stellar_template(final_file,data_wave,data_flux,data_ivar,losvd_pix,f['chi2_v'],npoly)
         plt.plot(data_wave,model,'r',label='Model',linewidth=0.8,alpha=0.8)
         plt.title('SN = {:0.1f}   chi2 = {:0.1f}   v = {:0.1f}'.format(f['collate1d_SN'],f['chi2_tchi2'],f['chi2_v']))
-        plt.legend(loc=1,title='det={}  xpos={}\n chip gap = {:0.2f}'.format(f['det'][0],int(f['spat_pixpos'][0]),f['chip_gap_corr_collate1d']))
+        plt.legend(loc=1,fontsize=12,title='det={}  xpos={}\n chip gap = {:0.2f}'.format(f['det'][0],int(f['spat_pixpos'][0]),f['chip_gap_corr_collate1d']))
 
         pdf.savefig()
         plt.close(fig)
