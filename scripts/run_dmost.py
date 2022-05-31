@@ -13,6 +13,7 @@ from astropy.io import ascii
 from dmost import *
 
 from dmost.core.dmost_utils import write_dmost 
+from dmost.core             import dmost_combine_exp
 
 
 def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
@@ -28,11 +29,10 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
     slits, mask, nexp, outfile = dmost_create_maskfile.create_single_mask(data_dir, maskname)
 
 
-    # RUN FLEXURE + CHIP GAP
+    # RUN FLEXURE 
     if ~(np.sum(mask['flag_flexure']) == nexp):
         slits,mask = dmost_flexure.run_flexure(data_dir,slits,mask)
         write_dmost(slits,mask,outfile)
-
 
 
 
