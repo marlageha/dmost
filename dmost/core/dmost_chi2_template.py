@@ -288,7 +288,8 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
 
         
         fig, (ax1, ax2,ax3) = plt.subplots(1, 3,figsize=(20,5))
-        
+        plt.rcParams.update({'font.size': 14})
+
         aa,bb,cc = projected_chi_plot(best_teff,best_feh,best_chi)
         ax1.scatter(aa,bb,c=np.log(cc),vmin=vmn,vmax=vmx,cmap='cool')
         ax1.plot(best_teff[n],best_feh[n],'o',mfc='none',mec='k',ms=15)
@@ -336,6 +337,8 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
 
         
         fig,ax = plt.subplots(figsize=(20,5))
+        plt.rcParams.update({'font.size': 14})
+
         plt.plot(data_wave,data_flux,'k',label='full spectrum',linewidth=0.9)
 
         plt.plot(data_wave[chi2_mask],data_flux[chi2_mask],'grey',label='fitted region',linewidth=0.8)
@@ -381,7 +384,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(obj,jhdu) 
             vexp = 0
             #if (obj['skip_flag'][0] == 0):
-            #    m=obj['skip_flag'] != 0
+            #    m=obj['skip_flag'] != 0 
             #    vexp=m[0]
             wave_lims = dmost_utils.vignetting_limits(obj,vexp,jwave)
 

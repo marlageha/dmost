@@ -242,6 +242,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
     # OR JUST READ IN PREVIOUS RESULTS
     if (erun == 0): 
         print('Reading previous chains')
+        print(filename)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
                                   backend=backend)
@@ -376,11 +377,13 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
     # PLOT SPECTRUM
     plt.figure(figsize=(20,5))
+    plt.rcParams.update({'font.size': 14})
     m = (flux > np.percentile(flux,0.1)) & (flux < np.percentile(flux,99.9))
     plt.plot(wave,flux,linewidth=0.8)
     plt.plot(wave[m],flux[m],'k',linewidth=0.8)
     plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
-    plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['collate1d_SN'][arg],\
+    plt.ylim(np.min(flux[m]),1.02*np.max(flux[m]))
+    plt.title('{}   SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['objname'][arg],slits['collate1d_SN'][arg],\
                                               slits['coadd_lnprob'][arg]))
 
     plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['det'][arg,0],\
@@ -459,7 +462,8 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
         # THRESHOLD TO RUN COADD
         do_coadd = coadd_threshold(nexp, slt)
 
-        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (slt['marz_flag'] < 3) &  (do_coadd == 1):
+        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (slt['marz_flag'] < 3) &  (do_coadd == 1) & \
+         (slt['flag_skip_slit'] != 1) & (bool(slt['collate1d_filename'].strip())) & (bool(slt['chi2_tfile'].strip())):
       
 
             # RUN EMCEE ON COADD

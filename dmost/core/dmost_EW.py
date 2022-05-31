@@ -318,7 +318,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 
 
         perr = np.sqrt(np.diag(pcov))
-        print(p)
+        #print(p)
 
         # INTEGRATE PROFILE -- GAUSSIAN FIRST
         gint1 = p[4] 
@@ -339,9 +339,9 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
         lerr1 = perr[7] 
         lerr2 = perr[8] 
         lerr3 = perr[9] 
-        print(gint1,gint2, gint3 ,lint1 ,lint2 ,lint3)
-        print(gerr1,gerr1,gerr3,lerr1,lerr2,lerr3)
-        print()
+        #print(gint1,gint2, gint3 ,lint1 ,lint2 ,lint3)
+        #print(gerr1,gerr1,gerr3,lerr1,lerr2,lerr3)
+        #print()
 
         CaT = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
 

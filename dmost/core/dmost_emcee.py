@@ -191,7 +191,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     m = (flux > np.percentile(flux,0.1)) & (flux < np.percentile(flux,99.9))
     plt.plot(wave[m],flux[m],'k',linewidth=0.8)
     plt.plot(wave,model,'r',linewidth=0.8,alpha=0.8,label='model')
-    plt.title('SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['SN'][arg,nexp],\
+    plt.title('{}   SN = {:0.1f}   chi2 = {:0.1f}'.format(slits['objname'][arg],slits['SN'][arg,nexp],\
                                                   slits['emcee_lnprob'][arg,nexp]))
     plt.legend(title='det={}  xpos={}\n chip gap = {:0.2f}'.format(slits['det'][arg,nexp],\
                          int(slits['spat_pixpos'][arg,nexp]),slits['chip_gap_corr_collate1d'][arg]),loc=1)
