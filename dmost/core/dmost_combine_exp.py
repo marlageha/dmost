@@ -1,5 +1,12 @@
+#!/usr/bin/env python
+
 import numpy as np
 from scipy import stats
+
+
+
+########################################################
+# Combine results from multiple exposures
 
 
 # SET BINARY FLAG WITHIN MASK
