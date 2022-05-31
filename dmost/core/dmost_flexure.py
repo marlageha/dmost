@@ -113,8 +113,8 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
 
             ax2.plot(sky_lines,sky_los,'ko',alpha=0.8,label='Sky Emission')
             ax2.errorbar(sky_lines,sky_los,yerr=sky_elos,fmt='none',ecolor='k',alpha=0.5)
-            ax2.axhline(slits['fit_lsf'][arg,nexp] ,'-',label='mask value')
-            ax2.axhline(np.median(sky_los),'--',label='slit value')
+            ax2.axhline(slits['fit_lsf'][arg,nexp] ,ls='-',label='mask value')
+            ax2.axhline(np.median(sky_los),ls='--',label='slit value')
 
             #lsf_fit = create_lsf_parabola(sky_lines,slits['fit_lsf_p0'][arg,nexp],\
             #                        slits['fit_lsf_p1'][arg,nexp],slits['fit_lsf_p2'][arg,nexp])
