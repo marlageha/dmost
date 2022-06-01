@@ -376,7 +376,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     str1 = ['{:0.1f}'.format(x) for x in slits['emcee_v'][arg,:]]
     str2 = ['{:0.1f}'.format(x) for x in err]
     str3 = ['{:0.2f}'.format(x) for x in slits['emcee_f_acc'][arg,:]]
-    ax1.legend(title='v = '+', '.join(str1)+'\nverr ='+', '.join(str2)+'\nfacc ='+', '.join(str3), loc=3)
+    ax1.legend(title='v = '+', '.join(str1)+'\nverr ='+', '.join(str2)+'\nfacc ='+', '.join(str3), loc=3,fontsize=11)
 
 
     
