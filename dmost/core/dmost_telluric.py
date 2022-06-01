@@ -142,7 +142,7 @@ def chi_interp_1d(chi,x,y):
     r_x = np.roots(p_x)
     err_x = -99
     r=0
-    if (best_chi < 15) & (best_chi > 0):
+    if (best_chi < 30) & (best_chi > 0):
         err = solve_for_y(p_x, best_chi+0.1)
         err_x = (err[0]-err[1])/2.
         r = r_x.real[0]
