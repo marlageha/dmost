@@ -121,7 +121,7 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
             #ax2.plot(sky_lines,lsf_fit)
             ax2.legend(fontsize=12)
 
-            ax2.set_title('Line widths: {}'.format(pn))
+            ax2.set_title('LSF: {}  {}'.format(slits['objname'][arg],pn))
             ax2.set_xlabel('Wavelength (AA)')
             ax2.set_ylim(0.3,0.8)
             ax2.set_xlim(6300,9100)
@@ -296,7 +296,7 @@ def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los
 
 
         # CALCULATE RESIDUALS FROM FIT        
-        if (slits['serendip'][arg] < 1) & (slits['flag_skip_exp'][arg,ii] != 1) :
+        if (slits['flag_skip_exp'][arg,ii] != 1) :
             all_wave,all_flux,all_ivar,all_sky = dmost_utils.load_spectrum(slits[arg],ii,hdu,vacuum = 1)
             dwave,diff,diff_err,los,elos       = sky_em_residuals(all_wave,all_sky,all_ivar,sky,plot=0)
             
@@ -305,6 +305,8 @@ def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los
                 sky_mean = np.average(np.abs(diff[m]), weights = 1./diff_err[m]**2)
                 slits['rms_sky'][arg,ii] = sky_mean
                 slits['SN'][arg,ii]     = np.median(all_flux*np.sqrt(all_ivar))
+
+
 
     return slits
 
