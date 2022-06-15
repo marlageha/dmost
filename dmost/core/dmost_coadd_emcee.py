@@ -214,7 +214,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
     if np.abs(wguess) > 40:
         wguess = 0
     ndim, nwalkers,p0         = initialize_walkers(vguess,wguess)
-    max_n = 2000
+    max_n = 3000
 
     # BACKEND FILENAME
     filename = data_dir+'/emcee/'+mask['maskname'][0]+'_'+slits['objid'][arg]+'.h5'
