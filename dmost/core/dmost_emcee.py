@@ -340,7 +340,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
 
-        is_good_slit = dmost_utils.is_good_slit(slit[arg],nexp=nexp,remove_galaxies=1)
+        is_good_slit = dmost_utils.is_good_slit(slits[arg],nexp=nexp,remove_galaxies=1)
 
         if (slits['SN'][arg,nexp] > SNmin) & (is_good_slit):
             
