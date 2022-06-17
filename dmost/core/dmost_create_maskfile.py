@@ -465,9 +465,6 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
         slits['DEC'][i]     = this_obj['objdec'][0]
         slits['rms_arc'][i] = this_obj['wave_rms'][0]
 
-        large_arc_rms = 0.2
-        if (this_obj['wave_rms'][0] > large_arc_rms):
-            slits['flag_skip_slit'][i] = 1
 
         # SET IF SEREDIP SLIT
         if (this_obj['maskdef_objname'][0] == 'SERENDIP'):
