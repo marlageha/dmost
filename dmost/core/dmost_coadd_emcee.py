@@ -473,7 +473,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
         # THRESHOLD TO RUN COADD
         do_coadd = coadd_threshold(nexp, slt)
 
-        is_good_slit = dmost_utils.is_good_slit(obj,remove_galaxies=1)
+        is_good_slit = dmost_utils.is_good_slit(slt,remove_galaxies=1)
 
         if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (is_good_slit) &  (do_coadd == 1):
 
