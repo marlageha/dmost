@@ -273,8 +273,6 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     
     # IF SAVED FILE DOESN"T EXIST, CREATE AND RUN
     if (erun == 1): 
-        #plt.plot(wave,flux)
-        print(flux)
         backend.reset(nwalkers, ndim)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
