@@ -82,8 +82,7 @@ def create_slits(nslits,nexp):
             filled_column('DEC',-1.,nslits),
             filled_column('slitname',['                       ']*nexp,nslits),
 
-            # REDUCTION FLAGS
-            filled_column('flag_skip_slit',-1,nslits),
+            # REDUCTION FLAG
             filled_column('flag_skip_exp',-1*np.ones(nexp,dtype='int'),nslits),
 
             # PYPEIT DETECTOR POSITION, USE TO READ SPEC1D FILES            
@@ -355,7 +354,7 @@ def mk_histograms(data_dir,mask,slits,nexp):
     ax1.hist(slits['rms_arc'])
     ax1.set_xlabel('RMS_ARC [pixels]')
     ax1.set_title('Arc Solutions')
-    ax1.axvline(0.2,c='r',label='RMS Threshold')
+    ax1.axvline(0.5,c='r',label='RMS Threshold')
     ax1.legend()
 
     for n in np.arange(0,nexp,1):

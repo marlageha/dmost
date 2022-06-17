@@ -340,8 +340,9 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
 
-        if (slits['SN'][arg,nexp] > SNmin) & (slits['marz_flag'][arg] < 3) & \
-           (bool(slits['chi2_tfile'][arg].strip())) & (slits['flag_skip_exp'][arg,nexp] != 1):
+        is_good_slit = dmost_utils.is_good_slit(slit[arg],nexp=nexp,remove_galaxies=1)
+
+        if (slits['SN'][arg,nexp] > SNmin) & (is_good_slit):
             
             
             # READ DATA AND SET VIGNETTING LIMITS

@@ -377,8 +377,9 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     for ii,obj in enumerate(slits): 
 
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
-        skip = np.sum(obj['flag_skip_exp'])
-        if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > SNmin) & (obj['flag_skip_slit'] != 1) &  (skip < nexp-1) & (bool(obj['collate1d_filename'].strip())):
+        is_good_slit = dmost_utils.is_good_slit(obj,remove_galaxies=1)
+
+        if (is_good_slit) & (obj['collate1d_SN'] > SNmin):
 
             jhdu = fits.open(data_dir+'collate1d/'+obj['collate1d_filename'])
 

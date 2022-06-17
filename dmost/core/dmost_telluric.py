@@ -310,8 +310,10 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
     
     #ncount = 0
     for arg in np.arange(0,nslits,1,dtype='int'):
-        if (slits['SN'][arg,nexp] > min_SN) & (slits['SN'][arg,nexp] < 155) & (slits['marz_flag'][arg] < 3)\
-                                                                   & (slits['serendip'][arg] < 1):
+
+        is_good_slit = dmost_utils.is_good_slit(slits[arg],nexp=nexp,remove_seredips=1,remove_galaxies=1)
+
+        if (slits['SN'][arg,nexp] > min_SN) & (slits['SN'][arg,nexp] < 155) & is_good_slit:
 
             losvd_pix =  slits['fit_lsf_corr'][arg,nexp]/ 0.02
             wave,flux,ivar,sky = dmost_utils.load_spectrum(slits[arg],nexp,hdu)

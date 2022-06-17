@@ -458,6 +458,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     SNmin = 2.
     nexp = mask['nexp'][0]
 
+
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
 
     nslits = np.sum(m)
@@ -472,12 +473,13 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
         # THRESHOLD TO RUN COADD
         do_coadd = coadd_threshold(nexp, slt)
 
-        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (slt['marz_flag'] < 3) &  (do_coadd == 1) & \
-         (slt['flag_skip_slit'] != 1) & (bool(slt['collate1d_filename'].strip())) & (bool(slt['chi2_tfile'].strip())):
-      
+        is_good_slit = dmost_utils.is_good_slit(obj,remove_galaxies=1)
+
+        if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (is_good_slit) &  (do_coadd == 1):
 
             # RUN EMCEE ON COADD
             slits = coadd_emcee_allslits(data_dir, slits, mask, ii ,telluric,pdf)
+            
             
     pdf.close()
     plt.close('all')

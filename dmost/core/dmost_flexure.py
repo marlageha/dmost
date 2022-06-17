@@ -79,7 +79,9 @@ def qa_flexure_plots(plot_dir, nslits, slits, nexp,sky, hdu,mask,fit_slope, fit_
     plt.rcParams.update({'figure.max_open_warning': 0})
     for arg in np.arange(0,nslits,1,dtype='int'):
 
-        if (slits['flag_skip_exp'][arg,nexp] != 1):
+        is_good_slit = dmost_utils.is_good_slit(slits[arg],nexp=nexp,remove_seredips=1)
+
+        if (is_good_slit):
 
             pn = slits['slitname'][arg,nexp]
 
@@ -296,7 +298,8 @@ def update_flexure_fit(slits, mask,ii, nslits, hdu, pmodel_m,pmodel_b,pmodel_los
 
 
         # CALCULATE RESIDUALS FROM FIT        
-        if (slits['flag_skip_exp'][arg,ii] != 1) :
+        is_good_slit = dmost_utils.is_good_slit(slits[arg],nexp=ii,remove_seredips=1)
+        if (is_good_slit):
             all_wave,all_flux,all_ivar,all_sky = dmost_utils.load_spectrum(slits[arg],ii,hdu,vacuum = 1)
             dwave,diff,diff_err,los,elos       = sky_em_residuals(all_wave,all_sky,all_ivar,sky,plot=0)
             
@@ -319,8 +322,8 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
     
     for arg in np.arange(0,nslits,1,dtype='int'):
 
-    
-        if slits['flag_skip_exp'][arg,ii] == 0:
+        is_good_slit = dmost_utils.is_good_slit(slits[arg],nexp=ii, remove_seredips=1)
+        if (is_good_slit):
             pn = slits['slitname'][arg,ii]
 
             try:

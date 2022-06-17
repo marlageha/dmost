@@ -130,7 +130,9 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
 
 
-        if (slits['collate1d_SN'][arg] > SNmin) & (slits['marz_flag'][arg] < 3)  & (slits['flag_skip_exp'][arg,nexp] != 1):
+        is_good_slit = dmost_utils.is_good_slit(slits[arg],nexp=nexp,remove_galaxies=1)
+
+        if (slits['collate1d_SN'][arg] > SNmin) & (is_good_slit):
             
             
             # READ DATA AND SET VIGNETTING LIMITS
@@ -168,7 +170,9 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
     for ii,obj in enumerate(slits): 
 
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
-        if (obj['marz_flag'] < 3) & (obj['collate1d_SN'] > SNmin):
+        is_good_slit = dmost_utils.is_good_slit(obj,remove_galaxies=1)
+
+        if (is_good_slit) & (obj['collate1d_SN'] > SNmin):
 
             jhdu = fits.open(data_dir+'collate1d/'+obj['collate1d_filename'])
 

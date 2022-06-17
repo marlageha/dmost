@@ -284,6 +284,37 @@ def vignetting_limits(slit,nexp,wave):
 
     return wave_lims
 
+#############################################################
+def is_good_slit(slit,nexp=-1,remove_galaxies=0,remove_seredips=0):
+    
+    is_good = True
+    
+    # REMOVE BAD ARC SOLUTIONS
+    large_arc_rms = 0.5
+    if (slit['rms_arc'] > large_arc_rms):
+        is_good = False
+
+
+    # VISUAL FLAG FOR BAD DATA
+    if slit['marz_flag'] == 2:
+        is_good = False
+
+    # REMOVE GALAXIES
+    if (slit['marz_flag'] > 2) & (remove_galaxies > 0):
+        is_good = False
+
+    # REMOVE SEREDIPS
+    if (slit['serendip'] > 0) & (remove_seredips > 0):
+        is_good = False
+
+        
+    # THIS FLAG IS SET WHEN AN EXPOSURE HAS NO DATA
+    if (nexp != -1):
+        if (slit['flag_skip_exp'][nexp] > 0):
+            is_good = False
+            
+            
+    return is_good
 
 
 #############################################################
@@ -300,7 +331,8 @@ def write_dmost(slits,mask,outfile):
 def read_dmost(outfile):
     
     hdu   = fits.open(outfile)
-    mask  = hdu[1].data
-    slits = hdu[2].data
+    mask  = Table(hdu[1].data)
+    slits = Table(hdu[2].data)
+
 
     return slits, mask
