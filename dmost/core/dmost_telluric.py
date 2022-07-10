@@ -440,7 +440,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     fslits2=slits
     # MASK OUT BAD DATA
     # *****************
-    m1= (fslits2['telluric_chi2'][:,nexp] < 25) & (fslits2['telluric_chi2'][:,nexp] > 0)& \
+    m1= (fslits2['telluric_chi2'][:,nexp] < 35) & (fslits2['telluric_chi2'][:,nexp] > 0)& \
          (fslits2['telluric_h2o'][:,nexp] > 1) & (fslits2['telluric_h2o'][:,nexp] < 120) & \
          (fslits2['telluric_o2'][:,nexp] > 0.6) & (fslits2['telluric_o2'][:,nexp] < 2.5) & \
          (fslits2['telluric_h2o_err'][:,nexp] > 0.01) & (fslits2['telluric_o2_err'][:,nexp] > 0.01) & \
@@ -453,7 +453,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     md2 = np.median(fslits2['telluric_o2'][m1,nexp])
 
     
-    m= (fslits2['telluric_chi2'][:,nexp] < 25) & (fslits2['telluric_chi2'][:,nexp] > 0)& \
+    m= (fslits2['telluric_chi2'][:,nexp] < 35) & (fslits2['telluric_chi2'][:,nexp] > 0)& \
          (fslits2['telluric_h2o'][:,nexp] > 1) & (fslits2['telluric_h2o'][:,nexp] < 120) & \
          (fslits2['telluric_o2'][:,nexp] > 0.6) & (fslits2['telluric_o2'][:,nexp] < 2.5) & \
          (fslits2['telluric_h2o_err'][:,nexp] > 0.01) & (fslits2['telluric_o2_err'][:,nexp] > 0.01) & \
