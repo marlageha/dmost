@@ -37,7 +37,7 @@ def create_mask(nexp):
     cols = [filled_column('maskname','        ',nexp), 
             filled_column('mask_ra',-1.,nexp),
             filled_column('mask_dec',-1.,nexp),
-            filled_column('spec1d_filename','                                                                           ',nexp),
+            filled_column('spec1d_filename','                                                                             ',nexp),
             filled_column('rawfilename','                          ',nexp), 
             filled_column('deimos_maskname','                 ',nexp), 
 
@@ -354,15 +354,16 @@ def mk_histograms(data_dir,mask,slits,nexp):
     ax1.hist(slits['rms_arc'])
     ax1.set_xlabel('RMS_ARC [pixels]')
     ax1.set_title('Arc Solutions')
-    ax1.axvline(0.5,c='r',label='RMS Threshold')
-    ax1.legend()
+    ax1.axvline(0.4,c='r',label='RMS Threshold')
+    ax1.legend(loc=1)
 
     for n in np.arange(0,nexp,1):
         
         m=slits['marz_flag'] < 2
         ax2.hist(slits['opt_fwhm'][m,n],bins=20,alpha=0.5,\
                  label = 'seeing = {:0.2f}'.format(mask['seeing'][n]))
-        
+
+#    ax2.axvline(8,c='r',label='FWHM Threshold')
     ax2.legend()
         
     ax2.set_xlabel('Seeing:  OPT_FWHM [Arcsec]')
