@@ -9,7 +9,8 @@ from astropy.io import ascii,fits
 
 from astropy.coordinates import SkyCoord
 
-import dmost_utils, dmost_photometry_gaia
+from dmost import dmost_utils
+from dmost.combine import dmost_photometry_gaia
 from scipy import stats
 
 
@@ -17,7 +18,7 @@ from scipy import stats
 # CREATE ALLSPEC DATA STRUCTURE
 def create_allstars(nmasks,nstars):
 
-    cols = [filled_column('slitname','                  ',nstars),
+    cols = [filled_column('objname','                  ',nstars),
             filled_column('RA',-1.,nstars),
             filled_column('DEC',-1.,nstars),
             filled_column('rproj_arcm',-1.,nstars),
@@ -329,7 +330,7 @@ def read_dmost_files(masklist):
     n=0
 
     data_dir = os.getenv('DEIMOS_REDUX')
-    data_dir = '/Users/mgeha/data_pypeit_v1.7/'
+    data_dir = '/Users/mgeha/data_pypeit_v1.9/'
     allslits = []
 
     for msk in masklist:
@@ -341,13 +342,12 @@ def read_dmost_files(masklist):
             slits, mask = dmost_utils.read_dmost(dmost_file[0])
             nexp = mask['nexp'][0]
 
-
             nslits = np.size(slits)
-            maskname = filled_column('mname',maskname,nslits)
+            maskname = filled_column('maskname',maskname,nslits)
             mjd      = filled_column('mjd',np.mean(mask['mjd']),nslits)
             
             # KEEP ONLY MASK AVERAGED QUANTITIES
-            new_slits = Table([maskname, mjd, slits['slitname'],slits['RA'],slits['DEC'],slits['collate1d_filename'],\
+            new_slits = Table([maskname, mjd,slits['RA'],slits['DEC'],slits['collate1d_filename'],\
                              slits['collate1d_SN'], slits['marz_z'],slits['marz_flag'],slits['marz_tmpl'],\
                              slits['chi2_teff'],slits['chi2_logg'],slits['chi2_feh'],\
                              slits['dmost_v'],slits['dmost_v_err'],slits['v_nexp'],\
@@ -383,6 +383,10 @@ def get_unique_spectra(allslits):
 def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
 
     # CREATE DATA TABLE
+    single_mask =0
+    if (nmasks ==1):
+        nmasks = 2
+        single_mask =1
     dmost_allstar  = create_allstars(nmasks, nstars) 
 
     test_allslits  = allslits.copy()
@@ -392,7 +396,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             
             dmost_allstar['RA'][i] = obj['RA']
             dmost_allstar['DEC'][i] = obj['DEC']
-            dmost_allstar['slitname'][i] = obj['slitname']
+#            dmost_allstar['objname'][i] = obj['objname']
 
 
             # FIND REPEAT SPECTRA
@@ -408,33 +412,38 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             for j,robj in enumerate(test_allslits[m]):
 
                 if (j==0):
-                    dmost_allstar['masknames'][i]   = obj['mname']
+                    dmost_allstar['masknames'][i]   = obj['maskname']
                 if (j > 0):
-                    dmost_allstar['masknames'][i]   = dmost_allstar['masknames'][i]+'+'+robj['mname']
+                    dmost_allstar['masknames'][i]   = dmost_allstar['masknames'][i]+'+'+robj['maskname']
 
-                dmost_allstar['mask_v'][i,j]     = robj['dmost_v']
-                dmost_allstar['mask_v_err'][i,j] = robj['dmost_v_err']
-                dmost_allstar['mask_SN'][i,j]    = robj['collate1d_SN']
-                dmost_allstar['mask_nexp'][i,j]    = robj['v_nexp']
+                c1 = (j == 0) 
+                c2 = (j > 0) & (single_mask ==0)
 
-                dmost_allstar['mask_marz_flag'][i,j]   = robj['marz_flag']
-                dmost_allstar['mask_marz_tmpl'][i,j]   = robj['marz_tmpl']
+                if (c1 | c2):
 
-                dmost_allstar['mask_teff'][i,j]  = robj['chi2_teff']
-                dmost_allstar['mask_logg'][i,j]  = robj['chi2_logg']
-                dmost_allstar['mask_feh'][i,j]   = robj['chi2_feh']
+                    dmost_allstar['mask_v'][i,j]     = robj['dmost_v']
+                    dmost_allstar['mask_v_err'][i,j] = robj['dmost_v_err']
+                    dmost_allstar['mask_SN'][i,j]    = robj['collate1d_SN']
+                    dmost_allstar['mask_nexp'][i,j]    = robj['v_nexp']
 
-                dmost_allstar['mask_cat'][i,j]  = robj['cat']
-                dmost_allstar['mask_naI'][i,j]  = robj['naI']
-                dmost_allstar['mask_mgI'][i,j]  = robj['mgI']
-                dmost_allstar['mask_cat_err'][i,j]  = robj['cat_err']
-                dmost_allstar['mask_naI_err'][i,j]  = robj['naI_err']
-                dmost_allstar['mask_mgI_err'][i,j]  = robj['mgI_err']
-              
-                dmost_allstar['vv_short_pval'][i,j]  = robj['vv_short_pval']
-                dmost_allstar['vv_short_max_v'][i,j] = robj['vv_short_max_v']
-                dmost_allstar['vv_short_max_t'][i,j] = robj['vv_short_max_t']
-                dmost_allstar['vv_short_flag'][i,j]  = robj['vv_short_flag']
+                    dmost_allstar['mask_marz_flag'][i,j]   = robj['marz_flag']
+                    dmost_allstar['mask_marz_tmpl'][i,j]   = robj['marz_tmpl']
+
+                    dmost_allstar['mask_teff'][i,j]  = robj['chi2_teff']
+                    dmost_allstar['mask_logg'][i,j]  = robj['chi2_logg']
+                    dmost_allstar['mask_feh'][i,j]   = robj['chi2_feh']
+
+                    dmost_allstar['mask_cat'][i,j]  = robj['cat']
+                    dmost_allstar['mask_naI'][i,j]  = robj['naI']
+                    dmost_allstar['mask_mgI'][i,j]  = robj['mgI']
+                    dmost_allstar['mask_cat_err'][i,j]  = robj['cat_err']
+                    dmost_allstar['mask_naI_err'][i,j]  = robj['naI_err']
+                    dmost_allstar['mask_mgI_err'][i,j]  = robj['mgI_err']
+                  
+                    dmost_allstar['vv_short_pval'][i,j]  = robj['vv_short_pval']
+                    dmost_allstar['vv_short_max_v'][i,j] = robj['vv_short_max_v']
+                    dmost_allstar['vv_short_max_t'][i,j] = robj['vv_short_max_t']
+                    dmost_allstar['vv_short_flag'][i,j]  = robj['vv_short_flag']
 
             # COMBINE VELOCITIES            
             v, verr, teff, feh, ncomb = combine_mask_velocities(test_allslits[m], sys_mask = 0.6)
@@ -480,9 +489,7 @@ def combine_masks(object_name):
 
 
     DEIMOS_REDUX  = os.getenv('DEIMOS_REDUX')
-    DEIMOS_REDUX  = '/Users/mgeha/data_pypeit_v1.7/'
     outfile       = DEIMOS_REDUX + '/dmost_alldata/dmost_alldata_'+object_name+'.fits'    
-
     objlist, masklist = deimos_google()
 
 

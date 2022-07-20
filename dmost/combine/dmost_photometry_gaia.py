@@ -351,6 +351,31 @@ def match_photometry(obj,allspec):
         
         print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
 
+    ### DELVE
+    if obj['Phot'] == 'delve':
+        file = DEIMOS_RAW + '/Photometry/delve/delve_'+obj['Name2']+'.fits'
+        delve = Table.read(file)
+        
+        delve.rename_column('r0', 'gmag')
+        delve.rename_column('i0', 'rmag')
+
+        
+        cls_dr9   = SkyCoord(ra=delve['ra']*u.degree, dec=delve['dec']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr9)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = delve['rmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = delve['gmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = 0.01
+        allspec['gmag_err'][mt] = 0.01
+
+        
+        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
+
+
 #####################
     ### LEGACY DR9
     if obj['Phot'] == 'pandas':
