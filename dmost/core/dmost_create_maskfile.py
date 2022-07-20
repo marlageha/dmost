@@ -311,7 +311,6 @@ def add_chipgap_seeing(data_dir,mask,slits):
 
         # ADD OVERALL SEEING VALUE
         seeing_min_SN = 10. 
-        mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
 
         # IN CASE NO STARS WITH GOOD SN, LOWER THRESHOLD
         seeing_min_SN = 5

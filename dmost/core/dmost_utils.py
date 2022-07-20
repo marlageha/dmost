@@ -290,7 +290,7 @@ def is_good_slit(slit,nexp=-1,remove_galaxies=0,remove_seredips=0):
     is_good = True
     
     # REMOVE BAD ARC SOLUTIONS
-    large_arc_rms = 0.5
+    large_arc_rms = 0.4
     if (slit['rms_arc'] > large_arc_rms):
         is_good = False
 

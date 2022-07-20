@@ -251,13 +251,13 @@ def create_lsf_parabola(wave,p0,p1,p2):
 #######################################################
 def fit_mask_surfaces(fslope, fb, flos, x, y):
 
-    mu  =  np.median(fslope)
-    sd  =  np.std(fslope)
-    mu2 =  np.median(fb)
-    sd2 =  np.std(fb)
+    mu  =  np.nanmedian(fslope)
+    sd  =  np.nanstd(fslope)
+    mu2 =  np.nanmedian(fb)
+    sd2 =  np.nanstd(fb)
 
     mgood=(np.abs(fslope-mu) < 2.*sd)  & (np.abs(fb-mu2) < 2.*sd2)
-    
+
     # FIT ALL SURFACES WITH 3D POLYNOMIAL
     if (np.sum(mgood) > 10):
         p_init = models.Polynomial2D(degree=3)
