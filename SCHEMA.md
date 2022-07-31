@@ -9,12 +9,16 @@
 
 Label | Unit | Definition
 --- | --- | ---
-`maskname` | - | Name of mask
-`mask_ra` | degree |  Mask center Right Ascension J2000
-`mask_dec` | degree |  Mask center Declination J2000
+`objname` | - | Name of target
+`RA` | degree |  Target Right Ascension J2000
+`DEC` | degree |  Target Declination J2000
+`rproj_arcm` | arcmin |  Project radius of target from object center (arcmin)
+`rproj_kpc` | kpc |  Project radius of target from object center (kpc)
+`nmask` | - | Number of masks combined 
+`nexp` | - | Number of individual exposures combined
 
 
-## Individual Mask schema
+## dmost_[mask]: Mask schema
 
 Label | Unit | Definition
 --- | --- | ---
@@ -39,7 +43,7 @@ Label | Unit | Definition
 
 
 
-## Individual Exposure schema
+## dmost_[mask]: Slit schema
 
 Label | Unit | Definition
 --- | --- | ---
