@@ -5,7 +5,7 @@
 
 
 
-## dmost_alldata schema
+## dmost_alldata_[object] schema
 
 Label | Unit | Definition
 --- | --- | ---
@@ -23,6 +23,8 @@ Label | Unit | Definition
 `marz_z` | - | Redshift from marz.   This column is meaningful only if `marz_flag > 2`
 `var_flag` | - | 1 if velocities are significantly variable between exposures, 0 if not
 
+
+----
 
 ## dmost_[mask]: Mask schema
 
