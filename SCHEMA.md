@@ -16,6 +16,9 @@ Label | Unit | Definition
 `rproj_kpc` | kpc |  Project radius of target from object center (kpc)
 `nmask` | - | Number of masks combined 
 `nexp` | - | Number of individual exposures combined
+`v` | kms | Heliocentric velocity corrected velocity
+`v_err` | kms | Heliocentric velocity error (-1 if not measured, 0 if extragalatic)
+`serendip` | - | 0 if this is a object in design file, 1 if serendipitous detection
 
 
 ## dmost_[mask]: Mask schema
