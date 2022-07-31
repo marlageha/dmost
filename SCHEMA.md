@@ -1,6 +1,6 @@
 # Schema for output files from dmost:
-* `dmost_alldata_[object]`:  Final combine output file from all DEIMOS observations of a stellar system (object)
-* [dmost_[mask]](http://github.com/marlageha/dmost/blob/main/SCHEMA.md#schema-for-dmost-individual-mask-tables):  Two tables containing information from a single mask
+* [dmost_alldata_[object]](https://github.com/marlageha/dmost/blob/main/SCHEMA.md#dmost_alldata-schema):  Final combine output file from all DEIMOS observations of a stellar system (object)
+* [dmost_[mask]](http://github.com/marlageha/dmost/blob/main/SCHEMA.md#schema-for-dmost-individual-mask-tables):  Two tables containing mask and slit information from a single DEIMOS mask
 
 
 
@@ -14,8 +14,7 @@ Label | Unit | Definition
 `mask_dec` | degree |  Mask center Declination J2000
 
 
-# Schema for dmost individual mask tables
-## Mask schema
+## Individual Mask schema
 
 Label | Unit | Definition
 --- | --- | ---
