@@ -16,9 +16,11 @@ Label | Unit | Definition
 `rproj_kpc` | kpc |  Project radius of target from object center (kpc)
 `nmask` | - | Number of masks combined 
 `nexp` | - | Number of individual exposures combined
-`v` | kms | Heliocentric velocity corrected velocity
+`v` | kms | Heliocentric velocity  
 `v_err` | kms | Heliocentric velocity error (-1 if not measured, 0 if extragalatic)
 `serendip` | - | 0 if this is a object in design file, 1 if serendipitous detection
+`marz_flag` | - | Visual flag set in [marz](https://samreay.github.io/Marz/#/detailed), 1 = likely star, 4 = galaxy, 6 = QSO
+`marz_z` | - | Redshift from marz.   This column is meaningful only if `marz_flag > 2`
 
 
 ## dmost_[mask]: Mask schema
