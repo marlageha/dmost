@@ -1,6 +1,6 @@
 # Schema for output files from dmost:
-* dmost_alldata_[object]:  Final combine output file from all DEIMOS observations of a stellar system (object)
-* dmost_[mask]:  Two tables containing information from a single mask
+* `dmost_alldata_[object]`:  Final combine output file from all DEIMOS observations of a stellar system (object)
+* `dmost_[mask]`:  Two tables containing information from a single mask
 
 # Schema for dmost individual mask tables
 ## Mask schema
