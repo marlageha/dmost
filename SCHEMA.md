@@ -3,7 +3,7 @@
 * [dmost_[mask]](http://github.com/marlageha/dmost/blob/main/SCHEMA.md#schema-for-dmost-individual-mask-tables):  Two tables containing mask and slit information from a single DEIMOS mask
 
 
-
+---
 
 ## dmost_alldata_[object] schema
 
