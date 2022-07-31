@@ -2,6 +2,18 @@
 * `dmost_alldata_[object]`:  Final combine output file from all DEIMOS observations of a stellar system (object)
 * [dmost_[mask]](http://github.com/marlageha/dmost/blob/main/SCHEMA.md#schema-for-dmost-individual-mask-tables):  Two tables containing information from a single mask
 
+
+
+
+## dmost_alldata schema
+
+Label | Unit | Definition
+--- | --- | ---
+`maskname` | - | Name of mask
+`mask_ra` | degree |  Mask center Right Ascension J2000
+`mask_dec` | degree |  Mask center Declination J2000
+
+
 # Schema for dmost individual mask tables
 ## Mask schema
 
