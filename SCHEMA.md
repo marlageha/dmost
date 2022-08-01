@@ -28,12 +28,10 @@ Label | Unit | Definition
 `ew_NaI_err`  | Ang | Error on Equivalent width of the NaI line
 `ew_mgI`  | Ang | Equivalent width of the MgI line
 `ew_mgI_err`  | Ang | Error on Equivalent width of the MgI line
-
 `rmag_o`  | mag | Extinction corrected r-band magnitude from associated photometry source
 `gmag_o`  | mag | Extinction corrected g-band magnitude from associated photometry source
 `rmag_err`  | mag | Error on the extinction corrected r-band magnitude from associated photometry source
 `gmag_err`  | mag | Error on the extinction corrected g-band magnitude from associated photometry source
-
 `MV_o`  | mag | Extinction corrected absolute V-band magnitude 
 
 
@@ -79,23 +77,6 @@ Label | Unit | Definition
 `collate1d_SN` | -- | Coadded 1D SN
 `collate1d_filename` | -- | 
 `collate1d_SN` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
 `dmost_v` | kms | Combined velocity for this slit
 `dmost_v_err` | kms | Error on combined velocity
 
