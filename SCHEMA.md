@@ -22,6 +22,13 @@ Label | Unit | Definition
 `marz_z` | - | Redshift from marz.   This column is meaningful only if `marz_flag > 2`
 `serendip` | - | 0 if this is a object in design file, 1 if serendipitous detection
 `var_flag` | - | 1 if velocities are significantly variable between exposures, 0 if not
+`ew_cat`  | Ang | Equivalent width of the combined Calcium triplet (CaT)
+`ew_cat_err`  | Ang | Error on Equivalent width of the combined Calcium triplet (CaT)
+`ew_NaI`  | Ang | Equivalent width of the NaI line
+`ew_NaI_err`  | Ang | Error on Equivalent width of the NaI line
+`ew_mgI`  | Ang | Equivalent width of the MgI line
+`ew_mgI_err`  | Ang | Error on Equivalent width of the MgI line
+
 
 
 ----
