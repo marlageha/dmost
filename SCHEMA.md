@@ -29,6 +29,12 @@ Label | Unit | Definition
 `ew_mgI`  | Ang | Equivalent width of the MgI line
 `ew_mgI_err`  | Ang | Error on Equivalent width of the MgI line
 
+`rmag_o`  | mag | Extinction corrected r-band magnitude from associated photometry source
+`gmag_o`  | mag | Extinction corrected g-band magnitude from associated photometry source
+`rmag_err`  | mag | Error on the extinction corrected r-band magnitude from associated photometry source
+`gmag_err`  | mag | Error on the extinction corrected g-band magnitude from associated photometry source
+
+`MV_o`  | mag | Extinction corrected absolute V-band magnitude 
 
 
 ----
@@ -55,7 +61,6 @@ Label | Unit | Definition
 `lsf_correction` | - | Seeing-based correction to the Line Spread Profile
 `telluric_h2o` | - | Telluric H2O value determined per exposure
 `telluric_o2` | - | Telluric O2 value determined per exposure
-
 
 
 ## dmost_[mask]: Slit schema
