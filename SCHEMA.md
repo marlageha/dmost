@@ -19,7 +19,7 @@ Label | Unit | Definition
 `v` | kms | Heliocentric velocity  
 `v_err` | kms | Heliocentric velocity error (-1 if not measured, 0 if extragalatic)
 `serendip` | - | 0 if this is a object in design file, 1 if serendipitous detection
-`marz_flag` | - | Visual flag set in [marz](https://samreay.github.io/Marz/#/detailed), 1 = likely star, 3 = possible galaxy, 4 = galaxy, 6 = QSO
+`marz_flag` | - | Extragalactic flag set in [marz](https://samreay.github.io/Marz/#/detailed), 1 = likely star, 3 = possible galaxy, 4 = galaxy, 6 = QSO
 `marz_z` | - | Redshift from marz.   This column is meaningful only if `marz_flag > 2`
 `var_flag` | - | 1 if velocities are significantly variable between exposures, 0 if not
 
