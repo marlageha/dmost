@@ -1,6 +1,43 @@
-# Schema for dmost individual mask tables
+# Schema for output files from dmost:
+* [dmost_alldata_[object]](https://github.com/marlageha/dmost/blob/main/SCHEMA.md#dmost_alldata-schema):  Final combine output file from all DEIMOS observations of a stellar system (object)
+* [dmost_[mask]](http://github.com/marlageha/dmost/blob/main/SCHEMA.md#schema-for-dmost-individual-mask-tables):  Two tables containing mask and slit information from a single DEIMOS mask
 
-## Mask schema
+
+---
+
+## dmost_alldata_[object] schema
+
+Label | Unit | Definition
+--- | --- | ---
+`objname` | - | Name of target
+`RA` | degree |  Target Right Ascension J2000
+`DEC` | degree |  Target Declination J2000
+`rproj_arcm` | arcmin |  Project radius of target from object center (arcmin)
+`rproj_kpc` | kpc |  Project radius of target from object center (kpc)
+`nmask` | - | Number of masks combined 
+`nexp` | - | Number of individual exposures combined
+`v` | kms | Heliocentric velocity  
+`v_err` | kms | Heliocentric velocity error (-1 if not measured, 0 if extragalatic)
+`marz_flag` | - | Extragalactic flag set in [marz](https://samreay.github.io/Marz/#/detailed), 1 = likely star, 3 = possible galaxy, 4 = galaxy, 6 = QSO
+`marz_z` | - | Redshift from marz.   This column is meaningful only if `marz_flag > 2`
+`serendip` | - | 0 if this is a object in design file, 1 if serendipitous detection
+`var_flag` | - | 1 if velocities are significantly variable between exposures, 0 if not
+`ew_cat`  | Ang | Equivalent width of the combined Calcium triplet (CaT)
+`ew_cat_err`  | Ang | Error on Equivalent width of the combined Calcium triplet (CaT)
+`ew_NaI`  | Ang | Equivalent width of the NaI line
+`ew_NaI_err`  | Ang | Error on Equivalent width of the NaI line
+`ew_mgI`  | Ang | Equivalent width of the MgI line
+`ew_mgI_err`  | Ang | Error on Equivalent width of the MgI line
+`rmag_o`  | mag | Extinction corrected r-band magnitude from associated photometry source
+`gmag_o`  | mag | Extinction corrected g-band magnitude from associated photometry source
+`rmag_err`  | mag | Error on the extinction corrected r-band magnitude from associated photometry source
+`gmag_err`  | mag | Error on the extinction corrected g-band magnitude from associated photometry source
+`MV_o`  | mag | Extinction corrected absolute V-band magnitude 
+
+
+----
+
+## dmost_[mask]: Mask schema
 
 Label | Unit | Definition
 --- | --- | ---
@@ -24,8 +61,7 @@ Label | Unit | Definition
 `telluric_o2` | - | Telluric O2 value determined per exposure
 
 
-
-## Individual Exposure schema
+## dmost_[mask]: Slit schema
 
 Label | Unit | Definition
 --- | --- | ---
@@ -41,23 +77,6 @@ Label | Unit | Definition
 `collate1d_SN` | -- | Coadded 1D SN
 `collate1d_filename` | -- | 
 `collate1d_SN` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
-`` | -- | 
 `dmost_v` | kms | Combined velocity for this slit
 `dmost_v_err` | kms | Error on combined velocity
 
