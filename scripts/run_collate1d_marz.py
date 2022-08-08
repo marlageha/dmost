@@ -146,7 +146,7 @@ def create_marz_input(mask,working_dir):
 def run_collate1d(mask):
  
     # RUN PYPEIT COLLATE1D
-    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler 1'
+    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler 1 --refframe heliocentric --spec1d_outdir ../junk_collate1d/ > collate.log'
     os.system(collate1d)
     
     # MOVE INTO DIRECTORY
