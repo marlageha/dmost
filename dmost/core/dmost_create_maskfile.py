@@ -306,7 +306,7 @@ def add_chipgap_seeing(data_dir,mask,slits):
                 # GET FWHM
                 shdr = hdu[obj['slitname'][ii]].header
                 slits['opt_fwhm'][arg,ii] = 0.1185 * shdr['FWHM']
-
+                print(shdr['FWHM'])
 
 
         # ADD OVERALL SEEING VALUE
@@ -416,7 +416,7 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
 
         # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
         mask['vhelio'][i]  = dmost_utils.deimos_helio(hdr['MJD'],hdr['RA'],hdr['DEC'])
-        print('{} {} Heliocentric velocity'.format(maskname,fname,mask['vhelio'][i]))
+        print('{} {} Heliocentric velocity'.format(maskname,mask['fname'][i],mask['vhelio'][i]))
 
 
 
@@ -465,6 +465,7 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
         slits['RA'][i]      = this_obj['objra'][0]
         slits['DEC'][i]     = this_obj['objdec'][0]
         slits['rms_arc'][i] = this_obj['wave_rms'][0]
+        #slits['rms_arc'][i] = this_obj['wave_rms'][0]
 
 
         # SET IF SEREDIP SLIT
