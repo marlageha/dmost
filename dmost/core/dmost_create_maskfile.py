@@ -416,7 +416,8 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
 
         # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
         mask['vhelio'][i]  = dmost_utils.deimos_helio(hdr['MJD'],hdr['RA'],hdr['DEC'])
-        
+        print('{} {} Heliocentric velocity'.format(maskname,fname,mask['vhelio'][i]))
+
 
 
     return mask
