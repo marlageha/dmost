@@ -293,7 +293,7 @@ def add_chipgap_seeing(data_dir,mask,slits):
         hdu = fits.open(data_dir + '/Science/' +msk['spec1d_filename'])
 
         for arg,obj in enumerate(slits):
-            if obj['flag_skip_exp'][ii] != 1:
+            if obj['flag_skip_exp'][ii] == 0:
 
                 # GET CHIP GAP
                 data = hdu[obj['slitname'][ii]].data
@@ -306,19 +306,19 @@ def add_chipgap_seeing(data_dir,mask,slits):
                 # GET FWHM
                 shdr = hdu[obj['slitname'][ii]].header
                 slits['opt_fwhm'][arg,ii] = 0.1185 * shdr['FWHM']
-                print(shdr['FWHM'])
 
 
         # ADD OVERALL SEEING VALUE
         seeing_min_SN = 10. 
 
         # IN CASE NO STARS WITH GOOD SN, LOWER THRESHOLD
-        seeing_min_SN = 5
+        mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
         while (np.sum(mstar) < 2):
             mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
             seeing_min_SN = seeing_min_SN - 0.5
 
         mask['seeing'][ii] = np.nanmedian(slits['opt_fwhm'][mstar,ii])
+
 
         # ADD SLITWIDTH TO MASKS    
         DEIMOS_RAW = os.getenv('DEIMOS_RAW')
@@ -397,7 +397,7 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
             
 
         mask['maskname'][i]       = maskname
-        mask['mjd'][i]     = hdr['MJD']
+        mask['mjd'][i]            = hdr['MJD']
         mask['year'][i]           = parse_year(hdr['mjd'])
 
         mask['deimos_maskname'][i]= hdr['TARGET'].strip()
@@ -416,7 +416,7 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
 
         # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
         mask['vhelio'][i]  = dmost_utils.deimos_helio(hdr['MJD'],hdr['RA'],hdr['DEC'])
-        print('{} {} Heliocentric velocity'.format(maskname,mask['fname'][i],mask['vhelio'][i]))
+        print('{} {} Heliocentric velocity {:0.2f} kms'.format(maskname,mask['fname'][i],mask['vhelio'][i]))
 
 
 
@@ -451,10 +451,12 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
 
     # FOR EACH UNIQUE COLLATE1D FILE
     nserendip = 1
+    ntolerance = 0
     for i,objname in enumerate(obj_filenames):
 
         m        = np.in1d(collate1d['filename'],objname)
         this_obj = collate1d[m]
+
 
         slits['collate1d_filename'][i] = this_obj['filename'][0]
         slits['objname'][i]    = this_obj['maskdef_objname'][0]
@@ -465,7 +467,6 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
         slits['RA'][i]      = this_obj['objra'][0]
         slits['DEC'][i]     = this_obj['objdec'][0]
         slits['rms_arc'][i] = this_obj['wave_rms'][0]
-        #slits['rms_arc'][i] = this_obj['wave_rms'][0]
 
 
         # SET IF SEREDIP SLIT
@@ -478,7 +479,14 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
             # ENSURE EXPOSURES MATCH
             m = this_obj['spec1d_filename'] == mask['spec1d_filename'][ii] 
 
-            slits['flag_skip_exp'][i,ii] = 1
+            # FOR WIDELY SPACED EXPOSURES, NEED TO INCREASE TOLERANCE
+            if (np.sum(m) == 2):
+                print('{} {} Consider re-running collate1d with larger tolerance'.format(i,ii))
+                ntolerance = ntolerance+1
+                if ntolerance > 30:
+                    print('Too many repeats.   Re-run collate1d, exiting dmost')
+                    sys.exit()
+                    
             if (np.sum(m) == 1):
                 this_exp = this_obj[m][0]
                 slits['slitname'][i,ii]      = this_exp['pypeit_name']
@@ -486,7 +494,6 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
                 slits['det'][i,ii]           = this_exp['det'].strip()
                 slits['spat_pixpos'][i,ii]   = parse_spat(this_exp['pypeit_name']) 
                 slits['flag_skip_exp'][i,ii] = 0
-
 
 
     # SORT BY SN
