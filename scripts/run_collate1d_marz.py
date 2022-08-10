@@ -81,15 +81,21 @@ def filled_column(name, fill_value, size):
 # CREATE MARZ INPUT
 def create_marz_input(mask,working_dir):
 
+    # LOAD COLLATE1D FILES
     os.chdir(working_dir)
     Jfiles = glob.glob(working_dir + '/collate1d/J*')
+    nslits = np.size(Jfiles)
 
+    # LOAD REPORT FILE FOR METADATA
+    collate_data = ascii.read(working_dir+'/collate_report.dat')
+
+    # OUTFILE
     marz_file = 'marz_'+mask+'.fits'
 
-    nslits = np.size(Jfiles)
     cols = [filled_column('RA',-1.,nslits),
             filled_column('DEC',-1.,nslits),
-            filled_column('NAME','                       ',nslits),
+            filled_column('NAME','                           ',nslits),
+            filled_column('MAG',-1.,nslits),
             filled_column('TYPE',' ',nslits)]
     slits = Table(cols)
 
@@ -97,17 +103,28 @@ def create_marz_input(mask,working_dir):
             vwave,data_flux,data_ivar,hdr = load_coadd1d_for_marz(working_dir,file)
 
  
-            # GENERATE NAME
+            # MATCH TO FILE FOR OBJECT INFO
+            tmp_jfile = file.split('/collate1d/')
+            mser = tmp_jfile[1] == collate_data['filename']
+
+            # IDENTIFY SERENDIPS, ADD TO NAME
+            serendip = ''
+            if np.sum(mser) > 0:
+                maskdef_name = collate_data['maskdef_objname'][mser][0]
+                if (maskdef_name == 'SERENDIP'):
+                    serendip = 'SDP_'
+
             t    = hdr[np.size(hdr)-1]
             tt   = t.split('SPAT')
             name = ('SPAT'+tt[1]).split(' ')
 
             slits['RA'][i]   = hdr['RA_OBJ ']  * (np.pi/180)
             slits['DEC'][i]  = hdr['DEC_OBJ']* (np.pi/180)
-            slits['NAME'][i] = name[0]
+            slits['NAME'][i] = serendip+name[0]
             slits['TYPE'][i] = 'P'
-            
+
             print(i,name)
+
             if (np.sum(data_flux) == 0):
                 print(name)
                 data_flux = data_flux+1
@@ -146,7 +163,7 @@ def create_marz_input(mask,working_dir):
 def run_collate1d(mask):
  
     # RUN PYPEIT COLLATE1D
-    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler 1 --refframe heliocentric --spec1d_outdir ../junk_collate1d/ > collate.log'
+    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler 1 --refframe heliocentric --spec1d_outdir ../junk_collate1d/'
     os.system(collate1d)
     
     # MOVE INTO DIRECTORY
