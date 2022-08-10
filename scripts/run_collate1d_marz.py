@@ -4,6 +4,8 @@ import numpy as np
 import os, sys
 import matplotlib.pyplot as plt
 import glob
+import argparse
+
 
 from astropy.table import Table,Column
 from astropy.io import ascii,fits
@@ -160,10 +162,10 @@ def create_marz_input(mask,working_dir):
 
 ########################################
 # RUN COLLATE1D
-def run_collate1d(mask):
+def run_collate1d(mask,tolerance):
  
     # RUN PYPEIT COLLATE1D
-    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler 1 --refframe heliocentric --spec1d_outdir ../junk_collate1d/'
+    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance+' --refframe heliocentric --spec1d_outdir ../junk_collate1d/'
     os.system(collate1d)
     
     # MOVE INTO DIRECTORY
@@ -179,25 +181,30 @@ def run_collate1d(mask):
 #####################################################    
 def main(*args):
 
-    for msk in sys.argv[1:]:
-        print('Running Collate 1d and creating Marz file for ',msk)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mask", dest = "mask", default = " ",required = True)
+    parser.add_argument("--tolerance", dest = "tolerance", default = "1.0",required = False)
+    args = parser.parse_args()
+    print(args.tolerance)
 
-        # DETERMINE IF COLLATE1D ALREADY RUN 
-        DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
-        working_dir  = DEIMOS_REDUX+msk
-        os.chdir(working_dir)
-        Jfiles = glob.glob(working_dir + '/collate1d/J*')
+    print('Running Collate 1d and creating Marz file for ',args.mask)
 
-        if np.size(Jfiles) < 2:
-            
-            # COLLATE1D
-            print('Running collate1d')
-            Jfiles = run_collate1d(msk)
+    # DETERMINE IF COLLATE1D ALREADY RUN 
+    DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
+    working_dir  = DEIMOS_REDUX+args.mask
+    os.chdir(working_dir)
+    Jfiles = glob.glob(working_dir + '/collate1d/J*')
 
-        # MARZ
-        print('Creating Marz input file')
-        create_marz_input(msk,working_dir)
-        os.system('mv marz*fits ../marz_files')
+    if np.size(Jfiles) < 2:
+        
+        # COLLATE1D
+        print('Running collate1d')
+        Jfiles = run_collate1d(args.mask,args.tolerance)
+
+    # MARZ
+    print('Creating Marz input file')
+    create_marz_input(args.mask,working_dir)
+    os.system('mv marz*fits ../marz_files')
     
 if __name__ == "__main__":
     main()
