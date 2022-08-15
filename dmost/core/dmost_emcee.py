@@ -251,7 +251,8 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
                      twave,sm_tell, sm_pflux,plogwave,npoly,pfit):
 
     # SET GUESSES AND INITIALIZE WALKERS
-    vguess    = slits['chi2_v'][arg]
+    # REMOVE HELIO CORRECTION FROM COADDED VELOCITY GUESS
+    vguess    = slits['chi2_v'][arg] - mask['vhelio'][nexp]
     wguess    = slits['telluric_w'][arg,nexp]
     if np.abs(wguess) > 40:
         wguess = 0
@@ -312,7 +313,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
-            slits['emcee_v'][arg,nexp] = mcmc[1]
+            slits['emcee_v'][arg,nexp] = mcmc[1] + mask['vhelio'][nexp]
             slits['emcee_v_err16'][arg,nexp] = mcmc[0]
             slits['emcee_v_err84'][arg,nexp] = mcmc[2]
 
