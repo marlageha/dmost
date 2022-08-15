@@ -79,7 +79,7 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
         vt,et = [], []
         for j in np.arange(0,nexp,1):
             if obj['emcee_f_acc'][j] > f_acc_thresh:
-                vt   = np.append(vt,obj['emcee_v'][j]+mask['vhelio'][j])
+                vt   = np.append(vt,obj['emcee_v'][j]) #+mask['vhelio'][j])
                 terr = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
                 et   = np.append(et,np.sqrt(terr**2 + sys_exp**2))
                 ncomb=ncomb+1
@@ -95,16 +95,17 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
         terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
 
         if (verr > err_thresh) & (obj['coadd_f_acc'] > 0.65) & (verr > terr2):
-            v     = obj['coadd_v']+np.mean(mask['vhelio'])
+            v     = obj['coadd_v']#+np.mean(mask['vhelio'])
             verr   = np.sqrt(terr**2 + nexp*sys_exp**2)
             ncomb = nexp + 100.
         
 
 
     # IF NONE, THEN USE COADD WITH LOWER THRESHOLD
+    # COADD HAS BEEN HELIO_CORRECTED
     else:
         if (obj['coadd_f_acc'] > 0.65):
-            v     = obj['coadd_v']+np.mean(mask['vhelio'])
+            v     = obj['coadd_v']#+np.mean(mask['vhelio'])
             terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
             verr   = np.sqrt(terr**2 + nexp*sys_exp**2)
             ncomb = nexp + 100.
@@ -127,7 +128,7 @@ def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
     
     # USE VELOCITY IF ANY EXPOSURE IS GOOD
     if (obj['emcee_f_acc'] > 0.69):
-        v     = obj['emcee_v']+mask['vhelio']
+        v     = obj['emcee_v']#+mask['vhelio']
         terr  = (obj['emcee_v_err84']-obj['emcee_v_err16'])/2.
         
         # IS THIS RIGHT?   ADDING SYS ERROR FOR COADD
