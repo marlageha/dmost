@@ -360,15 +360,19 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
 ###############################################
 def run_chi2_templates(data_dir, slits, mask, clobber=0):
     
-    
+
     # QA FILENAME
     file  = data_dir+'QA/chi2_collate1d_'+mask['maskname'][0]+'.pdf'
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
     
-    # BROADCAST
     SNmin =2.0
+
+    # BROADCAST
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')   
+
     m = (slits['marz_flag'] < 3) & (slits['collate1d_SN'] > SNmin) 
-    print('{} Finding chi2 templates for {} stellar slits w/SN > {}'.format(mask['maskname'][0],np.sum(m), SNmin))
+    dmost_utils.printlog(log,'{} Finding chi2 templates for {} stellar slits w/SN > {}'.format(mask['maskname'][0],np.sum(m), SNmin))
      
     # V RANGE FOR TEMPLATE FINDER
     vrange = np.arange(-500,500,10)
@@ -414,7 +418,8 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
             slits['chi2_feh'][ii]   = f['chi2_feh']
 
     pdf.close()
-  
+    log.close()
+
     mask['flag_template'][:] = 1
     return slits, mask
 

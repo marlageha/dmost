@@ -486,10 +486,10 @@ def create_slits_from_collate1d(data_dir,mask,nexp,log):
 
             # FOR WIDELY SPACED EXPOSURES, NEED TO INCREASE TOLERANCE
             if (np.sum(m) == 2):
-                print('{} {} Consider re-running collate1d with larger tolerance'.format(i,ii))
+                printlog(log,'{} {} Consider re-running collate1d with larger tolerance'.format(i,ii))
                 ntolerance = ntolerance+1
                 if ntolerance > 30:
-                    print('Too many repeats.   Re-run collate1d, exiting dmost')
+                    printlog(log,'Too many repeats.   Re-run collate1d, exiting dmost')
                     sys.exit()
                     
             if (np.sum(m) == 1):

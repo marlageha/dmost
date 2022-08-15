@@ -124,7 +124,7 @@ def find_chip_gap_factor(data_wave,data_flux,data_ivar,wave_gap_b,tflux, det,SN,
 ######################################################
 
 def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
-    
+
     
     # LOOP OVER EACH SLIT
     for arg in np.arange(0,np.size(slits),1,dtype='int'):
@@ -217,8 +217,11 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
     '''   
 
     SNmin = 8
-       
-    print('{} Calculate chip gap factor for stellar slits w/SN > {}'.format(mask['maskname'][0],SNmin))
+    
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')   
+
+    dmost_utils.printlog(log,'{} Calculate chip gap factor for stellar slits w/SN > {}'.format(mask['maskname'][0],SNmin))
    
     # DETERMINE CHIP GAP FOR INDIVIDUAL EXPOSURES FIRST
     for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
@@ -242,9 +245,10 @@ def run_chip_gap(data_dir, slits, mask, clobber=0):
 
     mm = (slits['chip_gap_corr'] != 0.0) & (slits['chip_gap_corr'] != 1.0)
     if np.sum(mm) > 0:
-        print('{} Chip gap factor median is {:0.2f}'.format(mask['maskname'][0],np.median(slits['chip_gap_corr'][mm])))
+        dmost_utils.printlog(log,'{} Chip gap factor median is {:0.2f}'.format(mask['maskname'][0],np.median(slits['chip_gap_corr'][mm])))
 
         
+    log.close()
     return slits, mask
 
 

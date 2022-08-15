@@ -442,8 +442,11 @@ def coadd_threshold(nexp, slt):
 
 def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     '''
-    Run the coadd if 
+    Run the coadd when single exposure fails
     '''    
+
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')   
 
 
     file  = data_dir+'/QA/coadd_emcee_'+mask['maskname'][0]+'.pdf'
@@ -462,7 +465,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
 
     nslits = np.sum(m)
-    print('{}  Coadd emcee with {} slits {} < SN < {} and poor emcee result'.format(mask['maskname'][0],\
+    dmost_utils.printlog(log,'{}  Coadd emcee with {} slits {} < SN < {} and poor emcee result'.format(mask['maskname'][0],\
                                                                 nslits,SNmin,SNmax))
     
 
@@ -481,6 +484,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
             slits = coadd_emcee_allslits(data_dir, slits, mask, ii ,telluric,pdf)
             
             
+    log.close()
     pdf.close()
     plt.close('all')
     mask['flag_coadd'][:] = 1

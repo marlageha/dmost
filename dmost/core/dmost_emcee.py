@@ -431,6 +431,9 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
 
 def run_emcee(data_dir, slits, mask, outfile, clobber=0):
     
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')   
+
        
     # FOR EACH EXPOSURE
     for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
@@ -447,7 +450,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         SNmin = 3.
         m = (slits['SN'][:,ii] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
-        print('{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
+        dmost_utils.printlog(log,'{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
                                                                 mask['fname'][ii],nslits,SNmin))
 
         # RUN EMCEE
@@ -457,6 +460,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         # WRITE DMOST FILE
 #        write_dmost(slits,mask,outfile)
         
+    log.close()
     return slits, mask
 
 

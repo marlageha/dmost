@@ -365,7 +365,9 @@ def run_flexure(data_dir,slits,mask):
     sky        = ascii.read(sky_file)
 
     warnings.simplefilter('ignore')
-
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')
+    
     
     # FOR EACH EXPOSURE
     for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
@@ -380,7 +382,7 @@ def run_flexure(data_dir,slits,mask):
             
         # FIT SURFACES
         pmodel_m, pmodel_b,pmodel_los, ngood = fit_mask_surfaces(fslope, fb, flos, x, y)  
-        print('{} {} Flexure with {} slits'.format(mask['maskname'][0],\
+        dmost_utils.printlog(log,'{} {} Flexure with {} slits'.format(mask['maskname'][0],\
                                                                 mask['fname'][ii],ngood))
         
         # ADD TO TABLE
@@ -392,6 +394,7 @@ def run_flexure(data_dir,slits,mask):
 
         mask['flag_flexure'][ii] = 1
         
+    log.close()
     return slits,mask
   
 #####################################################        

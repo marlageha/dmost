@@ -584,6 +584,9 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
 ########################################
 def run_telluric_mask(data_dir, slits, mask, clobber=0):
     
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')
+    
        
     # FOR EACH EXPOSURE
     for ii,spec1d_file in enumerate(mask['spec1d_filename']): 
@@ -600,7 +603,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
             thdr  =  thdu[1].header
             mask['telluric_h2o'][ii] = thdr['h2o']
             mask['telluric_o2'][ii]  = thdr['o2']
-            print('{} {} Telluric already done: H2O = {}, O2 = {:0.2f}'.format(mask['maskname'][ii],mask['fname'][ii],\
+            dmost_utils.printlog(log,'{} {} Telluric already done: H2O = {}, O2 = {:0.2f}'.format(mask['maskname'][ii],mask['fname'][ii],\
                                                                                thdr['h2o'],thdr['o2']))
 
         if (np.size(tfile) == 0) | (clobber == 1):
@@ -615,6 +618,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
 
         mask['flag_telluric'][ii] = 1
         
+    log.close()
     return slits, mask
 
 
