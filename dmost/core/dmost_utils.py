@@ -316,6 +316,13 @@ def is_good_slit(slit,nexp=-1,remove_galaxies=0,remove_seredips=0):
             
     return is_good
 
+#############################################################
+def printlog(file,mssg):
+
+    print(mssg)
+    file.write(mssg+'\n')
+
+
 
 #############################################################
 def write_dmost(slits,mask,outfile):
