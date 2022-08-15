@@ -131,7 +131,7 @@ def chip_gap_single_slit(slits, mask, hdu, nexp,telluric,SNmin):
 
 
         is_good_slit = dmost_utils.is_good_slit(slits[arg],nexp=nexp,remove_galaxies=1)
-
+       
         if (slits['collate1d_SN'][arg] > SNmin) & (is_good_slit):
             
             
