@@ -16,6 +16,7 @@ import astropy.units as u
 import pyspherematch as sm
 
 from dmost import dmost_utils
+from dmost.core.dmost_utils import printlog
 
 
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
@@ -263,7 +264,7 @@ def set_lsf_correction(mask,nexp):
     return mask
 
 #############################################################
-def add_marz(data_dir,mask,slits):
+def add_marz(data_dir,mask,slits,log):
     
     marz_file = data_dir+'../marz_files/marz_'+mask['maskname'][0]+'_MG.mz'
     if os.path.isfile(marz_file):
@@ -275,17 +276,17 @@ def add_marz(data_dir,mask,slits):
         slits['marz_tmpl'][m1] = mz_gal['TYPE'][m2]
 
         ngal   = np.sum(mz_gal['ZQUALITY'] > 2) # GALAXIES
-        print('{} Add marz results with {} galaxies'.format(mask['maskname'][0],ngal))
+        printlog(log,'{} Add marz results with {} galaxies'.format(mask['maskname'][0],ngal))
 
 
     else:
         print(marz_file)
-        print('{} No MARZ FILE!'.format(mask['maskname'][0]))
+        printlog(log,'{} No MARZ FILE!'.format(mask['maskname'][0]))
         
     return slits
 
 #############################################################
-def add_chipgap_seeing(data_dir,mask,slits):
+def add_chipgap_seeing(data_dir,mask,slits,log):
 
 
     for ii,msk in enumerate(mask):
@@ -332,7 +333,7 @@ def add_chipgap_seeing(data_dir,mask,slits):
         mask = set_lsf_correction(mask,ii)
 
 
-        print('{} {} Slitwidth is {:0.1f}, Seeing is {:0.2f} arcsec, LSF correction is {:0.2f}'.format(mask['maskname'][0], mask['fname'][ii],\
+        printlog(log,'{} {} Slitwidth is {:0.1f}, Seeing is {:0.2f} arcsec, LSF correction is {:0.2f}'.format(mask['maskname'][0], mask['fname'][ii],\
                                                                             mask['slitwidth'][ii],mask['seeing'][ii],mask['lsf_correction'][ii]))
 
 
@@ -378,12 +379,15 @@ def mk_histograms(data_dir,mask,slits,nexp):
 
 #############################################################
 # POPULATE MASK VALUES
-def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
+def populate_mask_info(data_dir,nexp,maskname,spec1d_files,log):
 
     mask = create_mask(nexp)
 
+    log.write('Populating mask values for exposures')
     
-    print('{} Populating mask values for {} exposures'.format(maskname,nexp))
+    printlog(log,'{} Populating mask values for {} exposures'.format(maskname,nexp))
+
+
     for i,spec1d in enumerate(spec1d_files):
 
         # HEADER VALUES
@@ -416,7 +420,7 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
 
         # HELIOCENTRIC VELOCITY, ADD TO MEASURED VALUES
         mask['vhelio'][i]  = dmost_utils.deimos_helio(hdr['MJD'],hdr['RA'],hdr['DEC'])
-        print('{} {} Heliocentric velocity {:0.2f} kms'.format(maskname,mask['fname'][i],mask['vhelio'][i]))
+        printlog(log,'{} {} Heliocentric velocity {:0.2f} kms'.format(maskname,mask['fname'][i],mask['vhelio'][i]))
 
 
 
@@ -425,7 +429,7 @@ def populate_mask_info(data_dir,nexp,maskname,spec1d_files):
 
 #############################################################
 # POPULATE SLIT VALUES
-def create_slits_from_collate1d(data_dir,mask,nexp):
+def create_slits_from_collate1d(data_dir,mask,nexp,log):
 
     
     # READ COLLATE_REPORT
@@ -502,8 +506,7 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
     slits.reverse()
     
 
-    print('{} Created slit table with {} slits ({} serendips)'.format(mask['maskname'][0],nslits,nserendip))
-
+    printlog(log,'{} Created slit table with {} slits ({} serendips)'.format(mask['maskname'][0],nslits,nserendip))
 
 
     return slits
@@ -523,40 +526,44 @@ def create_single_mask(data_dir, maskname):
     spec1d_files = np.sort(spec1d_files)
     nexp         = np.size(spec1d_files)
 
+
+    # DMOST AND LOG FILE NAMES
+    outfile      = data_dir+'/dmost/dmost_'+maskname+'.fits'
+    logfile      = data_dir + maskname+'_dmost.log'
+    log          = open(logfile,'w')
+    
+
     if (nexp == 0):
-        print('No spec1d files found!')
+        printlog(log,'No spec1d files found!')
         print(data_dir)
         return [],[],[],[]
 
-
-
-    # DMOST TABLE NAME
-    outfile      = data_dir+'/dmost/dmost_'+maskname+'.fits'
 
 
     # IF DMOST FILE EXISTS, READ DMOST IN
     if os.path.isfile(outfile):
         print('Reading existing file: ',outfile)
         slits,mask = dmost_utils.read_dmost(outfile)
-        print('{} Slit table with {} slits'.format(mask['maskname'][0],np.size(slits)))
+
+        printlog(log,'{} Slit table with {} slits'.format(mask['maskname'][0],np.size(slits)))
+
 
     else:
 
         # CREATE MASK
-        mask = populate_mask_info(data_dir,nexp,maskname,spec1d_files)
+        mask = populate_mask_info(data_dir,nexp,maskname,spec1d_files,log)
 
         # CREATE SLITS FROM COLLATE1D
-        slits = create_slits_from_collate1d(data_dir,mask,nexp)
+        slits = create_slits_from_collate1d(data_dir,mask,nexp,log)
 
         # ADD EXPOSURE LEVEL DATA
-        mask,slits  = add_chipgap_seeing(data_dir,mask,slits)
+        mask,slits  = add_chipgap_seeing(data_dir,mask,slits,log)
         mk_histograms(data_dir,mask,slits,nexp)
 
 
     # ADD OR UPDATE MARZ
-    slits = add_marz(data_dir,mask,slits)
-
-
+    slits = add_marz(data_dir,mask,slits,log)
+    log.close()
 
     return slits, mask, nexp, outfile
 
