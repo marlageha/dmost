@@ -478,6 +478,7 @@ def create_slits_from_collate1d(data_dir,mask,nexp):
 
             # ENSURE EXPOSURES MATCH
             m = this_obj['spec1d_filename'] == mask['spec1d_filename'][ii] 
+            slits['flag_skip_exp'][i,ii] = 1
 
             # FOR WIDELY SPACED EXPOSURES, NEED TO INCREASE TOLERANCE
             if (np.sum(m) == 2):
