@@ -174,7 +174,8 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
 
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5,alpha=0.8)
-    ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['emcee_v'][arg,nexp]))
+    verr = slits['emcee_v_err84'][arg,nexp] - slits['emcee_v_err16'][arg,nexp]
+    ax1.set_title('f_acc = {:0.3f}  err = {:0.2f} v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),verr,slits['emcee_v'][arg,nexp]))
     ax1.axvline(burnin)
 
     for ii in range(20):
@@ -310,10 +311,14 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
     slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
 
+
+    # CORRECT FOR HELIOCENTRIC VELOCITY
+    sampler.chain[:,:, 0] = sampler.chain[:,:, 0] +  mask['vhelio'][nexp]
+
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
-            slits['emcee_v'][arg,nexp] = mcmc[1] + mask['vhelio'][nexp]
+            slits['emcee_v'][arg,nexp] = mcmc[1] 
             slits['emcee_v_err16'][arg,nexp] = mcmc[0]
             slits['emcee_v_err84'][arg,nexp] = mcmc[2]
 
