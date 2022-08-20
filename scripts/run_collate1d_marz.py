@@ -236,10 +236,6 @@ def main(*args):
     parser.add_argument("--tolerance", dest = "tolerance", default = "1.0",required = False)
     args = parser.parse_args()
     print('tolerence = ',args.tolerance)
-
-    print('Running Collate 1d and creating Marz file for ',args.mask)
-    logfile      = data_dir + '/marz_files/all_collate1d.log'
-    log          = open(logfile,'w')
     
 
     # DETERMINE IF COLLATE1D ALREADY RUN 
@@ -248,20 +244,27 @@ def main(*args):
     os.chdir(working_dir)
     Jfiles = glob.glob(working_dir + '/collate1d/J*')
 
+
+    print('Running Collate 1d and creating Marz file for ',args.mask)
+    logfile      = DEIMOS_REDUX  + '/marz_files/all_collate1d.log'
+    log          = open(logfile,'w')
+
     if np.size(Jfiles) < 2:
         
         # COLLATE1D
         print('Running collate1d')
         Jfiles, rerun, final_tol = run_collate1d(args.mask,args.tolerance)
 
+        mssg = '{} Final Tolerance = {}  Need to rerun?  {}'.format(args.mask,final_tol,rerun)
+        print(mssg)
+        log.write(mssg+'\n')
+
+
     # MARZ
     print('Creating Marz input file')
     create_marz_input(args.mask,working_dir)
     os.system('mv marz*fits ../marz_files')
-    mssg = '{} Final Tolerance = {}  Need to rerun?  {}'.format(args.mask,final_tol,rerun)
-
-    print(mssg)
-    log.write(mssg+'\n')
+    log.close()
 
 if __name__ == "__main__":
     main()
