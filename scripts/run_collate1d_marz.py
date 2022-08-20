@@ -247,7 +247,7 @@ def main(*args):
 
     print('Running Collate 1d and creating Marz file for ',args.mask)
     logfile      = DEIMOS_REDUX  + '/marz_files/all_collate1d.log'
-    log          = open(logfile,'w')
+    log          = open(logfile,'a')
 
     rerun,final_tol = 0,0
     if np.size(Jfiles) < 2:
