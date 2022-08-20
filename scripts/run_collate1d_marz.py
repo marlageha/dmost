@@ -238,6 +238,9 @@ def main(*args):
     print('tolerence = ',args.tolerance)
 
     print('Running Collate 1d and creating Marz file for ',args.mask)
+    logfile      = data_dir + '/marz_files/all_collate1d.log'
+    log          = open(logfile,'w')
+    
 
     # DETERMINE IF COLLATE1D ALREADY RUN 
     DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
@@ -255,7 +258,10 @@ def main(*args):
     print('Creating Marz input file')
     create_marz_input(args.mask,working_dir)
     os.system('mv marz*fits ../marz_files')
-    print('Final Tolerance = {}  Need to rerun?  {}'.format(final_tol,rerun))
+    mssg = '{} Final Tolerance = {}  Need to rerun?  {}'.format(args.mask,final_tol,rerun)
+
+    print(mssg)
+    log.write(mssg+'\n')
 
 if __name__ == "__main__":
     main()
