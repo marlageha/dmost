@@ -183,7 +183,7 @@ def run_collate1d(mask,tolerance):
     Jfiles = glob.glob('/collate1d/J*')
 
    
-    return Jfiles,rerun_collate1d
+    return Jfiles,rerun_collate1d, tolerance
   
 ######################################################
 # SEE IF TOLERANCE SHOULD BE INCREASED  
@@ -249,13 +249,13 @@ def main(*args):
         
         # COLLATE1D
         print('Running collate1d')
-        Jfiles, rerun = run_collate1d(args.mask,args.tolerance)
+        Jfiles, rerun, final_tol = run_collate1d(args.mask,args.tolerance)
 
     # MARZ
     print('Creating Marz input file')
     create_marz_input(args.mask,working_dir)
     os.system('mv marz*fits ../marz_files')
-    print('Tolerance = {}  Need to rerun?  {}'.format(tolerance,rerun))
+    print('Final Tolerance = {}  Need to rerun?  {}'.format(final_tol,rerun))
 
 if __name__ == "__main__":
     main()
