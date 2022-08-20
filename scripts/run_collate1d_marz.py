@@ -168,15 +168,65 @@ def run_collate1d(mask,tolerance):
     collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance+' --refframe heliocentric --spec1d_outdir ../junk_collate1d/'
     os.system(collate1d)
     
+    rerun_collate1d = 0
+
+    while (rerun_collate1d) & (tolerance < 2.5):
+        tolerance, rerun_collate1d = evaluate_collate1d_tolerance(data_dir,tolerance)
+        if rerun_collate1d == 1:
+            collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance+' --refframe heliocentric --spec1d_outdir ../junk_collate1d/'
+            os.system(collate1d)
+    
+
+
     # MOVE INTO DIRECTORY
-    os.system('mv J* collate1d')
-    
-    
+    os.system('mv J* collate1d')    
     Jfiles = glob.glob('/collate1d/J*')
 
    
     return Jfiles
   
+######################################################
+# SEE IF TOLERANCE SHOULD BE INCREASED  
+def evaluate_collate1d_tolerance(data_dir,tolerance):
+
+    # READ COLLATE_REPORT
+    cfile     = data_dir+'collate_report.dat'
+    collate1d = ascii.read(cfile) 
+
+
+    collate1d.sort('spec1d_filename')
+
+    # FIND ALL UNIQUE OBJECTS BASED ON FILENAME
+    obj_filenames   = np.unique(collate1d['filename'])
+    nslits          = np.size(obj_filenames)
+    
+    
+    # FOR EACH UNIQUE COLLATE1D FILE
+    ntolerance = 0
+    for i,objname in enumerate(obj_filenames):
+
+        m        = np.in1d(collate1d['filename'],objname)
+        this_obj = collate1d[m]
+
+
+        for ii,this_exp in enumerate(mask['spec1d_filename']):
+
+            # ENSURE EXPOSURES MATCH
+            m = this_obj['spec1d_filename'] == mask['spec1d_filename'][ii] 
+
+            # FOR WIDELY SPACED EXPOSURES, NEED TO INCREASE TOLERANCE
+            if (np.sum(m) == 2):
+                  ntolerance = ntolerance+1
+
+            if ntolerance > 10:
+                print('increase tolerance and re-run')
+                tolerance = tolerance +0.5
+                return tolerance, 1
+
+    return tolerance,0
+
+
+
 #####################################################    
 #####################################################    
 def main(*args):
@@ -185,7 +235,7 @@ def main(*args):
     parser.add_argument("--mask", dest = "mask", default = " ",required = True)
     parser.add_argument("--tolerance", dest = "tolerance", default = "1.0",required = False)
     args = parser.parse_args()
-    print(args.tolerance)
+    print('tolerence = ',args.tolerance)
 
     print('Running Collate 1d and creating Marz file for ',args.mask)
 
