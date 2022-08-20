@@ -175,7 +175,7 @@ def run_collate1d(mask,tolerance):
         if rerun_collate1d == 1:
             collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance+' --refframe heliocentric --spec1d_outdir ../junk_collate1d/'
             os.system(collate1d)
-    
+            print('Tolernace = ',tolerance)
 
 
     # MOVE INTO DIRECTORY
@@ -218,7 +218,7 @@ def evaluate_collate1d_tolerance(data_dir,tolerance):
             if (np.sum(m) == 2):
                   ntolerance = ntolerance+1
 
-            if ntolerance > 10:
+            if ntolerance > 5:
                 print('increase tolerance and re-run')
                 tolerance = tolerance +0.5
                 return tolerance, 1
