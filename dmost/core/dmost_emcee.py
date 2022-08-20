@@ -165,7 +165,7 @@ def read_best_template(pfile):
     return plogwave, phx_flux
 
 ######################################################
-def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
+def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model, mask):
 
     
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
@@ -204,7 +204,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model):
     # PLOT CORNER
     labels=['v','w']
     ndim=2
-    samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
+    samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim)) + mask['vhelio'][nexp]
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
 
     pdf.savefig()
@@ -303,13 +303,6 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
         burnin = 75
 
 
-    # CORRECT FOR HELIOCENTRIC VELOCITY
-    tmp = np.percentile(sampler.chain[:,burnin:, 0], [50])
-    sampler.chain[:,:, 0] = sampler.chain[:,:, 0] +  mask['vhelio'][nexp]
-    tmp2 = np.mean(sampler.chain[:,burnin:, 0])
-
-    print('correct helio =',mask['vhelio'][nexp],tmp,tmp2)
-
     slits['emcee_converge'][arg,nexp] = convg
     slits['emcee_burnin'][arg,nexp]   = burnin
 
@@ -323,9 +316,9 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
-            slits['emcee_v'][arg,nexp] = mcmc[1] 
-            slits['emcee_v_err16'][arg,nexp] = mcmc[0]
-            slits['emcee_v_err84'][arg,nexp] = mcmc[2]
+            slits['emcee_v'][arg,nexp] = mcmc[1] +  mask['vhelio'][nexp]
+            slits['emcee_v_err16'][arg,nexp] = mcmc[0] +  mask['vhelio'][nexp]
+            slits['emcee_v_err84'][arg,nexp] = mcmc[2] +  mask['vhelio'][nexp]
 
         if (ii==1):
             slits['emcee_w'][arg,nexp] = mcmc[1]
@@ -428,7 +421,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
                      
 
             # PLOT STUFF
-            pdf = mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model)
+            pdf = mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model,mask)
 
 
     pdf.close()
