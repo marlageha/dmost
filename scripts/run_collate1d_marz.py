@@ -249,6 +249,7 @@ def main(*args):
     logfile      = DEIMOS_REDUX  + '/marz_files/all_collate1d.log'
     log          = open(logfile,'w')
 
+    rerun,final_tol = 0,0
     if np.size(Jfiles) < 2:
         
         # COLLATE1D
@@ -264,6 +265,8 @@ def main(*args):
     print('Creating Marz input file')
     create_marz_input(args.mask,working_dir)
     os.system('mv marz*fits ../marz_files')
+    print('{} Final Tolerance = {}  Need to rerun?  {}'.format(args.mask,final_tol,rerun))
+
     log.close()
 
 if __name__ == "__main__":
