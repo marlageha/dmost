@@ -302,18 +302,23 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     if (burnin < 75):
         burnin = 75
 
+
+    # CORRECT FOR HELIOCENTRIC VELOCITY
+    tmp = np.percentile(sampler.chain[:,burnin:, 0], [50])
+    sampler.chain[:,:, 0] = sampler.chain[:,:, 0] +  mask['vhelio'][nexp]
+    tmp2 = np.mean(sampler.chain[:,burnin:, 0])
+
+    print('correct helio =',mask['vhelio'][nexp],tmp,tmp2)
+
     slits['emcee_converge'][arg,nexp] = convg
     slits['emcee_burnin'][arg,nexp]   = burnin
 
 
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
-
     slits['emcee_f_acc'][arg,nexp]    = np.mean(sampler.acceptance_fraction)
     slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
 
 
-    # CORRECT FOR HELIOCENTRIC VELOCITY
-    sampler.chain[:,:, 0] = sampler.chain[:,:, 0] +  mask['vhelio'][nexp]
 
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
