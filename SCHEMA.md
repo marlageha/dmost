@@ -28,10 +28,13 @@ Label | Unit | Definition
 `ew_NaI_err`  | Ang | Error on Equivalent width of the NaI line
 `ew_mgI`  | Ang | Equivalent width of the MgI line
 `ew_mgI_err`  | Ang | Error on Equivalent width of the MgI line
+`ew_feh`  | Ang | [Fe/H] metallicity based on CaT EW and MV -- only meaningful for RGB stars
+`ew_feh_err`  | Ang | Error on [Fe/H] metallicity based on CaT EW
 `rmag_o`  | mag | Extinction corrected r-band magnitude from associated photometry source
 `gmag_o`  | mag | Extinction corrected g-band magnitude from associated photometry source
 `rmag_err`  | mag | Error on the extinction corrected r-band magnitude from associated photometry source
 `gmag_err`  | mag | Error on the extinction corrected g-band magnitude from associated photometry source
+`EBV`  | mag | E(B-V) value determined from SFD
 `MV_o`  | mag | Extinction corrected absolute V-band magnitude 
 
 
