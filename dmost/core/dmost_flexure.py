@@ -13,6 +13,10 @@ import matplotlib.backends.backend_pdf
 from scipy.optimize import curve_fit
 from dmost import dmost_utils
 
+
+from pypeit import specobjs
+
+
 import warnings
 
 ########################################################
