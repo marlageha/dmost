@@ -357,6 +357,61 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
 
 
 #######################################################
+# WRITE NEW SPEC1d FILES CORRECTED FOR FLEXURE AND HELIO
+# THESE ARE USED ONLY FOR COADDS, but maybe use for everything?
+def write_spec1d_flexure(data_dir,slits,mask):
+
+    for iexp in range(len(mask)):
+
+        spec1d_file = data_dir+'Science/'+mask['spec1d_filename'][iexp]
+
+        if os.path.isfile(spec1d_file):
+            # load spec1d
+            sobjs = specobjs.SpecObjs.from_fitsfile(spec1d_file, chk_version=False)
+            OPT_corrected_sobjs = np.array([])
+            BOX_corrected_sobjs = np.array([])
+
+            for iobj in range(len(slits)):
+                # loop over spec1d objects
+                for spec in sobjs:
+                    if spec.MASKDEF_OBJNAME == slits['objname'][iobj] and str(spec.MASKDEF_ID) == slits['objid'][iobj]\
+                            and spec.RA == slits['RA'][iobj] and spec.DEC == slits['DEC'][iobj]:
+                        if spec['OPT_WAVE'] is not None:
+                            opt_wave = spec['OPT_WAVE']
+                            # get flexure shift
+                            fitwave = slits['fit_slope'][iobj][iexp] * opt_wave + slits['fit_b'][iobj][iexp]
+                            # apply
+                            new_opt_wave = opt_wave - fitwave
+                            spec['OPT_WAVE'] = new_opt_wave
+                            OPT_corrected_sobjs = np.append(OPT_corrected_sobjs, spec.NAME)
+                        if spec['BOX_WAVE'] is not None:
+                            box_wave = spec['BOX_WAVE']
+                            # get flexure shift
+                            fitwave = slits['fit_slope'][iobj][iexp] * box_wave + slits['fit_b'][iobj][iexp]
+                            # apply
+                            new_box_wave = box_wave - fitwave
+                            spec['BOX_WAVE'] = new_box_wave
+                            BOX_corrected_sobjs = np.append(BOX_corrected_sobjs, spec.NAME)
+
+            if len(sobjs) != OPT_corrected_sobjs.size:
+                for ss in sobjs:
+                    if ss.NAME not in OPT_corrected_sobjs:
+                        print('The flexure correction could not be applied to "OPT_WAVE" of the following objects:{}'.format(ss.NAME))
+
+            if len(sobjs) != BOX_corrected_sobjs.size:
+                for ss in sobjs:
+                    if ss.NAME not in BOX_corrected_sobjs:
+                        print('The flexure correction could not be applied to "BOX_WAVE" of the following objects:{}'.format(ss.NAME))
+
+
+            outfile1d =  data_dir+'Science_flex/'+mask['spec1d_filename'][iexp].split('.fits')[0]+'_flex_corr.fits'
+            sobjs.write_to_fits(sobjs.header, outfile1d)
+
+
+    return
+
+
+#######################################################
 def run_flexure(data_dir,slits,mask):
     
     # READ SKY LINES -- THESE ARE VACUUM WAVELENGTHS
