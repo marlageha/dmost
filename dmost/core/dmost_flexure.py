@@ -410,6 +410,8 @@ def write_spec1d_flexure(data_dir,slits,mask):
 
             outfile1d =  data_dir+'Science_flex/'+mask['spec1d_filename'][iexp].split('.fits')[0]+'_flex_corr.fits'
             sobjs.write_to_fits(sobjs.header, outfile1d)
+            print('Writing flexure corrected spec1d files')
+
 
 
         collate1d = 'pypeit_collate_1d --spec1d_files Science_flex/spec1d_*fits --toler 1.5'
