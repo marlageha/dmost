@@ -165,7 +165,7 @@ def create_marz_input(mask,working_dir):
 def run_collate1d(mask,tolerance):
  
     # RUN PYPEIT COLLATE1D
-    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance+' --refframe heliocentric --spec1d_outdir ../../junk_collate1d/'
+    collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance  # --refframe heliocentric --spec1d_outdir ../../junk_collate1d/'
     os.system(collate1d)
     
     rerun_collate1d = 0
@@ -173,7 +173,7 @@ def run_collate1d(mask,tolerance):
     while (rerun_collate1d) & (float(tolerance) < 2.5):
         tolerance, rerun_collate1d = evaluate_collate1d_tolerance(data_dir,tolerance)
         if rerun_collate1d == 1:
-            collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance+' --refframe heliocentric --spec1d_outdir ../../junk_collate1d/'
+            collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance #+' --refframe heliocentric --spec1d_outdir ../../junk_collate1d/'
             os.system(collate1d)
             print('Tolernace = ',tolerance)
 
