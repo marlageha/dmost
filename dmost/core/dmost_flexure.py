@@ -476,7 +476,7 @@ def main(*args,clobber=0):
     
     print('Running flexure on {}'.format(mask))
     fslits = run_flexure(data_dir,slits,mask)
-    
+    write_spec1d_flexure(data_dir,slits,mask)
     
     
 if __name__ == "__main__":
