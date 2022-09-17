@@ -462,6 +462,9 @@ def run_flexure(data_dir,slits,mask):
 
         mask['flag_flexure'][ii] = 1
         
+
+    write_spec1d_flexure(data_dir,slits,mask)
+
     log.close()
     return slits,mask
   
@@ -478,7 +481,6 @@ def main(*args,clobber=0):
     
     print('Running flexure on {}'.format(mask))
     fslits = run_flexure(data_dir,slits,mask)
-    write_spec1d_flexure(data_dir,slits,mask)
     
     
 if __name__ == "__main__":
