@@ -278,7 +278,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
             slits['coadd_w_err'][arg] = (mcmc[0]+mcmc[2])/2.
 
 
-    return sampler, slits, theta, burnin
+    return sampler, slits, theta, burnin,vhelio_avg 
 
 
 ######################################################
@@ -341,7 +341,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     # RUN EMCEE!!
     ###################
     t0 = time.time()
-    sampler, slits, theta, burnin = run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
+    sampler, slits, theta, burnin,vhelio_avg  = run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
                                twave,sm_tell, sm_pflux,pwave,npoly,pfit)
     t1=time.time()
     print('Time = {:0.5f}'.format(t1-t0))
@@ -363,7 +363,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
 
 
     for ii in range(20):
-        ax1.plot(sampler.chain[ii,:,0], color="k",linewidth=0.5)
+        ax1.plot(sampler.chain[ii,:,0]+vhelio_avg, color="k",linewidth=0.5)
     ax1.axvline(burnin,label='burnin')
     ax1.set_title('f_acc = {:0.3f}  v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),slits['coadd_v'][arg]))
 
@@ -405,6 +405,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     # PLOT CORNER
     labels=['v','w']
     ndim=2
+    sampler.chain[:,:,0] = sampler.chain[:,:,0]+vhelio_avg
     samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
 
