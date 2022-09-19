@@ -375,6 +375,11 @@ def write_spec1d_flexure(data_dir,slits,mask):
             OPT_corrected_sobjs = np.array([])
             BOX_corrected_sobjs = np.array([])
 
+            if ~os.path.isfile(data_dir+'Science_flex'):
+
+            os.system('mkdir Science_flex')
+
+
             for iobj in range(len(slits)):
                 # loop over spec1d objects
                 for spec in sobjs:
@@ -415,7 +420,7 @@ def write_spec1d_flexure(data_dir,slits,mask):
 
     os.system('mkdir collate1d_flex')
     os.chdir('collate1d_flex')
-    collate1d = 'pypeit_collate_1d --spec1d_files Science_flex/spec1d_*fits --toler 1.0'
+    collate1d = 'pypeit_collate_1d --spec1d_files ../Science_flex/spec1d_*fits --toler 1.0'
     os.system(collate1d)
     os.chdir('../')
     
