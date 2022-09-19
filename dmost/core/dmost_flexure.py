@@ -376,8 +376,7 @@ def write_spec1d_flexure(data_dir,slits,mask):
             BOX_corrected_sobjs = np.array([])
 
             if ~os.path.isfile(data_dir+'Science_flex'):
-
-            os.system('mkdir Science_flex')
+                os.system('mkdir Science_flex')
 
 
             for iobj in range(len(slits)):
