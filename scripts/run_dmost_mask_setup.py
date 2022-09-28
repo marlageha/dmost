@@ -118,6 +118,8 @@ def setup_single_mask(msk, masklist):
         os.mkdir(working_dir)
         os.mkdir(working_dir+'/dmost/')
         os.mkdir(working_dir+'/collate1d/')
+        os.mkdir(working_dir+'/collate1d_flex/')
+        os.mkdir(working_dir+'/Science_flex/')
         os.mkdir(working_dir+'/emcee/')
 
 
