@@ -170,12 +170,12 @@ def run_collate1d(mask,tolerance):
     
     rerun_collate1d = 0
 
-    while (rerun_collate1d) & (float(tolerance) < 2.5):
-        tolerance, rerun_collate1d = evaluate_collate1d_tolerance(data_dir,tolerance)
-        if rerun_collate1d == 1:
-            collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance #+' --refframe heliocentric --spec1d_outdir ../../junk_collate1d/'
-            os.system(collate1d)
-            print('Tolernace = ',tolerance)
+#    while (rerun_collate1d) & (float(tolerance) < 2.5):
+#        tolerance, rerun_collate1d = evaluate_collate1d_tolerance(data_dir,tolerance)
+#        if rerun_collate1d == 1:
+#            collate1d = 'pypeit_collate_1d --spec1d_files Science/spec1d_*fits --toler '+tolerance #+' --refframe heliocentric --spec1d_outdir ../../junk_collate1d/'
+#            os.system(collate1d)
+#            print('Tolernace = ',tolerance)
 
 
     # MOVE INTO DIRECTORY
