@@ -365,6 +365,10 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
 # THESE ARE USED ONLY FOR COADDS, but maybe use for everything?
 def write_spec1d_flexure(data_dir,slits,mask):
 
+
+    if ~os.path.isfile(data_dir+'Science_flex'):
+        os.system('mkdir Science_flex')
+
     for iexp in range(len(mask)):
 
         spec1d_file = data_dir+'Science/'+mask['spec1d_filename'][iexp]
@@ -375,8 +379,6 @@ def write_spec1d_flexure(data_dir,slits,mask):
             OPT_corrected_sobjs = np.array([])
             BOX_corrected_sobjs = np.array([])
 
-            if ~os.path.isfile(data_dir+'Science_flex'):
-                os.system('mkdir Science_flex')
 
 
             for iobj in range(len(slits)):
@@ -468,7 +470,14 @@ def run_flexure(data_dir,slits,mask):
         mask['flag_flexure'][ii] = 1
         
 
-    write_spec1d_flexure(data_dir,slits,mask)
+    dmost_utils.printlog(log,'{} {} Updating collate1d with flexure solution'.format(mask['maskname'][0],mask['fname'][ii]))
+
+
+    # RE-RUN ONLY IF FILES DON'T EXIST
+    jflex_files = glob.glob(data_dir+'collate1d_flex/J*')
+    if (np.size(jflex_files) < 2):
+        write_spec1d_flexure(data_dir,slits,mask)
+
 
     log.close()
     return slits,mask
