@@ -430,7 +430,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu,log):
 
 ###############################################
 # DETERMINE FINAL MASK VALUE AND GENERATE PLOTS
-def final_telluric_values(data_dir, slits, mask, nexp, hdu):
+def final_telluric_values(data_dir, slits, mask, nexp, hdu,log):
 
     file = data_dir+'QA/telluric_mask_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+'.pdf'
     pdf2 = matplotlib.backends.backend_pdf.PdfPages(file)
@@ -612,7 +612,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
             slits  = run_telluric_allslits(data_dir, slits, mask, ii, hdu,log)
 
             # CALCULATE FINAL VALUES AND QA PLOTS
-            final_h2o, final_o2, mask = final_telluric_values(data_dir, slits, mask, ii, hdu)
+            final_h2o, final_o2, mask = final_telluric_values(data_dir, slits, mask, ii, hdu, log)
 
 
 
