@@ -360,7 +360,7 @@ def mk_histograms(data_dir,mask,slits,nexp):
 
     for n in np.arange(0,nexp,1):
         
-        m = (slits['marz_flag'] < 2) & (slits['rmms_arc'] < 0.4) & (slits['flag_skip_exp'][:,n] == 0)
+        m = (slits['marz_flag'] < 2) & (slits['rms_arc'] < 0.4) & (slits['flag_skip_exp'][:,n] == 0)
         ax2.hist(slits['opt_fwhm'][m,n],bins=20,alpha=0.5,\
                  label = 'seeing = {:0.2f}'.format(mask['seeing'][n]))
 
