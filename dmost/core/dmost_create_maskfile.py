@@ -313,9 +313,9 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
         seeing_min_SN = 10. 
 
         # IN CASE NO STARS WITH GOOD SN, LOWER THRESHOLD
-        mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
+        mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2) & (slits['flag_skip_exp'][:,ii] == 0)
         while (np.sum(mstar) < 2):
-            mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2)
+            mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2) & (slits['flag_skip_exp'][:,ii] == 0)
             seeing_min_SN = seeing_min_SN - 0.5
 
         print(seeing_min_SN)
@@ -360,7 +360,7 @@ def mk_histograms(data_dir,mask,slits,nexp):
 
     for n in np.arange(0,nexp,1):
         
-        m=slits['marz_flag'] < 2
+        m = (slits['marz_flag'] < 2) & (slits['rmms_arc'] < 0.4) & (slits['flag_skip_exp'][:,n] == 0)
         ax2.hist(slits['opt_fwhm'][m,n],bins=20,alpha=0.5,\
                  label = 'seeing = {:0.2f}'.format(mask['seeing'][n]))
 
