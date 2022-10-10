@@ -2,6 +2,7 @@
 
 import numpy as np
 import os,sys
+import glob
 
 from astropy.table import Table,Column
 from astropy.io import ascii,fits
