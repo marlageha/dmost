@@ -290,7 +290,7 @@ def telluric_min_SN(good_slits_SN):
 
 ########################################
 # MAIN PROGRAM 
-def run_telluric_allslits(data_dir, slits, mask, nexp, hdu):
+def run_telluric_allslits(data_dir, slits, mask, nexp, hdu,log):
 
     # GET SYNTHETIC TELLURIC SPECTRA
     DEIMOS_RAW = os.getenv('DEIMOS_RAW')
@@ -562,7 +562,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu):
     round_h2o = 2. * round(final_h2o/2)
     round_o2  = 0.02*round(final_o2/0.02) 
     
-    print('{} {}          H2O = {:0.0f}, O2 = {:2.2f}'.format(mask['maskname'][0],\
+    dmost_utils.printlog(log,'{} {}          H2O = {:0.0f}, O2 = {:2.2f}'.format(mask['maskname'][0],\
                                                         mask['fname'][nexp],round_h2o,round_o2))
     
     str = '_h{:0.0f}_o{:2.2f}'.format(round_h2o, round_o2)
@@ -609,7 +609,7 @@ def run_telluric_mask(data_dir, slits, mask, clobber=0):
         if (np.size(tfile) == 0) | (clobber == 1):
 
             # RUN ALL SLITS 
-            slits  = run_telluric_allslits(data_dir, slits, mask, ii, hdu)
+            slits  = run_telluric_allslits(data_dir, slits, mask, ii, hdu,log)
 
             # CALCULATE FINAL VALUES AND QA PLOTS
             final_h2o, final_o2, mask = final_telluric_values(data_dir, slits, mask, ii, hdu)
