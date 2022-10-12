@@ -531,7 +531,12 @@ def create_single_mask(data_dir, maskname):
     # DMOST AND LOG FILE NAMES
     outfile      = data_dir+'/dmost/dmost_'+maskname+'.fits'
     logfile      = data_dir + maskname+'_dmost.log'
-    log          = open(logfile,'w')
+    if os.path.isfile(logfile):
+        log          = open(logfile,'a')
+        log.write('-----------------\n')
+
+    else:
+        log          = open(logfile,'w')
     
 
     if (nexp == 0):
@@ -546,6 +551,7 @@ def create_single_mask(data_dir, maskname):
         print('Reading existing file: ',outfile)
         slits,mask = dmost_utils.read_dmost(outfile)
 
+        printlog
         printlog(log,'{} Slit table with {} slits'.format(mask['maskname'][0],np.size(slits)))
 
 
