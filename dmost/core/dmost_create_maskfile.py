@@ -535,7 +535,7 @@ def create_single_mask(data_dir, maskname):
         log          = open(logfile,'a')
         log.write('-----------------\n')
 
-    else:
+    if ~os.path.isfile(logfile):
         log          = open(logfile,'w')
     
 
