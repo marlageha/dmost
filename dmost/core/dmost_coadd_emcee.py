@@ -458,7 +458,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     telluric = Table.read(tfile[0])
        
 
-    SNmax = 50
+    SNmax = 30
     SNmin = 2.
     nexp = mask['nexp'][0]
 
