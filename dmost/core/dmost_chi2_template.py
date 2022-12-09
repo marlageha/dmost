@@ -284,7 +284,10 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
     # PLOT RESULTS
     if (plot==1):
         vmn = np.log(np.min(best_chi))
-        vmx = np.log(vmn + np.abs(np.percentile(best_chi,25)))
+        tmp = np.percentile(best_chi,25)
+        if tmp <=0:
+            tmp=1.
+        vmx = np.log(vmn + tmp)
 
         
         fig, (ax1, ax2,ax3) = plt.subplots(1, 3,figsize=(20,5))
