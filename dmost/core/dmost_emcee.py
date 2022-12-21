@@ -319,7 +319,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
             slits['emcee_v'][arg,nexp] = mcmc[1] +  mask['vhelio'][nexp]
             slits['emcee_v_err16'][arg,nexp] = mcmc[0] +  mask['vhelio'][nexp]
             slits['emcee_v_err84'][arg,nexp] = mcmc[2] +  mask['vhelio'][nexp]
-
+            slits['emcee_v_err'][arg,nexp]   = slits['emcee_v_err84'][arg,nexp] - slits['emcee_v_err16'][arg,nexp] 
         if (ii==1):
             slits['emcee_w'][arg,nexp] = mcmc[1]
             slits['emcee_w_err16'][arg,nexp] = mcmc[0]
@@ -450,7 +450,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         telluric = Table.read(tfile[0])
 
         # WRITE TO SCREEN
-        SNmin = 3.
+        SNmin = 2.5
         m = (slits['SN'][:,ii] > SNmin) & (slits['marz_flag'] < 3)
         nslits = np.sum(m)
         dmost_utils.printlog(log,'{} {} Emcee with {} slits w/SN > {}'.format(mask['maskname'][0],\
