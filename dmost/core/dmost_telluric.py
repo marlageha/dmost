@@ -505,7 +505,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu,log):
         else:
             print('FAKING IT!')
             final_h2o = 50
-            final_o2  = get_o2_nodata(mask['airmas'][nexp])
+            final_o2  = get_o2_nodata(mask['airmass'][nexp])
 
     # PLOT H20-- zoom in and all data
     ax1.plot(fslits2['SN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
