@@ -475,7 +475,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu,log):
     good_eo2  = fslits2['telluric_o2_err'][m1,nexp]
 
    # REMOVE OUTLIERS
-   mh,mo = [],[]
+    mh,mo = [],[]
     if (np.size(good_h2o) > 2):
         mh = (good_h2o > np.percentile(good_h2o,10)) & \
              (good_h2o < np.percentile(good_h2o,90))
