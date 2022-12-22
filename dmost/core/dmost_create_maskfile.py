@@ -166,6 +166,7 @@ def create_slits(nslits,nexp):
             filled_column('coadd_burnin',-1,nslits),
             filled_column('coadd_nsamp',-1.,nslits),
             filled_column('coadd_lnprob',-1.,nslits),
+            filled_column('coadd_flag',-1,nslits),
 
             # COMBINED VELOCITIES
             filled_column('dmost_v',-1.,nslits),
@@ -320,8 +321,13 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
             if seeing_min_SN < 0:
                 mstar = (slits['marz_flag'] < 2) 
 
+
         print(seeing_min_SN)
         mask['seeing'][ii] = np.nanmedian(slits['opt_fwhm'][mstar,ii])
+
+        # IF WE CAN"T MEASURE SEEING, ASSUME ITS LARGE
+        if (mask['seeing'][ii] < 0.1):
+            mask['seeing'][ii] = 2.
 
 
         # ADD SLITWIDTH TO MASKS    
