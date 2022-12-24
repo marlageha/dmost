@@ -490,7 +490,8 @@ def create_slits_from_collate1d(data_dir,mask,nexp,log):
         for ii,this_exp in enumerate(mask['spec1d_filename']):
 
             # ENSURE EXPOSURES MATCH
-            print(this_obj['spec1d_filename'], mask['spec1d_filename'][ii] )
+            print('this= ',this_obj['spec1d_filename'])
+            print('mask=',mask['spec1d_filename'][ii] )
             m = this_obj['spec1d_filename'] == mask['spec1d_filename'][ii] 
             slits['flag_skip_exp'][i,ii] = 1
 
