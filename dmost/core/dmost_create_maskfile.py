@@ -490,11 +490,9 @@ def create_slits_from_collate1d(data_dir,mask,nexp,log):
         for ii,this_exp in enumerate(mask['spec1d_filename']):
 
             # ENSURE EXPOSURES MATCH
-            print('this= ',this_obj['spec1d_filename'])
-            print('mask=',mask['spec1d_filename'][ii] )
             m = this_obj['spec1d_filename'] == mask['spec1d_filename'][ii] 
             slits['flag_skip_exp'][i,ii] = 1
-
+            print(np.sum(m))
             # FOR WIDELY SPACED EXPOSURES, NEED TO INCREASE TOLERANCE
             if (np.sum(m) == 2):
                 printlog(log,'{} {} Consider re-running collate1d with larger tolerance'.format(i,ii))
