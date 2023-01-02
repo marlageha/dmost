@@ -318,6 +318,7 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
         while (np.sum(mstar) < 2):
             mstar = (slits['SN'][:,ii] > seeing_min_SN ) & (slits['marz_flag'] < 2) & (slits['flag_skip_exp'][:,ii] == 0)
             seeing_min_SN = seeing_min_SN - 0.5
+            print(np.sum(slits['SN'][:,ii] > seeing_min_SN ),np.sum(slits['marz_flag'] < 2),np.sum(slits['flag_skip_exp'][:,ii] == 0))
             if seeing_min_SN < 0:
                 mstar = (slits['marz_flag'] < 2) 
 
@@ -333,9 +334,9 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
         # ADD SLITWIDTH TO MASKS    
         DEIMOS_RAW = os.getenv('DEIMOS_RAW')
         rhdu       = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][ii]+'/'+mask['rawfilename'][ii])
-        #desislits  = rhdu['DesiSlits'].data
-        #median_slitwidth      = np.median(desislits['slitWid'])
-        mask['slitwidth'][ii] = 0.7#0.01*(round(median_slitwidth/0.01))
+        desislits  = rhdu['DesiSlits'].data
+        median_slitwidth      = np.median(desislits['slitWid'])
+        mask['slitwidth'][ii] = 0.01*(round(median_slitwidth/0.01))
         
 
         # SET LSF CORRECTION -- DETERMINED FROM FIT
