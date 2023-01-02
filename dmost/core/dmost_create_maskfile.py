@@ -296,7 +296,7 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
 
         for arg,obj in enumerate(slits):
             if obj['flag_skip_exp'][ii] == 0:
-
+desislits
                 # GET CHIP GAP
                 data = hdu[obj['slitname'][ii]].data
                 flux = data['OPT_COUNTS']
@@ -333,9 +333,9 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
         # ADD SLITWIDTH TO MASKS    
         DEIMOS_RAW = os.getenv('DEIMOS_RAW')
         rhdu       = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][ii]+'/'+mask['rawfilename'][ii])
-        desislits  = rhdu['DesiSlits'].data
-        median_slitwidth      = np.median(desislits['slitWid'])
-        mask['slitwidth'][ii] = 0.01*(round(median_slitwidth/0.01))
+#        desislits  = rhdu['DesiSlits'].data
+#        median_slitwidth      = np.median(desislits['slitWid'])
+        mask['slitwidth'][ii] = 0.7#0.01*(round(median_slitwidth/0.01))
         
 
         # SET LSF CORRECTION -- DETERMINED FROM FIT
