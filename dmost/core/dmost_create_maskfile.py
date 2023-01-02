@@ -296,7 +296,7 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
 
         for arg,obj in enumerate(slits):
             if obj['flag_skip_exp'][ii] == 0:
-desislits
+
                 # GET CHIP GAP
                 data = hdu[obj['slitname'][ii]].data
                 flux = data['OPT_COUNTS']
@@ -333,8 +333,8 @@ desislits
         # ADD SLITWIDTH TO MASKS    
         DEIMOS_RAW = os.getenv('DEIMOS_RAW')
         rhdu       = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][ii]+'/'+mask['rawfilename'][ii])
-#        desislits  = rhdu['DesiSlits'].data
-#        median_slitwidth      = np.median(desislits['slitWid'])
+        #desislits  = rhdu['DesiSlits'].data
+        #median_slitwidth      = np.median(desislits['slitWid'])
         mask['slitwidth'][ii] = 0.7#0.01*(round(median_slitwidth/0.01))
         
 
@@ -492,7 +492,6 @@ def create_slits_from_collate1d(data_dir,mask,nexp,log):
             # ENSURE EXPOSURES MATCH
             m = this_obj['spec1d_filename'] == mask['spec1d_filename'][ii] 
             slits['flag_skip_exp'][i,ii] = 1
-            print(np.sum(m))
             # FOR WIDELY SPACED EXPOSURES, NEED TO INCREASE TOLERANCE
             if (np.sum(m) == 2):
                 printlog(log,'{} {} Consider re-running collate1d with larger tolerance'.format(i,ii))
