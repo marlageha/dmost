@@ -285,7 +285,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
     if (plot==1):
         vmn = np.log(np.min(best_chi))
         tmp = np.percentile(best_chi,25)
-        if tmp <=0:
+        if vmn <=0:
             tmp=1.
             vmn = 0
         vmx = np.log(vmn + tmp)
