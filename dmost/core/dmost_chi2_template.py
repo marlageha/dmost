@@ -289,7 +289,7 @@ def chi2_best_template(f,data_wave,data_flux,data_ivar,losvd_pix,vrange,pdf,plot
             tmp=1.
             vmn = 0
         vmx = np.log(vmn + tmp)
-
+        print(vmn,vmx)
         
         fig, (ax1, ax2,ax3) = plt.subplots(1, 3,figsize=(20,5))
         plt.rcParams.update({'font.size': 14})
