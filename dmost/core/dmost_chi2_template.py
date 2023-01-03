@@ -385,7 +385,6 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
 
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
         is_good_slit = dmost_utils.is_good_slit(obj,remove_galaxies=1)
-
         if (is_good_slit) & (obj['collate1d_SN'] > SNmin):
 
             jhdu = fits.open(data_dir+'collate1d_flex/'+obj['collate1d_filename'])
