@@ -497,7 +497,7 @@ def create_slits_from_collate1d(data_dir,mask,nexp,log):
             if (np.sum(m) == 2):
                 printlog(log,'{} {} Consider re-running collate1d with larger tolerance'.format(i,ii))
                 ntolerance = ntolerance+1
-                if ntolerance > 50:
+                if ntolerance > 80:
                     printlog(log,'Too many repeats.   Re-run collate1d, exiting dmost')
                     sys.exit()
                     
