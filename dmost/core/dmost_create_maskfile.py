@@ -501,7 +501,7 @@ def create_slits_from_collate1d(data_dir,mask,nexp,log):
                     printlog(log,'Too many repeats.   Re-run collate1d, exiting dmost')
                     sys.exit()
                     
-            if (np.sum(m) == 2):
+            if (np.sum(m) == 1):
                 this_exp = this_obj[m][0]
                 slits['slitname'][i,ii]      = this_exp['pypeit_name']
                 slits['SN'][i,ii]            = this_exp['s2n']
