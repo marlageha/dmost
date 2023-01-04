@@ -231,8 +231,11 @@ def gauss_guess(x,y):
 #######################################################
 def fit_sky_linear(wlines,wdiff,wdiff_err):
     
-    z = np.polyfit(wlines,wdiff,w = 1./wdiff_err,deg= 1,cov=False)
-    p = np.poly1d(z)
+    p=[0,0]
+ 
+    if (np.size(wlines) > 1):
+        z = np.polyfit(wlines,wdiff,w = 1./wdiff_err,deg= 1,cov=False)
+        p = np.poly1d(z)
 
     return p
 
