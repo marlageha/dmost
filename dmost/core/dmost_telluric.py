@@ -78,15 +78,17 @@ def faster_polyval(p, x):
 # telluric continuum fitting
 def create_tell_masks(data_wave):
     
-    b = [6855,7167,7580,8160,8925]
-    r = [6912,7320,7690,8300,9120]
+    b = [6855,7167,7580,8160,8925,9400]
+    r = [6912,7320,7690,8300,9120,9550]
 
     data_mask1 = (data_wave > b[0]) & (data_wave < r[0]) 
     data_mask2 = (data_wave > b[1]) & (data_wave < r[1]) 
     data_mask3 = (data_wave > b[2]) & (data_wave < r[2]) 
     data_mask4 = (data_wave > b[3]) & (data_wave < r[3]) 
     data_mask5 = (data_wave > b[4]) & (data_wave < r[4]) 
-    chi2_mask = data_mask1 | data_mask2 | data_mask3 | data_mask4 | data_mask5
+    data_mask6 = (data_wave > b[5]) & (data_wave < r[5]) 
+
+    chi2_mask = data_mask1 | data_mask2 | data_mask3 | data_mask4 | data_mask5 | data_mask6
     
     
     # USE THIS FOR CONTINUUM FITTING
