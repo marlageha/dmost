@@ -277,12 +277,17 @@ def vignetting_limits(slit,nexp,wave):
         vwave_max = np.max(wave) - wlim8
             
 
+    if vwave_max > 9600:
+        vwave_max = 9600
 
     # RETURN NON-VIGNETTED WAVELENGTH REGION
     wave_lims = (wave > vwave_min) & (wave < vwave_max)
     
 
     return wave_lims
+
+
+
 
 #############################################################
 def is_good_slit(slit,nexp=-1,remove_galaxies=0,remove_seredips=0):
