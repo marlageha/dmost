@@ -158,7 +158,9 @@ def combine_exp(slits, mask, sys_exp = 0.25):
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
-                        
+            slits['coadd_flag'][i]  = 0
+            if ncomb > 99:
+                slits['coadd_flag'][i] = 1                           
 
     slits = set_mask_binary_flag(slits,mask)
 
