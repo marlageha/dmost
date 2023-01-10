@@ -18,7 +18,7 @@ def get_ebv(allspec):
 
     DEIMOS_RAW  = os.getenv('DEIMOS_RAW')
 
-    sdf_ext = sfdmap.SFDMap(DEIMOS_RAW+'SFDmap/')
+    sdf_ext = sfdmap.SFDMap(DEIMOS_RAW+'SFDmaps/')
     EBV    = sdf_ext.ebv(allspec['RA'],allspec['DEC'])
 
     allspec['EBV'] = EBV
