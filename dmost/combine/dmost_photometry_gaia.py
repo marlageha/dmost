@@ -16,9 +16,10 @@ import sfdmap
 ###########################################
 def get_ebv(allspec):
 
-    DEIMOS_RAW= os.getenv('DEIMOS_RAW')
-    sdf_ext   = sfdmap.SFDMap(DEIMOS_RAW + '/SFDmaps/')
-    EBV       = sdf_ext.ebv(allspec['RA'],allspec['DEC'])
+    DEIMOS_RAW  = os.getenv('DEIMOS_RAW')
+
+    sdf_ext = sfdmap.SFDMap(DEIMOS_RAW+'SFDmap/')
+    EBV    = sdf_ext.ebv(allspec['RA'],allspec['DEC'])
 
     allspec['EBV'] = EBV
 
@@ -96,7 +97,7 @@ def CaT_to_FeH(alldata):
     
     alldata['ew_feh'][m]      = FeH
     alldata['ew_feh_err'][m]  = FeH_err
-    alldata['ew_feh_flag'][m] = 1
+    #alldata['ew_feh_flag'][m] = 1
 
     return alldata
 
@@ -135,8 +136,11 @@ def match_photometry(obj,allspec):
 
     # POPULATE EBV
     allspec, Ar, Ag = get_ebv(allspec)
-    nobj            = np.size(allspec)
-    
+    nall            = np.size(allspec)
+    nobj            = np.sum(allspec['v_err'] >= 0)
+    nstar           = np.sum(allspec['v_err'] > 0)
+
+
     #####################
     ### MUNOZ -- COMPLETE UNPUBLISHED CATALOGS
     if obj['Phot'] == 'munozf':
@@ -168,7 +172,6 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.5*u.arcsec]]
         allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.5*u.arcsec]]
 
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
          
                
     ## PANSTARRS DR2
@@ -200,7 +203,6 @@ def match_photometry(obj,allspec):
         allspec['gmag_err'][mt] = pans['gMeanPSFMagErr'][idx[d2d < ds*u.arcsec]]
 
         
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
         
 
      
@@ -224,7 +226,6 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.5*u.arcsec]]
         allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.5*u.arcsec]]
 
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
          
   
     #####################
@@ -232,7 +233,6 @@ def match_photometry(obj,allspec):
     if obj['Phot'] == 'sdss_dr14':
         file = DEIMOS_RAW + '/Photometry/sdss_dr14/sdss_dr14_'+obj['Name2']+'.fits.gz'
         sdss = Table.read(file)
-        print(sdss['RA'])
         csdss   = SkyCoord(ra=sdss['RA']*u.degree, dec=sdss['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
         
@@ -246,7 +246,6 @@ def match_photometry(obj,allspec):
         allspec['gmag_err'][mt] = sdss['PSFMAGERR_G'][idx[d2d < 2.*u.arcsec]]
 
         
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
 
 
     #####################
@@ -277,7 +276,6 @@ def match_photometry(obj,allspec):
         allspec['gmag_err'][mt] = sdss['gmag_err'][idx[d2d < 1.*u.arcsec]]
 
         
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
 
        
  
@@ -301,15 +299,15 @@ def match_photometry(obj,allspec):
         # TRANSFORM PHOTOMETRY 
         # Jordi 2006: http://adsabs.harvard.edu/abs/2006A%26A...460..339J
         # FOR METAL POOR STARS
-        VR = pho['col10'] - pho['col14']
+        VR = pho['V'] - pho['R']
         gr = (1.72)*(VR)  - (0.198)  
-        r  = (0.34)*(VR)  + (0.015) + pho['col14']
+        r  = (0.34)*(VR)  + (0.015) + pho['R']
         g  = gr + r 
 
         # IF R ISN"T AVAILABLE, THEN JESTER et al 2005
         if (np.median(VR) < -10):
-            BV = pho['col6'] - pho['col10']
-            V  = pho['col10']
+            BV = pho['B'] - pho['V']
+            V  = pho['V']
             g  =  V + 0.60*(BV) - 0.12    
             r  =  V - 0.42*(BV) + 0.11    
 
@@ -324,7 +322,6 @@ def match_photometry(obj,allspec):
         allspec['gmag_o'][mt] = g[idx[d2d < 1.*u.arcsec]] - Ag[mt]
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
 
     
 #####################
@@ -350,31 +347,50 @@ def match_photometry(obj,allspec):
         allspec['gmag_err'][mt] = 0.01
 
         
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
 
     ### DELVE
     if obj['Phot'] == 'delve':
-        file = DEIMOS_RAW + '/Photometry/delve/delve_'+obj['Name2']+'.fits'
+        file = DEIMOS_RAW + '/Photometry/delve/delve_'+obj['Name2']+'.csv'
         delve = Table.read(file)
         
-        delve.rename_column('r0', 'gmag')
-        delve.rename_column('i0', 'rmag')
-
         
-        cls_dr9   = SkyCoord(ra=delve['ra']*u.degree, dec=delve['dec']*u.degree) 
+        cls_dr9   = SkyCoord(ra=delve['RA']*u.degree, dec=delve['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr9)  
         foo = np.arange(0,np.size(idx),1)
 
         mt = foo[d2d < 1.*u.arcsec]
-        allspec['rmag_o'][mt] = delve['rmag'][idx[d2d < 1.*u.arcsec]] 
-        allspec['gmag_o'][mt] = delve['gmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_o'][mt] = delve['rmag_o'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = delve['gmag_o'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
+
+        
+
+
+    ### HST
+    if obj['Phot'] == 'hst':
+        file = DEIMOS_RAW + '/Photometry/hst/hst_'+obj['Name2']+'.dat'
+        hst = ascii.read(file)
+        
+        hst.rename_column('F606', 'gmag')
+        hst.rename_column('F814', 'rmag')
+
+        
+        cls_hst   = SkyCoord(ra=hst['RA']*u.degree, dec=hst['Dec']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_hst)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = hst['rmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = hst['gmag'][idx[d2d < 1.*u.arcsec]] 
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
 
         
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
 
 
 #####################
@@ -402,13 +418,42 @@ def match_photometry(obj,allspec):
         allspec['gmag_err'][mt] = 0.01
 
         
-        print('Matches ZSPEC-PHOT: ',nobj,np.size(mt))
 
+#####################
+    ### MASSEY
+    if obj['Phot'] == 'massey':
+        file = DEIMOS_RAW + '/Photometry/other/massey_2007.fits'
+        massey = Table.read(file)
 
+        massey['V-R'] = massey['Vmag'] -  massey['V-R']       # CREATE R-mag
+        massey.rename_column('Vmag', 'gmag')
+        massey.rename_column('V-R', 'rmag')  
+#        massey.rename_column('dg', 'gmag_err')
+#        massey.rename_column('di', 'rmag_err')
+        massey['RAJ2000'] = np.array(massey['RAJ2000'])
+        massey['DEJ2000'] = np.array(massey['DEJ2000'])
+
+        cmassey = SkyCoord(ra=massey['RAJ2000']*u.degree, dec=massey['DEJ2000']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cmassey)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = massey['rmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = massey['gmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = 0.01
+        allspec['gmag_err'][mt] = 0.01
+
+        
 
 
 
     # DETERMINE MV AND CONVERT CAT -> FEH
+    m_miss_star = (allspec['rmag_o'] < 2) & (allspec['serendip'] != 1) & (allspec['v_err'] > 0)
+    m_miss_gal = (allspec['rmag_o'] < 2) & (allspec['serendip'] != 1) & (allspec['v_err'] ==0)
+    print('PHOT: Missing {} stars and  {} galaxies'.format(np.sum(m_miss_star),np.sum(m_miss_gal)))
+
     allspec = calc_rproj(allspec,obj)
     allspec = calc_MV_star(allspec,obj)
     allspec = CaT_to_FeH(allspec)
