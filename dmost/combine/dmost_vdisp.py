@@ -11,7 +11,7 @@ from astropy.table import vstack
 from scipy.stats import norm
 
 import glob
-import dmost_utils
+from dmost.core import dmost_utils
 
 
 import emcee
