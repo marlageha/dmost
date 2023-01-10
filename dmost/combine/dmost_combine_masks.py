@@ -333,7 +333,6 @@ def read_dmost_files(masklist):
     n=0
 
     data_dir = os.getenv('DEIMOS_REDUX')
-    data_dir = '/Users/mgeha/data_pypeit_v1.9/'
     allslits = []
 
     for msk in masklist:
