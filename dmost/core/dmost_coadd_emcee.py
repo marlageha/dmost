@@ -484,7 +484,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
 
 
         # THRESHOLD TO RUN COADD
-        do_coadd = coadd_threshol(nexp, slt)
+        do_coadd = coadd_threshold(nexp, slt)
 
         is_good_slit = dmost_utils.is_good_slit(slt,remove_galaxies=1)
 
