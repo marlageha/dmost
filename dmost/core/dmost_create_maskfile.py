@@ -155,7 +155,8 @@ def create_slits(nslits,nexp):
             filled_column('emcee_lnprob',np.zeros(nexp),nslits),
             filled_column('emcee_skew',np.zeros(nexp),nslits),
             filled_column('emcee_kertosis',np.zeros(nexp),nslits),
-   
+            filled_column('emcee_good',np.zeros(nexp),nslits),
+
    
             # LOW SN V
             filled_column('coadd_v',-1.,nslits),
@@ -171,6 +172,7 @@ def create_slits(nslits,nexp):
             filled_column('coadd_lnprob',-1.,nslits),
             filled_column('coadd_skew',-1.,nslits),
             filled_column('coadd_kertosis',-1.,nslits),
+            filled_column('coadd_good',-1,nslits),
             filled_column('coadd_flag',-1,nslits),
 
             # COMBINED VELOCITIES
