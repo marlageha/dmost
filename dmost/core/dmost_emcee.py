@@ -329,6 +329,11 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     slits['emcee_skew'][arg,nexp] = skew(chain)
 
 
+    # DETERMINE IF MCMC WAS SUCCESSFUL
+    slits['emcee_good'][arg,nexp] = 0
+    if (np.abs(slits['emcee_kertosis'][arg,nexp]) < 1) & (np.abs(slits['emcee_skew'][arg,nexp])<1) & (slits['emcee_f_acc'][arg,nexp] > 0.69):
+        slits['emcee_good'][arg,nexp]  = 1
+
     return sampler, slits, theta
 
 
