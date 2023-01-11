@@ -153,6 +153,9 @@ def create_slits(nslits,nexp):
             filled_column('emcee_burnin',np.zeros(nexp,dtype=int),nslits),
             filled_column('emcee_converge',np.zeros(nexp),nslits),
             filled_column('emcee_lnprob',np.zeros(nexp),nslits),
+            filled_column('emcee_skew',np.zeros(nexp),nslits),
+            filled_column('emcee_kertosis',np.zeros(nexp),nslits),
+   
    
             # LOW SN V
             filled_column('coadd_v',-1.,nslits),
