@@ -169,6 +169,8 @@ def create_slits(nslits,nexp):
             filled_column('coadd_burnin',-1,nslits),
             filled_column('coadd_nsamp',-1.,nslits),
             filled_column('coadd_lnprob',-1.,nslits),
+            filled_column('coadd_skew',-1.,nslits),
+            filled_column('coadd_kertosis',-1.,nslits),
             filled_column('coadd_flag',-1,nslits),
 
             # COMBINED VELOCITIES
