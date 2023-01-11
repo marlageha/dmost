@@ -270,6 +270,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
             slits['coadd_v'][arg] = mcmc[1] + vhelio_avg
             slits['coadd_v_err16'][arg] = mcmc[0] + vhelio_avg
             slits['coadd_v_err84'][arg] = mcmc[2] + vhelio_avg
+            slits['coadd_v_err'][arg]   = (mcmc[2] - mcmc[0])/2.
 
         if (ii==1):
             slits['coadd_w'][arg] = mcmc[1] 
@@ -280,6 +281,11 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
     slits['coadd_kertosis'][arg] = kurtosis(chain)
     slits['coadd_skew'][arg] = skew(chain)
 
+
+    # DETERMINE IF MCMC WAS SUCCESSFUL
+    slits['coadd_good'][arg] = 0
+    if (np.abs(slits['coadd_kertosis'][arg]) < 1) & (np.abs(slits['coadd_skew'][arg])<1) & (slits['coadd_f_acc'][arg] > 0.69):
+        slits['coadd_good'][arg]  = 1
 
     return sampler, slits, theta, burnin,vhelio_avg 
 
@@ -478,7 +484,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
 
 
         # THRESHOLD TO RUN COADD
-        do_coadd = coadd_threshold(nexp, slt)
+        do_coadd = coadd_threshol2d(nexp, slt)
 
         is_good_slit = dmost_utils.is_good_slit(slt,remove_galaxies=1)
 
