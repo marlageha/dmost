@@ -437,7 +437,7 @@ def coadd_threshold(nexp, slt):
     ngood = 0.
     for exp in np.arange(0,nexp,1):
         err   = (slt['emcee_v_err84'][exp] - slt['emcee_v_err16'][exp])/2.
-        if (slt['emcee_f_acc'][exp] > 0.69) & (err < 10.):
+        if (slt['emcee_good'][exp] == 1) & (err < 10.):
             ngood = ngood +1.
 
     single_good   = ngood/nexp
@@ -484,7 +484,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
 
 
         # THRESHOLD TO RUN COADD
-        do_coadd = coadd_threshol2d(nexp, slt)
+        do_coadd = coadd_threshol(nexp, slt)
 
         is_good_slit = dmost_utils.is_good_slit(slt,remove_galaxies=1)
 
