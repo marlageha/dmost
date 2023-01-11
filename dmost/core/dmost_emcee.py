@@ -23,9 +23,7 @@ from dmost import dmost_utils
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
-
-#from multiprocessing import Pool
-#os.environ["OMP_NUM_THREADS"] = "1"
+from scipy.stats import kurtosis, skew
 
 
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
@@ -324,6 +322,12 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
             slits['emcee_w'][arg,nexp] = mcmc[1]
             slits['emcee_w_err16'][arg,nexp] = mcmc[0]
             slits['emcee_w_err84'][arg,nexp] = mcmc[2]
+
+    # CALCULATE SKEW/KERTOSIS
+    chain  = np.array(sampler.chain[:,burnin:, 0]).flatten()
+    slits['emcee_kertosis'][arg,nexp] = kurtosis(chain)
+    slits['emcee_skew'][arg,nexp] = skew(chain)
+
 
     return sampler, slits, theta
 
