@@ -15,7 +15,8 @@ def set_mask_binary_flag(slits,mask,sys_exp=0.5):
     for i,obj in enumerate(slits):
     
 
-        m=obj['emcee_f_acc'] > 0.7
+        m=obj['emcee_good'] == 1
+        slits['vv_short_flag'][i]  = -99
         if np.sum(m) > 1:
 
 
@@ -45,7 +46,7 @@ def set_mask_binary_flag(slits,mask,sys_exp=0.5):
 
     return slits
 
-def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.65, sys_exp = 0.25):
+def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
 
     '''
     Combine velocity and velocity errors for single object 
@@ -66,20 +67,22 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
         combined velocity, error and number of combined exposures
     '''
 
-    v, verr, ncomb    = [-1,-1,0]
+    v, verr, ncomb    = [-99,-99,-99]
     
     # IS THIS A GALAXY?
     if (obj['marz_flag'] > 2):
         v    = obj['marz_z'] * 3e5
+        verr = 0
+        ncomb= 100
         return v,verr,ncomb
 
     
     # USE VELOCITY IF ANY EXPOSURE IS GOOD
-    if np.any(obj['emcee_f_acc'] > f_acc_thresh):
+    if np.any(obj['emcee_good'] == 1):
         vt,et = [], []
         for j in np.arange(0,nexp,1):
-            if obj['emcee_f_acc'][j] > f_acc_thresh:
-                vt   = np.append(vt,obj['emcee_v'][j]) #+mask['vhelio'][j])
+            if obj['emcee_good'][j]  == 1:
+                vt   = np.append(vt,obj['emcee_v'][j])
                 terr = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
                 et   = np.append(et,np.sqrt(terr**2 + sys_exp**2))
                 ncomb=ncomb+1
@@ -89,23 +92,21 @@ def combine_multiple_exp(obj, mask, nexp, f_acc_thresh = 0.69, f_acc_coadd = 0.6
         v    = sum2/sum1
         verr = np.sqrt(1./sum1)
 
-        # IF ERROR IS LARGE AND COADD IS BETTER, REPLACE WITH COADD
-        err_thresh = 10.  # 10 kms
-        terr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-        terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
 
-        if (verr > err_thresh) & (obj['coadd_f_acc'] > 0.65) & (verr > terr2):
-            v     = obj['coadd_v']#+np.mean(mask['vhelio'])
-            verr   = np.sqrt(terr**2 + nexp*sys_exp**2)
-            ncomb = nexp + 100.
+        # CHECK
+        if (obj['coadd_good'] ==  1):
+            terr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+            terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
+            print(verr,np.sqrt(terr),terr2)
+           
         
 
 
     # IF NONE, THEN USE COADD WITH LOWER THRESHOLD
     # COADD HAS BEEN HELIO_CORRECTED
     else:
-        if (obj['coadd_f_acc'] > 0.65):
-            v     = obj['coadd_v']#+np.mean(mask['vhelio'])
+        if (obj['coadd_good'] ==  1):
+            v     = obj['coadd_v']
             terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
             verr   = np.sqrt(terr**2 + nexp*sys_exp**2)
             ncomb = nexp + 100.
@@ -123,15 +124,17 @@ def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
     # IS THIS A GALAXY?
     if (obj['marz_flag'] > 2):
         v    = obj['marz_z'] * 3e5
+        verr = 0
+        ncomb= 100
         return v,verr,ncomb
 
     
     # USE VELOCITY IF ANY EXPOSURE IS GOOD
-    if (obj['emcee_f_acc'] > 0.69):
-        v     = obj['emcee_v']#+mask['vhelio']
+    if (obj['emcee_good'] == 1):
+        v     = obj['emcee_v']
         terr  = (obj['emcee_v_err84']-obj['emcee_v_err16'])/2.
         
-        # IS THIS RIGHT?   ADDING SYS ERROR FOR COADD
+        # ADDING SYS ERROR 
         err   =  np.sqrt(terr**2 + sys_exp**2)
         ncomb = 1                     
             
@@ -165,13 +168,14 @@ def combine_exp(slits, mask, sys_exp = 0.25):
     slits = set_mask_binary_flag(slits,mask)
 
     #print()
-    nstar = np.size(slits)
-    ngood = np.sum(slits['dmost_v'] != -1.0) 
-    print('{} Velocities measured for {} of {} spectra'.format(mask['maskname'][0],ngood,nstar))
+    ngal = np.sum((slits['marz_flag'] > 2))
+    print('{} Velocities measured for {} galaxies'.format(mask['maskname'][0],ngal))
 
-    nstar = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 3))
-    ngood = np.sum((slits['dmost_v_err'] > 0) &  (slits['collate1d_SN'] > 3))
-    print('{} Stellar velocities measured for {} of {} stars SN > 3'.format(mask['maskname'][0],ngood,nstar))
+    nstar  = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 3))
+    ngood  = nstar & np.sum((slits['dmost_v_err'] > 0))
+    ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & (silts['coadd_flag'] ==1)
+
+    print('{} Stellar velocities measured for {} of {} ({} coadds}) stars SN > 3'.format(mask['maskname'][0],ngood,nstar,ncoadd))
 
             
     return slits,mask
