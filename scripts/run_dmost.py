@@ -52,13 +52,13 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
 
 
     # RUN EMCEE
-    if ~(np.sum(mask['flag_emcee']) == nexp) | (rerun_emcee == 1):
+    #if ~(np.sum(mask['flag_emcee']) == nexp) | (rerun_emcee == 1):
         slits, mask  = dmost_emcee.run_emcee(data_dir, slits, mask,outfile)
         write_dmost(slits,mask,outfile)
 
     # RUN LOW SN EMCEE ON COADDED SPECTRA
     rerun_coadd=0
-    if ~(np.sum(mask['flag_coadd']) == nexp) | (rerun_coadd == 1):
+    #if ~(np.sum(mask['flag_coadd']) == nexp) | (rerun_coadd == 1):
         slits, mask  = dmost_coadd_emcee.run_coadd_emcee(data_dir, slits, mask,outfile)
         write_dmost(slits,mask,outfile)
 
