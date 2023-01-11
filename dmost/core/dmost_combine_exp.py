@@ -173,7 +173,7 @@ def combine_exp(slits, mask, sys_exp = 0.25):
 
     nstar  = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 3))
     ngood  = nstar & np.sum((slits['dmost_v_err'] > 0))
-    ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & (silts['coadd_flag'] ==1)
+    ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & (slits['coadd_flag'] ==1)
 
     print('{} Stellar velocities measured for {} of {} ({} coadds}) stars SN > 3'.format(mask['maskname'][0],ngood,nstar,ncoadd))
 
