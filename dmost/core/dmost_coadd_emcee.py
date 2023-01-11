@@ -20,14 +20,12 @@ import h5py
 
 
 from dmost import dmost_utils
-#from dmost.dmost_create_maskfile import write_dmost
 
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
+from scipy.stats import kurtosis, skew
 
-#from multiprocessing import Pool
-#os.environ["OMP_NUM_THREADS"] = "1"
 
 import numba
 from numba import njit
@@ -276,6 +274,11 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
         if (ii==1):
             slits['coadd_w'][arg] = mcmc[1] 
             slits['coadd_w_err'][arg] = (mcmc[0]+mcmc[2])/2.
+
+    # CALCULATE SKEW/KERTOSIS
+    chain  = np.array(sampler.chain[:,burnin:, 0]).flatten()
+    slits['coadd_kertosis'][arg] = kurtosis(chain)
+    slits['coadd_skew'][arg] = skew(chain)
 
 
     return sampler, slits, theta, burnin,vhelio_avg 
