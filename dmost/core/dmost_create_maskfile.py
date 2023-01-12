@@ -153,48 +153,48 @@ def create_slits(nslits,nexp):
             filled_column('emcee_burnin',np.zeros(nexp,dtype=int),nslits),
             filled_column('emcee_converge',np.zeros(nexp),nslits),
             filled_column('emcee_lnprob',np.zeros(nexp),nslits),
-            filled_column('emcee_skew',np.zeros(nexp),nslits),
-            filled_column('emcee_kertosis',np.zeros(nexp),nslits),
-            filled_column('emcee_good',np.zeros(nexp),nslits),
+            filled_column('emcee_skew',-99*np.ones(nexp),nslits),
+            filled_column('emcee_kertosis',-99*np.ones(nexp),nslits),
+            filled_column('emcee_good',-1*np.ones(nexp),nslits),
 
    
             # LOW SN V
-            filled_column('coadd_v',-1.,nslits),
-            filled_column('coadd_w',-1.,nslits),
-            filled_column('coadd_v_err',-1.,nslits),
-            filled_column('coadd_w_err',-1.,nslits),
-            filled_column('coadd_v_err16',-1.,nslits),
-            filled_column('coadd_v_err84',-1.,nslits),
-            filled_column('coadd_f_acc',-1.,nslits),
-            filled_column('coadd_converge',-1.,nslits),
-            filled_column('coadd_burnin',-1,nslits),
-            filled_column('coadd_nsamp',-1.,nslits),
-            filled_column('coadd_lnprob',-1.,nslits),
-            filled_column('coadd_skew',-1.,nslits),
-            filled_column('coadd_kertosis',-1.,nslits),
-            filled_column('coadd_good',-1,nslits),
-            filled_column('coadd_flag',-1,nslits),
+            filled_column('coadd_v',-999.,nslits),
+            filled_column('coadd_w',-99.,nslits),
+            filled_column('coadd_v_err',-99.,nslits),
+            filled_column('coadd_w_err',-99.,nslits),
+            filled_column('coadd_v_err16',-99.,nslits),
+            filled_column('coadd_v_err84',-99.,nslits),
+            filled_column('coadd_f_acc',-99.,nslits),
+            filled_column('coadd_converge',-99.,nslits),
+            filled_column('coadd_burnin',-99,nslits),
+            filled_column('coadd_nsamp',-99.,nslits),
+            filled_column('coadd_lnprob',-99.,nslits),
+            filled_column('coadd_skew',-99.,nslits),
+            filled_column('coadd_kertosis',-99.,nslits),
+            filled_column('coadd_good',-99,nslits),
+            filled_column('coadd_flag',-99,nslits),
 
             # COMBINED VELOCITIES
-            filled_column('dmost_v',-1.,nslits),
-            filled_column('dmost_v_err',-1.,nslits),
-            filled_column('v_nexp',1,nslits),
+            filled_column('dmost_v',-999.,nslits),
+            filled_column('dmost_v_err',-99.,nslits),
+            filled_column('v_nexp',-99,nslits),
 
             # SHORT BINARY FLAGS
-            filled_column('vv_short_pval',-1.,nslits),
-            filled_column('vv_short_max_v',-1.,nslits),
-            filled_column('vv_short_max_t',-1.,nslits),
-            filled_column('vv_short_flag',-1,nslits),
+            filled_column('vv_short_pval',-99.,nslits),
+            filled_column('vv_short_max_v',-99.,nslits),
+            filled_column('vv_short_max_t',-99.,nslits),
+            filled_column('vv_short_flag',-99,nslits),
 
 
            # EQUIVALENT WIDTHS FROM COADD1D FILES
             filled_column('cat',-99.,nslits),
-            filled_column('cat_err',-1.,nslits),
-            filled_column('cat_chi2',-1.,nslits),
+            filled_column('cat_err',-99.,nslits),
+            filled_column('cat_chi2',-99.,nslits),
             filled_column('naI',-99.,nslits),
-            filled_column('naI_err',-1.,nslits),
+            filled_column('naI_err',-99.,nslits),
             filled_column('mgI',-99.,nslits),
-            filled_column('mgI_err',-1.,nslits)
+            filled_column('mgI_err',-99.,nslits)
 
            ]
             
