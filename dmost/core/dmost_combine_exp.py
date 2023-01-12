@@ -120,7 +120,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
     return v,verr,ncomb
   
     
-def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
+def combine_single_exp(obj, mask, sys_exp = 0.5):
 
     v, verr, ncomb    = [-1,-1,0]
     
@@ -144,7 +144,7 @@ def combine_single_exp(obj, mask, f_acc_thresh = 0.69, sys_exp = 0.25):
     return v,verr,ncomb    
   
   
-def combine_exp(slits, mask, sys_exp = 0.25):
+def combine_exp(slits, mask, sys_exp = 0.5):
     '''
     Combine exposures in a single mask, 
     either single or multiple exposures
