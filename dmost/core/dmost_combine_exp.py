@@ -97,7 +97,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
         if (obj['coadd_good'] ==  1):
             terr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
             terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
-            print(verr,np.sqrt(terr),terr2)
+            print('verr, cerr, cerr_sys:  {:0.2f} {:0.2f} {:0.2f}'.format(verr,terr,terr2))
            
         
 
@@ -173,9 +173,9 @@ def combine_exp(slits, mask, sys_exp = 0.25):
 
     nstar  = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 3))
     ngood  = nstar & np.sum((slits['dmost_v_err'] > 0))
-    ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & (slits['coadd_flag'] ==1)
+    ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & np.sum((slits['coadd_flag'] ==1))
 
-    print('{} Stellar velocities measured for {} of {} ({} coadds}) stars SN > 3'.format(mask['maskname'][0],ngood,nstar,ncoadd))
+    print('{} Stellar velocities measured for {} of {} ({} coadds) stars SN > 3'.format(mask['maskname'][0],ngood,nstar,ncoadd))
 
             
     return slits,mask
