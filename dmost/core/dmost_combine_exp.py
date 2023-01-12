@@ -93,17 +93,20 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
         verr = np.sqrt(1./sum1)
 
 
-        # CHECK
+        # USE COADD IF SINGLE ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
             terr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
             terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
             print('verr, cerr, cerr_sys:  {:0.2f} {:0.2f} {:0.2f}'.format(verr,terr,terr2))
-           
-        
+            if (1.5*terr2 < verr) | (verr > 10):
+                v     = obj['coadd_v']
+                terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+                verr  = np.sqrt(terr**2 + nexp*sys_exp**2)
+                ncomb = nexp + 100.
 
 
-    # IF NONE, THEN USE COADD WITH LOWER THRESHOLD
-    # COADD HAS BEEN HELIO_CORRECTED
+
+    # IF NONE, THEN USE COADD 
     else:
         if (obj['coadd_good'] ==  1):
             v     = obj['coadd_v']
