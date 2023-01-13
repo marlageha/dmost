@@ -30,7 +30,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
 
     fig, (ax1, ax2,ax3,ax4) = plt.subplots(1, 4,figsize=(22,5))
 
-    ax1.plot(nwave,nspec,label = 'chi2 = {:0.2f}'.format(this_slit['cat_chi2']))
+    ax1.plot(nwave,nspec,label = 'chi2 = {}'.format(this_slit['objname']))
     ax1.set_xlim(8484, 8560)
     ax1.plot(nwave,cat_fit,'r')
     ax1.set_title('SN= {:0.1f} v = {:0.1f}'.format(this_slit['collate1d_SN'], this_slit['dmost_v']))
