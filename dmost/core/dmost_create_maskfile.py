@@ -330,7 +330,6 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
                 mstar = (slits['marz_flag'] < 2) 
 
 
-        print(seeing_min_SN)
         mask['seeing'][ii] = np.nanmedian(slits['opt_fwhm'][mstar,ii])
 
         # IF WE CAN"T MEASURE SEEING, ASSUME ITS LARGE
