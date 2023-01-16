@@ -172,6 +172,10 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model, mask):
 
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0]+mask['vhelio'][nexp], color="k",linewidth=0.5,alpha=0.8)
+
+    ks = 'S={:0.2f}\nK={:0.2f}'.format(slits['emcee_skew'][arg,nexp],slits['emcee_kertosis'][arg,nexp])
+    ax1.text(0.92,0.05,ks,transform=ax1.transAxes, bbox=dict(facecolor='none', edgecolor='grey', pad=3))
+
     verr = slits['emcee_v_err84'][arg,nexp] - slits['emcee_v_err16'][arg,nexp]
     ax1.set_title('f_acc = {:0.3f}  err = {:0.2f} v = {:0.2f}'.format(np.mean(sampler.acceptance_fraction),verr,slits['emcee_v'][arg,nexp]))
     ax1.axvline(burnin)
