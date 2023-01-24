@@ -5,7 +5,7 @@
 
 ---
 
-## dmost_alldata_[object] schema
+## dmost_alldata_[object].fits
 
 Label | Unit | Definition
 --- | --- | ---
@@ -40,7 +40,7 @@ Label | Unit | Definition
 
 ----
 
-## dmost_[mask]: Mask schema
+## dmost_[mask].fits
 
 Label | Unit | Definition
 --- | --- | ---
