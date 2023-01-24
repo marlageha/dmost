@@ -36,6 +36,7 @@ Label | Unit | Definition
 `gmag_err`  | mag | Error on the extinction corrected g-band magnitude from associated photometry source
 `EBV`  | mag | E(B-V) value determined from SFD
 `MV_o`  | mag | Extinction corrected absolute V-band magnitude 
+`prob_member`  |  | Membership probability = 1 if good member star
 
 
 ----
