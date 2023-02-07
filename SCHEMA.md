@@ -3,11 +3,11 @@
 ---
 
 ## dmost_alldata_[object].fits
-* Final combine output file from all DEIMOS observations of a stellar system (object).  One row per star
+ Final combine output file from all DEIMOS observations of a stellar system (object).  One row per star.
 
 Label | Unit | Definition
 --- | --- | ---
-`objname` | - | Name of target
+`objname` | - | Name of star target
 `RA` | degree |  Target Right Ascension J2000
 `DEC` | degree |  Target Declination J2000
 `rproj_arcm` | arcmin |  Project radius of target from object center (arcmin)
