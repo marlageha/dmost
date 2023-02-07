@@ -1,12 +1,9 @@
 # Schema for output files from dmost:
-* [dmost_alldata_[object]](https://github.com/marlageha/dmost/blob/main/SCHEMA.md#dmost_alldata-schema):  Final combine output file from all DEIMOS observations of a stellar system (object)
-* [dmost_[mask]](http://github.com/marlageha/dmost/blob/main/SCHEMA.md#schema-for-dmost-individual-mask-tables):  Two tables containing mask and slit information from a single DEIMOS mask
-
 
 ---
 
 ## dmost_alldata_[object].fits
-
+* Final combine output file from all DEIMOS observations of a stellar system (object).  One row per star
 Label | Unit | Definition
 --- | --- | ---
 `objname` | - | Name of target
