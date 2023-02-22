@@ -11,117 +11,87 @@ from astropy.table import vstack
 from scipy.stats import norm
 
 import glob
-import dmost_utils,dmost_vdisp
+
+from dmost.core import dmost_utils
+from dmost.combine import dmost_vdisp
 
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 
+def set_cmd_lims(rmag):
+    
+    m=(rmag > 10)& (rmag < 30)
+    rmag=rmag[m]
+    
+    try:
+        cmin = np.max(rmag)+0.25
+        cmax = np.min(rmag[rmag >0])-0.25
+    except:
+        cmin,cmax = 24,13
 
-def mk_all_plots(alldata,this_obj, mem=0,Pmem=Pmem):
+    if cmin > 24:
+        cmin = 24
+    if cmax < 13:
+        cmax = 14
 
-    fig, (ax1, ax2,ax3) = plt.subplots(1, 3,figsize=(20,6))
-    plt.rcParams.update({'font.size': 14})
-
-    #############################
-    # SPATIAL PLOT
-    ax1.plot(alldata['RA'],alldata['DEC'],'ko',alpha=0.7,label='all targets')
-    ax1.set_xlabel('RA [deg]')
-    ax1.set_ylabel('DEC [deg]')
-
-    half_light = plt.Circle((this_obj['RA'], this_obj['Dec']),this_obj['r_eff_arcm']/60., \
-                            fill=None,color='g',label='half-light radius')
-    ax1.add_patch(half_light)
-    if (mem == 1):
-        ax1.plot(alldata['RA'][Pmem],alldata['DEC'][Pmem],'ro',alpha=0.7,label='members')
-
-    ax1.legend()
-
-    #############################
-    # CMD PLOT
-    gr = alldata['gmag_o'] - alldata['rmag_o']
-
-    ax2.plot(gr,alldata['rmag_o'],'ko',alpha = 0.7)
-    ax2.set_ylim(23.5,14)
-    ax2.set_xlim(-0.5,1.75)
-    ax2.set_xlabel('(g-r)_o')
-    ax2.set_ylabel('r_o')
-
-
-    if (mem == 1):
-        ax2.plot(gr[Pmem],alldata['rmag_o'][Pmem],'ro',alpha=0.7,label='members')
-
-    r_iso,gr_iso = plot_isochrone_padova(this_obj['Dist_kpc'],this_obj['EBV_SF11'],this_obj['iso_guess'])
-    ax2.plot(gr_iso,r_iso,'go',ms=3)
-
-    #############################
-    vmin = -150+this_obj['v_guess']
-    vmax =  150+this_obj['v_guess']
-    bn = np.arange(vmin,vmax,2.5)
-    bins = [(bn[i]+bn[i+1])/2. for i in range(len(bn)-1)]
-
-    N, x  = np.histogram(alldata['v'], bins=bn)
-    ax3.fill_between(bins,N, step="pre", alpha=0.4,color='k')
-
-    if (mem==1):                             
-        N, x  = np.histogram(alldata['v'][Pmem], bins=bn)                             
-        ax3.fill_between(bins,N, step="pre", alpha=0.4,color='r')
-
-    ax3.set_xlabel('Velocity (km/s)')
-
-    #############################
-    #############################
-
-    fig, (ax1, ax2,ax3) = plt.subplots(1, 3,figsize=(20,6))
-    vmin = -75+this_obj['v_guess']
-    vmax =  75+this_obj['v_guess']
-
-    #############################
-    m_ew_na = np.abs(alldata['ew_naI_err']) < 5 
-    ax1.plot(alldata['v'][m_ew_na],alldata['ew_naI'][m_ew_na],'ko',alpha=0.5)
-    ax1.errorbar(alldata['v'][m_ew_na],alldata['ew_naI'][m_ew_na],yerr=alldata['ew_naI_err'][m_ew_na],fmt='ko',alpha=0.5)
-
-    ax1.set_xlim(vmin,vmax)
-    if (mem==1):                             
-        ax1.plot(alldata['v'][m_ew_na&Pmem],alldata['ew_naI'][m_ew_na&Pmem],'ro',alpha=0.5)
-
-    ax1.set_xlabel('v')
-    ax1.set_ylabel('EW_NaI')
-
-    #############################
-    m_ew_na = np.abs(alldata['ew_feh_err']) < 5 
-    ax2.plot(alldata['v'][m_ew_na],alldata['ew_feh'][m_ew_na],'ko',alpha=0.5)
-    ax2.set_xlim(vmin,vmax)
-    if (mem==1):                             
-        ax2.plot(alldata['v'][m_ew_na&Pmem],alldata['ew_feh'][m_ew_na&Pmem],'ro',alpha=0.5)
-
-    ax2.set_xlabel('v')
-    ax2.set_ylabel('[Fe/H]_EW')
-
-    #############################
-    ax3.plot(alldata['rproj_kpc'],alldata['v'],'ko',alpha=0.5)
-    ax3.errorbar(alldata['rproj_kpc'],alldata['v'],yerr = alldata['v_err'],fmt='.',alpha=0.5)
-
-    ax3.set_ylim(vmin,vmax)
-    if (mem==1):                             
-        ax3.plot(alldata['rproj_kpc'][Pmem],alldata['v'][Pmem],'ro',alpha=0.5)
-        ax3.axvline(this_obj['r_eff_arcm']/60.,color='g')
-
-    ax3.set_ylabel('v')
-    ax3.set_ylabel('projected radius [kpc]')
-
-
-
+    return cmin,cmax
 
 ######################################################
-def plot_isochrone_padova(dist,iso):
+def plot_isochrone_padova(dist,str_iso):
 
-    iso = ascii.read(DEIMOS_RAW+'/Photometry/isochrones/iso_t12_z'+str(iso)+'.dat')
+    print(str_iso)
+    iso = ascii.read(DEIMOS_RAW+'/Photometry/isochrones/iso_t12_z'+str(str_iso)+'.dat')
 
+    #A(g)/(E(B-V)) = 3.793    
+    #Ag = 3.793 * EBV
+    #Ar = 2.751 * EBV
 
     r_iso = iso['rmag'] + 5.*np.log10(dist*1e3) - 5.  # + Ar
     gr_iso = iso['gmag'] - iso['rmag'] #+ (Ag - Ar)
     
     return r_iso,gr_iso
 
+
+
+######################################################
+def plot_isochrone_HB(dist):
+
+    iso = Table.read(DEIMOS_RAW+'/Photometry/isochrones/M92_fiducial.dat',format='ascii',guess=False)
+    hb = iso['typ'] == 1
+    
+
+    r_iso = iso['rmag'][hb] + 5.*np.log10(dist*1e3) - 5. 
+    gr_iso = iso['gmr'][hb] + 0.2
+    
+    return r_iso,gr_iso 
+
+
+def membership_v(alldata,this_obj,cmd_mem=0,crude_cut=50.,sig=3.5):
+    
+    min_v = this_obj['v_guess'] - crude_cut
+    max_v = this_obj['v_guess'] + crude_cut
+
+    crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v)
+
+    v = alldata['v'][crude_v]
+    verr = alldata['v_err'][crude_v]
+    if np.sum(cmd_mem) > 0:
+        cm = (cmd_mem == 1)
+        v = alldata['v'][cm&crude_v]
+        verr = alldata['v_err'][cm&crude_v]
+
+    sampler, theta = dmost_vdisp.mcmc_vdisp(v,verr, this_obj['v_guess'],5,plot=0)
+    
+    min_v = theta[0] - sig*theta[1]
+    max_v = theta[0] + sig*theta[1]
+
+    vmem = (alldata['v'] > min_v) & (alldata['v'] < max_v)
+    if np.sum(cmd_mem) > 0:
+        vmem = (alldata['v'] > min_v) & (alldata['v'] < max_v) & (cm)
+
+    
+    #print('Vmin Vmax = {:0.2f}, {:0.2f}'.format(theta[0] - sig*theta[1],theta[0] + sig*theta[1]))
+
+    return vmem
 
 ######################################################
 def membership_CMD(zspec,obj):
@@ -130,37 +100,47 @@ def membership_CMD(zspec,obj):
     dist= obj['Dist_kpc']
     iso = obj['iso_guess']
 
-    r,gr = plot_isochrone_padova(dist*1e3,iso)
+    r,gr = plot_isochrone_padova(dist,iso)
+    r_hb,gr_hb = plot_isochrone_HB(dist)
 
         
     dmin = []
     emin = []
+    mem = []
     for star in zspec:
         err = np.sqrt(star['gmag_err']**2 + star['rmag_err']**2)
 
         d = (r - star['rmag_o'])**2 + (gr - (star['gmag_o'] - star['rmag_o']))**2
-        #d2 = (r_hb - star['RMAG'])**2 + (gr_hb - (star['gmag_o'] - star['rmag_o']))**2
+        d2 = (r_hb - star['rmag_o'])**2 + (gr_hb - (star['gmag_o'] - star['rmag_o']))**2
 
         tmp = np.min(d)
-        #tmp2=np.min(d2)        
-        #if tmp2 < tmp:
-        #    tmp=tmp2
-        dmin.append(tmp)  
+        tmp2=np.min(d2)        
+        if tmp2 < tmp:
+            tmp=tmp2
+        
+        dmin.append(np.sqrt(tmp))#+err)  
         emin.append(err)
-    
-    emin = np.array(emin)
-    m    =  (emin > 1) 
-    emin[m] = 0
-    m    =  (emin > 0.3) & (star['rmag_err'] < 22)   #. account for bad errors in UMa2    
-    emin[m] = 0
+        
+
+        
+    m_good = np.array(dmin) < (0.2)# + emin)
     
     #*********************************
     # CMD THRESHOLD == 0.1 PLUS ERRORS
-    mem = np.array(dmin) < 0.1 + emin   # SET THRESHOLD PLUS PHOTOMETRIC ERROR
+    mem = np.zeros(np.size(dmin))
+    m_good = np.array(dmin) < (0.2)
+    mem[m_good] = 1
     
-    return mem
-
-
+    
+    return mem,dmin
+    
+def find_members(alldata,this_obj):
+    
+    cmd_mem,dmin = membership_CMD(alldata,this_obj)
+    v_mem        = membership_v(alldata,this_obj,cmd_mem=cmd_mem,sig=3)
+    Pmem         = (cmd_mem == 1) & v_mem & (alldata['ew_naI'] < 1.5)
+    Pmem         = np.multiply(Pmem, 1)
+    return Pmem
 
 
 
