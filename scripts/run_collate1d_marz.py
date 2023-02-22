@@ -87,7 +87,8 @@ def create_marz_input(mask,working_dir):
     os.chdir(working_dir)
     Jfiles = glob.glob(working_dir + '/collate1d/J*')
     nslits = np.size(Jfiles)
-
+    print(nslits,' files found')
+    
     # LOAD REPORT FILE FOR METADATA
     collate_data = ascii.read(working_dir+'/collate_report.dat')
 
