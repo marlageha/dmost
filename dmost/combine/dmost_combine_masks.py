@@ -498,13 +498,16 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
 
 
 ######################################################
-def combine_masks(object_name):
+def combine_masks(object_name, **kwargs):
 
 
     DEIMOS_REDUX  = os.getenv('DEIMOS_REDUX')
     outfile       = DEIMOS_REDUX + '/dmost_alldata/dmost_alldata_'+object_name+'.fits'    
-    objlist, masklist = deimos_google()
-
+    if not ('objlist' in kwargs):
+        objlist, masklist = deimos_google()
+    else:
+        objlist  = kwargs['objlist']
+        masklist = kwargs['masklist']
 
     # PROPERTIES OF OBJECT
     object_properties = objlist[(objlist['Name2'] == object_name)]
