@@ -173,7 +173,7 @@ def main(*args):
     args = parser.parse_args()
     
     # READ DEIMOS OBJECT GOOGLE DOCUMENT
-    objlist, masklist = deimos_google(project=project)
+    objlist, masklist = deimos_google(project=args.project)
 
     for msk in sys.argv[1:]:
         print(msk)
