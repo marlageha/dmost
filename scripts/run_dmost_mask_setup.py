@@ -171,15 +171,16 @@ def setup_single_mask(msk, masklist):
 def main(*args):
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--mask", dest = "msk", default = " ",required = True)
     parser.add_argument("--project", dest = "project", default = "MW",required = False)
     args = parser.parse_args()
     
     # READ DEIMOS OBJECT GOOGLE DOCUMENT
     objlist, masklist = deimos_google(project=args.project)
 
-    for msk in sys.argv[1:]:
-        print(msk)
-        setup_single_mask(msk, masklist)
+    #for msk in sys.argv[1:]:
+    print(args.msk)
+    setup_single_mask(args.mask, masklist)
     
     
 if __name__ == "__main__":
