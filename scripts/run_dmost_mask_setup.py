@@ -170,7 +170,7 @@ def main(*args):
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--project", dest = "project", default = "MW",required = False)
-    
+    args = parser.parse_args()
     
     # READ DEIMOS OBJECT GOOGLE DOCUMENT
     objlist, masklist = deimos_google(project=project)
