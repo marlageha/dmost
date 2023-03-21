@@ -179,7 +179,7 @@ def main(*args):
     objlist, masklist = deimos_google(project=args.project)
 
     #for msk in sys.argv[1:]:
-    print(args.msk)
+    print(args.mask)
     setup_single_mask(args.mask, masklist)
     
     
