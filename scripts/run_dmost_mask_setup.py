@@ -13,16 +13,18 @@ from pypeit import pypeitsetup
 
 ######################################################
 # READ DEIMOS OBJECT GOOGLE DOCUMENT
-def deimos_google(project=project):
-    key = '1V2aVg1QghpQ70Lms40zNUjcCrycBF2bjgs-mrp6ojI8'
-    gid=1906496323
-    url = 'https://docs.google.com/spreadsheets/d/{0}/export?format=csv&gid={1}'.format(key, gid)
-    masklist = Table.read(url, format='csv')
+def deimos_google(project='MW'):
 
-    gid =0
-    url = 'https://docs.google.com/spreadsheets/d/{0}/export?format=csv&gid={1}'.format(key, gid)
-    objlist = ascii.read(url, format='csv')
-    
+    if (project=='MW'):
+        key = '1V2aVg1QghpQ70Lms40zNUjcCrycBF2bjgs-mrp6ojI8'
+        gid=1906496323
+        url = 'https://docs.google.com/spreadsheets/d/{0}/export?format=csv&gid={1}'.format(key, gid)
+        masklist = Table.read(url, format='csv')
+
+        gid =0
+        url = 'https://docs.google.com/spreadsheets/d/{0}/export?format=csv&gid={1}'.format(key, gid)
+        objlist = ascii.read(url, format='csv')
+
     
     if (project=='M31'):
         key = '1V2aVg1QghpQ70Lms40zNUjcCrycBF2bjgs-mrp6ojI8'
