@@ -4,6 +4,7 @@ import numpy as np
 import os, sys
 import matplotlib.pyplot as plt
 
+import argparse
 from astropy.table import Table
 from astropy.io import ascii
 
@@ -155,6 +156,9 @@ def setup_single_mask(msk, masklist):
 #####################################################    
 def main(*args):
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tolerance", dest = "tolerance", default = "1.0",required = False)
+    
     
     # READ DEIMOS OBJECT GOOGLE DOCUMENT
     objlist, masklist = deimos_google()
