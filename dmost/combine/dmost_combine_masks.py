@@ -19,10 +19,10 @@ from scipy import stats
 def create_allstars(nmasks,nstars):
 
     cols = [filled_column('objname','                  ',nstars),
-            filled_column('RA',-99.,nstars),
-            filled_column('DEC',-99.,nstars),
-            filled_column('rproj_arcm',-99.,nstars),
-            filled_column('rproj_kpc',-99.,nstars),
+            filled_column('RA',-999.,nstars),
+            filled_column('DEC',-999.,nstars),
+            filled_column('rproj_arcm',-999.,nstars),
+            filled_column('rproj_kpc',-999.,nstars),
 
 
             # INDIVIDUAL MASK PROPERTIES
@@ -32,58 +32,63 @@ def create_allstars(nmasks,nstars):
          
             # COMBINED FINAL PROPERTIES
             filled_column('v',-999.,nstars),
-            filled_column('v_err',-99.,nstars),
+            filled_column('v_err',-999.,nstars),
 
 
             # GALAXIES
-            filled_column('marz_z',-99.,nstars),
-            filled_column('marz_flag',-99.,nstars),
+            filled_column('marz_z',-999.,nstars),
+            filled_column('marz_flag',-99,nstars),
 
-            filled_column('serendip',-99.,nstars),
+            filled_column('serendip',-999.,nstars),
 
-            filled_column('ew_cat',-99.,nstars),
-            filled_column('ew_cat_err',-99.,nstars),
+            filled_column('ew_cat',-999.,nstars),
+            filled_column('ew_cat_err',-999.,nstars),
 
-            filled_column('ew_naI',-99.,nstars),
-            filled_column('ew_naI_err',-99.,nstars),
+            filled_column('ew_naI',-999.,nstars),
+            filled_column('ew_naI_err',-999.,nstars),
 
-            filled_column('ew_mgI',-99.,nstars),
-            filled_column('ew_mgI_err',-99.,nstars),
+            filled_column('ew_mgI',-999.,nstars),
+            filled_column('ew_mgI_err',-999.,nstars),
 
-            filled_column('ew_feh',-99.,nstars),
-            filled_column('ew_feh_err',-99,nstars),
+            filled_column('ew_feh',-999.,nstars),
+            filled_column('ew_feh_err',-999,nstars),
 
-            filled_column('tmpl_teff',-99.,nstars),
-            filled_column('tmpl_feh',-99.,nstars),
+            filled_column('tmpl_teff',-999.,nstars),
+            filled_column('tmpl_feh',-999.,nstars),
 
-            filled_column('SN',-99.,nstars),
+            filled_column('SN',-999.,nstars),
 
 
             # PHOTOMETRY
-            filled_column('gmag_o',-99.,nstars),
-            filled_column('rmag_o',-99.,nstars),
-            filled_column('gmag_err',-99.,nstars),
-            filled_column('rmag_err',-99.,nstars),
-            filled_column('EBV',-99.,nstars),
+            filled_column('gmag_o',-999.,nstars),
+            filled_column('rmag_o',-999.,nstars),
+            filled_column('gmag_err',-999.,nstars),
+            filled_column('rmag_err',-999.,nstars),
+            filled_column('EBV',-999.,nstars),
 
 
-            filled_column('MV_o',-99.,nstars),
+            filled_column('MV_o',-999.,nstars),
 
 
             # GAIA
-            filled_column('pmra',1.,nstars),
-            filled_column('pmdec',1.,nstars),
-            filled_column('parallax',1.,nstars),
-            filled_column('pmra_err',1.,nstars),
-            filled_column('pmdec_err',1.,nstars),
-            filled_column('parallax_err',1.,nstars),
-            filled_column('gaia_flag',0,nstars),
+            filled_column('gaia_pmra',-999.,nstars),
+            filled_column('gaia_pmra_err',-999.,nstars),            
+            filled_column('gaia_pmdec',-999.,nstars),
+            filled_column('gaia_pmdec_err',-999.,nstars),
+            filled_column('gaia_pmra_pmdec_corr',-999.,nstars),
+            filled_column('gaia_parallax',-999.,nstars),
+            filled_column('gaia_parallax_err',-999.,nstars),
+            filled_column('gaia_astrometric_excess_noise',-999.,nstars),
+            filled_column('gaia_astrometric_excess_noise_sig',-999.,nstars),
+            filled_column('gaia_rv',-999.,nstars),
+
+            filled_column('gaia_flag',-99,nstars),
 
 
             # VARIABLE VELOCITY FLAGS 
-            filled_column('var_pval',-99.,nstars),
-            filled_column('var_max_v',-99.,nstars),
-            filled_column('var_max_t',-99.,nstars),
+            filled_column('var_pval',-999.,nstars),
+            filled_column('var_max_v',-999.,nstars),
+            filled_column('var_max_t',-999.,nstars),
             filled_column('var_flag',-99,nstars),
 
 
@@ -94,32 +99,32 @@ def create_allstars(nmasks,nstars):
             # INDIVUDAL MASK DATA
             filled_column('masknames','                                        ',nstars),
 
-            filled_column('mask_v',np.zeros(nmasks),nstars),
-            filled_column('mask_v_err',np.zeros(nmasks),nstars),
-            filled_column('mask_nexp',np.zeros(nmasks),nstars),
-            filled_column('mask_SN',np.zeros(nmasks),nstars),
-            filled_column('mask_mjd',np.zeros(nmasks),nstars),
+            filled_column('mask_v',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_v_err',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_nexp',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_SN',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_mjd',-999.*np.ones(nmasks),nstars),
 
-            filled_column('mask_marz_z',np.zeros(nmasks),nstars),
-            filled_column('mask_marz_flag',np.zeros(nmasks),nstars),
-            filled_column('mask_marz_tmpl',np.zeros(nmasks),nstars),
+            filled_column('mask_marz_z',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_marz_flag',-99*np.ones(nmasks),nstars),
+            filled_column('mask_marz_tmpl',-999.*np.ones(nmasks),nstars),
 
-            filled_column('mask_teff',np.zeros(nmasks),nstars),
-            filled_column('mask_logg',np.zeros(nmasks),nstars),
-            filled_column('mask_feh',np.zeros(nmasks),nstars),
+            filled_column('mask_teff',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_logg',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_feh',-999.*np.ones(nmasks),nstars),
 
-            filled_column('mask_cat',np.zeros(nmasks),nstars),
-            filled_column('mask_naI',np.zeros(nmasks),nstars),
-            filled_column('mask_mgI',np.zeros(nmasks),nstars),
-            filled_column('mask_cat_err',np.zeros(nmasks),nstars),
-            filled_column('mask_naI_err',np.zeros(nmasks),nstars),
-            filled_column('mask_mgI_err',np.zeros(nmasks),nstars)
+            filled_column('mask_cat',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_naI',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_mgI',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_cat_err',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_naI_err',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_mgI_err',-999.*np.ones(nmasks),nstars)
             
             # SHORT BINARY FLAGS (inter-mask)
-#            filled_column('vv_short_pval',-np.zeros(nmasks),nstars),
-#            filled_column('vv_short_max_v',np.zeros(nmasks),nstars),
-#            filled_column('vv_short_max_t',np.zeros(nmasks),nstars),
-#            filled_column('vv_short_flag',np.zeros(nmasks),nstars),
+#            filled_column('vv_short_pval',-np.ones(nmasks),nstars),
+#            filled_column('vv_short_max_v',np.ones(nmasks),nstars),
+#            filled_column('vv_short_max_t',np.ones(nmasks),nstars),
+#            filled_column('vv_short_flag',np.ones(nmasks),nstars),
 
            ]
             
@@ -540,10 +545,12 @@ def combine_masks(object_name, **kwargs):
     alldata  = set_binary_flag(alldata)
 
 
-    # MATCH PHOTOMETRY, GET EBV AND MV, MATCH GAIA
+    # MATCH PHOTOMETRY, MATCH GAIA
     alldata = dmost_photometry_gaia.match_photometry(object_properties[0],alldata)
+    alldata = dmost_photometry_gaia.match_gaia(object_properties[0],alldata)
 
 
+    # CRUDE MEMBERSHIP
     alldata['prob_member'] = dmost_membership.find_members(alldata,object_properties[0])
 
     print('{} Combined {} masks with {} unique stars'.format(object_name,nmasks,nstars))
