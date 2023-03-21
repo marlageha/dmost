@@ -373,12 +373,12 @@ def match_photometry(obj,allspec):
     if obj['Phot'] == 'hst':
         file = DEIMOS_RAW + '/Photometry/hst/hst_'+obj['Name2']+'.dat'
         hst = ascii.read(file)
-        
+    
         hst.rename_column('F606', 'gmag')
         hst.rename_column('F814', 'rmag')
-
-        
         cls_hst   = SkyCoord(ra=hst['RA']*u.degree, dec=hst['Dec']*u.degree) 
+
+
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_hst)  
@@ -390,7 +390,28 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
 
-        
+    ### HST - ACS
+    if obj['Phot'] == 'ACS':
+        file = DEIMOS_RAW + '/Photometry/hst/hst_'+obj['Name2']+'.fits'
+        hst = Table.read(file)
+    
+
+        hst.rename_column('F475W_VEGA', 'gmag')
+        hst.rename_column('F814W_VEGA', 'rmag')
+        cls_hst   = SkyCoord(ra=hst['RA']*u.degree, dec=hst['DEC']*u.degree) 
+        print('matching hst')
+
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_hst)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = hst['rmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = hst['gmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = 0.01
+        allspec['gmag_err'][mt] = 0.01
+
 
 
 #####################
