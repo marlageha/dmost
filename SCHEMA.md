@@ -34,6 +34,18 @@ Label | Unit | Definition
 `gmag_err`  | mag | Error on the extinction corrected g-band magnitude from associated photometry source
 `EBV`  | mag | E(B-V) value determined from SFD
 `MV_o`  | mag | Extinction corrected absolute V-band magnitude 
+`gaia_pmra`  | mas/yr | Gaia DR3 proper motion RA (see [GAIA DR3 schema](https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html))
+`gaia_pmra_err`  | mas/yr | Gaia DR3 proper motion RA error
+`gaia_pmdec`  | mas/yr | Gaia DR3 proper motion DEC
+`gaia_pmdec_err`  | mas/yr | Gaia DR3 proper motion DEC error
+`gaia_pmra_pmdec_corr`  | mas/yr | Gaia DR3 proper motion correlation
+`gaia_parallax`  | mas | Gaia DR3 parallax
+`gaia_parallax_err`  | mas | Gaia DR3 parallax error
+`gaia_aen`  | mas | Gaia DR3 astrometric_excess_noise
+`gaia_aen_sig`  | --- | Gaia DR3 astrometric_excess_noise significance (> 2)
+`gaia_rv`  | km/s | Gaia DR3 radial_velocity 
+`gaia_rv_err`  | km/s | Gaia DR3 radial_velocity error
+`gaia_flag`  | --- | Set to unity if Gaia match
 `vv_long_pval` | | Variability parameter between combined exposures (pval < -4 is variable)
 `prob_member`  |  | Membership probability = 1 if good member star
 
