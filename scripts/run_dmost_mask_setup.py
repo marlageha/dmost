@@ -171,7 +171,7 @@ def setup_single_mask(msk, masklist):
 def main(*args):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mask", dest = "msk", default = " ",required = True)
+    parser.add_argument("--mask", dest = "mask", default = " ",required = True)
     parser.add_argument("--project", dest = "project", default = "MW",required = False)
     args = parser.parse_args()
     
