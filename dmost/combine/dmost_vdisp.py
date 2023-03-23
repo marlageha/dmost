@@ -99,7 +99,7 @@ def mcmc_vdisp(vel,vel_err, vr_guess, sig_guess, max_n = 5000, plot=1):
                           args=(vel, vel_err))
 
     sampler, convg, burnin = run_sampler(sampler, p0, max_n)
-    print(burnin, convg)
+    #print(burnin, convg)
     theta = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
 
     if (plot == 1):

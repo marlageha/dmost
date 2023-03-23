@@ -38,7 +38,6 @@ def set_cmd_lims(rmag):
 ######################################################
 def plot_isochrone_padova(dist,str_iso):
 
-    print(str_iso)
     iso = ascii.read(DEIMOS_RAW+'/Photometry/isochrones/iso_t12_z'+str(str_iso)+'.dat')
 
     #A(g)/(E(B-V)) = 3.793    

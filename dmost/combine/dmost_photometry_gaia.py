@@ -105,26 +105,49 @@ def CaT_to_FeH(alldata):
 def match_gaia(obj,allspec):
 
     DEIMOS_RAW  = os.getenv('DEIMOS_RAW')
-    gaia_file   = DEIMOS_RAW + '/Other_data/Gaia/'+obj['Name2']+'.vot'
+    gaia_file   = DEIMOS_RAW + '/Gaia_DR3/gaia_dr3_'+obj['Name2']+'.csv'
 
     
     if not os.path.isfile(gaia_file):
-        print(gaia_file)
+        print('NO GAIA FILE',gaia_file)
         #break
         
     if os.path.isfile(gaia_file):
 
-        table = parse_single_table(gaia_file)
-        gra   = table.array['ra']
-        gdec  = table.array['dec']
-        pmdec = table.array['pmdec']
-        pmra  = table.array['pmra'] * np.cos(pmdec*np.pi/180.)
-        
-        
-        
-        m1,m2,dd = sm.spherematch(allspec['RA'], allspec['DEC'],\
-           gra,gdec,2./3600)
+        gaia = Table.read(gaia_file)
+  
 
+        cgaia   = SkyCoord(ra=gaia['ra']*u.degree, dec=gaia['dec']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+ 
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cgaia)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt  = foo[d2d < 1.5*u.arcsec]
+        mt2 = idx[d2d < 1.5*u.arcsec]
+        allspec['gaia_pmra'][mt]         = gaia['pmra'][mt2] 
+        allspec['gaia_pmra_err'][mt]     = gaia['pmra_error'][mt2]
+        allspec['gaia_pmdec'][mt]        = gaia['pmdec'][mt2] 
+        allspec['gaia_pmdec_err'][mt]    = gaia['pmdec_error'][mt2]
+        allspec['gaia_parallax'][mt]     = gaia['parallax'][mt2] 
+        allspec['gaia_parallax_over_err'][mt] = gaia['parallax_over_error'][mt2]
+        allspec['gaia_rv'][mt]           = gaia['radial_velocity'][mt2] 
+        allspec['gaia_rv_err'][mt]       = gaia['radial_velocity_error'][mt2] 
+
+        allspec['gaia_aen'][mt]          = gaia['astrometric_excess_noise'][mt2] 
+        allspec['gaia_aen_sig'][mt]      = gaia['astrometric_excess_noise_sig'][mt2]
+
+
+        # SET NON_DETECTED RV BACK TO DEFAULT
+        mrv = allspec['gaia_rv'] == 0
+        allspec['gaia_rv'][mrv]  = -999.
+        nrv = np.sum(allspec['gaia_rv'] > -999.)
+
+        # SET GAIA FLAG 
+        m = allspec['gaia_pmra'] > -999
+        allspec['gaia_flag'][m] = 1
+
+        print('GAIA: Matched {} stars and {} Gaia RVS'.format(np.size(mt),nrv))
 
 
     return allspec
@@ -399,7 +422,6 @@ def match_photometry(obj,allspec):
         hst.rename_column('F475W_VEGA', 'gmag')
         hst.rename_column('F814W_VEGA', 'rmag')
         cls_hst   = SkyCoord(ra=hst['RA']*u.degree, dec=hst['DEC']*u.degree) 
-        print('matching hst')
 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 

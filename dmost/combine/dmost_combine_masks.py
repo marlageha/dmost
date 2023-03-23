@@ -14,6 +14,7 @@ from dmost.combine import dmost_photometry_gaia, dmost_membership
 from scipy import stats
 
 
+
 ###################################
 # CREATE ALLSPEC DATA STRUCTURE
 def create_allstars(nmasks,nstars):
@@ -26,13 +27,15 @@ def create_allstars(nmasks,nstars):
 
 
             # INDIVIDUAL MASK PROPERTIES
-            filled_column('nmask',-99,nstars),
             filled_column('nexp',-99,nstars),
+            filled_column('nmask',-99,nstars),
+            filled_column('masknames','                                                  ',nstars),
 
          
             # COMBINED FINAL PROPERTIES
             filled_column('v',-999.,nstars),
             filled_column('v_err',-999.,nstars),
+            filled_column('SN',-999.,nstars),
 
 
             # GALAXIES
@@ -41,6 +44,20 @@ def create_allstars(nmasks,nstars):
 
             filled_column('serendip',-999.,nstars),
 
+
+
+
+            # PHOTOMETRY
+            filled_column('gmag_o',-999.,nstars),
+            filled_column('rmag_o',-999.,nstars),
+            filled_column('gmag_err',-999.,nstars),
+            filled_column('rmag_err',-999.,nstars),
+            filled_column('EBV',-999.,nstars),
+
+            filled_column('MV_o',-999.,nstars),
+
+
+            # EQUIVALENT WIDTHS
             filled_column('ew_cat',-999.,nstars),
             filled_column('ew_cat_err',-999.,nstars),
 
@@ -56,19 +73,6 @@ def create_allstars(nmasks,nstars):
             filled_column('tmpl_teff',-999.,nstars),
             filled_column('tmpl_feh',-999.,nstars),
 
-            filled_column('SN',-999.,nstars),
-
-
-            # PHOTOMETRY
-            filled_column('gmag_o',-999.,nstars),
-            filled_column('rmag_o',-999.,nstars),
-            filled_column('gmag_err',-999.,nstars),
-            filled_column('rmag_err',-999.,nstars),
-            filled_column('EBV',-999.,nstars),
-
-
-            filled_column('MV_o',-999.,nstars),
-
 
             # GAIA
             filled_column('gaia_pmra',-999.,nstars),
@@ -77,28 +81,29 @@ def create_allstars(nmasks,nstars):
             filled_column('gaia_pmdec_err',-999.,nstars),
             filled_column('gaia_pmra_pmdec_corr',-999.,nstars),
             filled_column('gaia_parallax',-999.,nstars),
-            filled_column('gaia_parallax_err',-999.,nstars),
-            filled_column('gaia_astrometric_excess_noise',-999.,nstars),
-            filled_column('gaia_astrometric_excess_noise_sig',-999.,nstars),
+            filled_column('gaia_parallax_over_err',-999.,nstars),
+            filled_column('gaia_aen',-999.,nstars),
+            filled_column('gaia_aen_sig',-999.,nstars),
             filled_column('gaia_rv',-999.,nstars),
+            filled_column('gaia_rv_err',-999.,nstars),
 
             filled_column('gaia_flag',-99,nstars),
 
 
-            # VARIABLE VELOCITY FLAGS 
+            # VARIABLE VELOCITY FLAGS
             filled_column('var_pval',-999.,nstars),
             filled_column('var_max_v',-999.,nstars),
             filled_column('var_max_t',-999.,nstars),
             filled_column('var_flag',-99,nstars),
 
+            filled_column('var_short_flag',-99,nstars),
+            filled_column('var_short_max_t',-999.,nstars),
 
             # MEMBERSHIPS
             filled_column('prob_member',-99,nstars),
 
 
             # INDIVUDAL MASK DATA
-            filled_column('masknames','                                        ',nstars),
-
             filled_column('mask_v',-999.*np.ones(nmasks),nstars),
             filled_column('mask_v_err',-999.*np.ones(nmasks),nstars),
             filled_column('mask_nexp',-999.*np.ones(nmasks),nstars),
@@ -118,13 +123,10 @@ def create_allstars(nmasks,nstars):
             filled_column('mask_mgI',-999.*np.ones(nmasks),nstars),
             filled_column('mask_cat_err',-999.*np.ones(nmasks),nstars),
             filled_column('mask_naI_err',-999.*np.ones(nmasks),nstars),
-            filled_column('mask_mgI_err',-999.*np.ones(nmasks),nstars)
+            filled_column('mask_mgI_err',-999.*np.ones(nmasks),nstars),
             
-            # SHORT BINARY FLAGS (inter-mask)
-#            filled_column('vv_short_pval',-np.ones(nmasks),nstars),
-#            filled_column('vv_short_max_v',np.ones(nmasks),nstars),
-#            filled_column('vv_short_max_t',np.ones(nmasks),nstars),
-#            filled_column('vv_short_flag',np.ones(nmasks),nstars),
+            filled_column('mask_var_short_flag',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_var_short_max_t',-999.*np.ones(nmasks),nstars),
 
            ]
             
@@ -157,19 +159,20 @@ def filled_column(name, fill_value, size):
 
 
 ######################################################
-def combine_mask_velocities(stars, sys_mask = 1.0):
+def combine_mask_velocities(stars, sys_mask = 0.7):
     
     # COMBINE STARS WITH MEASURED VELOCITIES
     mgood       = stars['dmost_v_err'] > 0.
     good_stars  = stars[mgood]
     
-    v,verr,teff,feh,ncomb = [-999.,-99.,-99.,-99.,0]
+    v,verr_sys,teff,feh,ncomb = [-999.,-99.,-99.,-99.,0]
     if (np.size(good_stars) == 1):
         v     = good_stars['dmost_v']
         teff  = good_stars['chi2_teff']
         feh   = good_stars['chi2_feh']
-        verr = np.sqrt(good_stars['dmost_v_err']**2 + sys_mask**2)
 
+        verr    = np.sqrt(good_stars['dmost_v_err']**2)
+        verr_sys = np.sqrt(verr**2 + sys_mask**2)
         ncomb=ncomb+1
 
     
@@ -179,9 +182,9 @@ def combine_mask_velocities(stars, sys_mask = 1.0):
             vt   = np.append(vt,obj['dmost_v'])
             tt   = np.append(tt,obj['chi2_teff'])
             ft   = np.append(ft,obj['chi2_feh'])
-
-            et   = np.append(et,np.sqrt(obj['dmost_v_err']**2 + sys_mask**2))
+            et   = np.append(et,obj['dmost_v_err'])
             ncomb=ncomb+1
+
         sum1 = np.sum(1./et**2)
         sum2 = np.sum(vt/et**2)
         sum3 = np.sum(tt/et**2)
@@ -191,24 +194,51 @@ def combine_mask_velocities(stars, sys_mask = 1.0):
         teff = sum3/sum1
         feh  = sum4/sum1
 
-        verr = np.sqrt(1./sum1)
-    
-    return v, verr, teff, feh, ncomb
+        verr     = np.sqrt(1./sum1)
+        verr_sys = np.sqrt(verr**2 + sys_mask**2)
+
+    return v, verr_sys, teff, feh, ncomb
 
 #####################################
 #####################################
-def set_binary_flag(alldata):
+def set_binary_flag(alldata,sys_mask = 0.7):
 
 
+    ns, nvar = 0,0
     for i,obj in enumerate(alldata):
-            
+        
+
+        # FIRST SET INNER MASK VARIABLE FLAG
+        mnv = any(obj['mask_var_short_flag'] == 0)
+        if (np.sum(mnv) > 0):
+            mxt = np.max(obj['mask_var_short_max_t'][mnv])
+            alldata['var_short_max_t'][i]= mxt
+            alldata['var_short_flag'][i] = 0
+        
+
+        mvs       = obj['mask_var_short_flag'] == 1
+        if  (np.sum(mvs) > 0):
+            mxt = np.max(obj['mask_var_short_max_t'][mvs])
+            alldata['var_short_max_t'][i]= mxt
+            alldata['var_short_flag'][i] = 1
+        
+
+
         m = (obj['mask_v_err'] > 0)
         if np.sum(m) > 1:
 
+            alldata['var_flag'][i]  = 0
+            ns=ns+1
 
-            v_mean = np.average(obj['mask_v'][m],weights=1./obj['mask_v_err'][m]**2)
-            chi2   = np.sum((obj['mask_v'][m] - v_mean)**2/obj['mask_v_err'][m]**2)
+            v_mean = np.average(obj['mask_v'][m],weights=1./(obj['mask_v_err'][m]**2))
+            chi2   = np.sum((obj['mask_v'][m] - v_mean)**2/(obj['mask_v_err'][m]**2 + sys_mask**2))
             pv     = 1 - stats.chi2.cdf(chi2, np.sum(m))
+
+
+#            if (pv < 1e-14):
+#                fig, (ax1) = plt.subplots(1, 1,figsize=(8,5))
+#                plt.errorbar(obj['mask_mjd'][m],obj['mask_v'][m],fmt='.',yerr = obj['mask_v_err'][m])
+#                plt.title('{} {} {}'.format(obj['objname'],obj['mask_SN'][m],obj['masknames']))
 
             if (pv == 0) | (pv < 1e-14):
                 pv = 1e-14
@@ -220,9 +250,11 @@ def set_binary_flag(alldata):
             alldata['var_max_t'][i] = 24*(np.max(obj['mask_mjd'][m])-np.min(obj['mask_mjd'][m]))
             alldata['var_flag'][i]  = 0
 
-            if lpv < -4:
+            if lpv < -6:
                 alldata['var_flag'][i]  = 1
+                nvar = nvar + 1
 
+    print('VVAR: Setting {} of {} repeats as velocity variable'.format(nvar,ns))
 
     return alldata
 
@@ -436,31 +468,29 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
                     dmost_allstar['mask_v'][i,j]     = robj['dmost_v']
                     dmost_allstar['mask_v_err'][i,j] = robj['dmost_v_err']
                     dmost_allstar['mask_SN'][i,j]    = robj['collate1d_SN']
-                    dmost_allstar['mask_nexp'][i,j]    = robj['v_nexp']
-                    dmost_allstar['mask_mjd'][i,j]    = robj['mjd']
+                    dmost_allstar['mask_nexp'][i,j]  = robj['v_nexp']
+                    dmost_allstar['mask_mjd'][i,j]   = robj['mjd']
 
-                    dmost_allstar['mask_marz_flag'][i,j]   = robj['marz_flag']
-                    dmost_allstar['mask_marz_z'][i,j]   = robj['marz_z']
+                    dmost_allstar['mask_marz_flag'][i,j] = robj['marz_flag']
+                    dmost_allstar['mask_marz_z'][i,j]    = robj['marz_z']
 
                     dmost_allstar['mask_teff'][i,j]  = robj['chi2_teff']
                     dmost_allstar['mask_logg'][i,j]  = robj['chi2_logg']
                     dmost_allstar['mask_feh'][i,j]   = robj['chi2_feh']
 
-                    dmost_allstar['mask_cat'][i,j]  = robj['cat']
-                    dmost_allstar['mask_naI'][i,j]  = robj['naI']
-                    dmost_allstar['mask_mgI'][i,j]  = robj['mgI']
+                    dmost_allstar['mask_cat'][i,j]   = robj['cat']
+                    dmost_allstar['mask_naI'][i,j]   = robj['naI']
+                    dmost_allstar['mask_mgI'][i,j]   = robj['mgI']
                     dmost_allstar['mask_cat_err'][i,j]  = robj['cat_err']
                     dmost_allstar['mask_naI_err'][i,j]  = robj['naI_err']
                     dmost_allstar['mask_mgI_err'][i,j]  = robj['mgI_err']
                   
-                    #dmost_allstar['vv_short_pval'][i,j]  = robj['vv_short_pval']
-                    #dmost_allstar['vv_short_max_v'][i,j] = robj['vv_short_max_v']
-                    #dmost_allstar['vv_short_max_t'][i,j] = robj['vv_short_max_t']
-                    #dmost_allstar['vv_short_flag'][i,j]  = robj['vv_short_flag']
+                    dmost_allstar['mask_var_short_flag'][i,j]  = robj['vv_short_flag']
+                    dmost_allstar['mask_var_short_max_t'][i,j] = robj['vv_short_max_t']
 
             # COMBINE VELOCITIES      
 
-            v, verr, teff, feh, ncomb = combine_mask_velocities(test_allslits[m], sys_mask = 0.6)
+            v, verr, teff, feh, ncomb = combine_mask_velocities(test_allslits[m])
             dmost_allstar['v'][i]     = v
             dmost_allstar['v_err'][i] = verr
             dmost_allstar['nmask'][i] = nrpt
@@ -482,21 +512,23 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             zgal, zflag  = combine_mask_marz(test_allslits[m])
             dmost_allstar['marz_z'][i]   = zgal
             dmost_allstar['marz_flag'][i] = zflag
+
+            # SET EXTRAGALACTIC VALUES
             mgal  = dmost_allstar['marz_flag']  > 2
             dmost_allstar['v'][mgal]     =  dmost_allstar['marz_z'][mgal]*3e5  
             dmost_allstar['v_err'][mgal] =  0
 
 
-            # CALCULATE AVERAGE SN
+            # CALCULATE SN -- IS THIS RIGHT?
             msn = dmost_allstar['mask_SN'][i,:] > -1
-            dmost_allstar['SN'][i] = np.mean(dmost_allstar['mask_SN'][i,msn])
+            dmost_allstar['SN'][i] = np.sum(dmost_allstar['mask_SN'][i,msn]) /np.sqrt(np.size(dmost_allstar['mask_SN'][i,msn]))
 
             test_allslits['RA'][m] = -99
             
         
         
     # REMOVE EXTRA LINES
-    m=dmost_allstar['RA'] != -99.0
+    m=dmost_allstar['RA'] != -999.0
     dmost_allstar = dmost_allstar[m]
 
     return dmost_allstar
@@ -551,7 +583,16 @@ def combine_masks(object_name, **kwargs):
 
 
     # CRUDE MEMBERSHIP
-    alldata['prob_member'] = dmost_membership.find_members(alldata,object_properties[0])
+#    alldata['prob_member'] = dmost_membership.find_members(alldata,object_properties[0])
+
+
+    # REMOVE MASK-LEVEL DATA (UPDATE LATER?)
+    alldata.remove_columns(['mask_v','mask_v_err','mask_nexp','mask_SN','mask_mjd',\
+                            'mask_marz_z','mask_marz_flag','mask_marz_tmpl',\
+                            'mask_teff','mask_feh','mask_logg',\
+                            'mask_cat','mask_cat_err','mask_naI','mask_naI_err','mask_mgI','mask_mgI_err',\
+                            'mask_var_short_flag','mask_var_short_max_t'])
+
 
     print('{} Combined {} masks with {} unique stars'.format(object_name,nmasks,nstars))
     alldata.write(outfile, overwrite=True)
