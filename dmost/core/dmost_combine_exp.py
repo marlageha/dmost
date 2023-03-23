@@ -16,7 +16,7 @@ def set_mask_binary_flag(slits,mask,sys_exp=0.5):
     
 
         m=obj['emcee_good'] == 1
-        slits['vv_short_flag'][i]  = -99
+        slits['var_short_flag'][i]  = -99
         if np.sum(m) > 1:
 
 
