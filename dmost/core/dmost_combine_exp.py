@@ -27,7 +27,7 @@ def set_mask_binary_flag(slits,mask,sys_exp=0.5):
 
             v_mean = np.average(obj['emcee_v'][m],weights=ivar[m])
             chi2   = np.sum((obj['emcee_v'][m] - v_mean)**2/err[m]**2)
-            pv     = 1 - stats.chi2.cdf(chi2, np.sum(m))
+            pv     = 1 - stats.chi2.cdf(chi2, np.sum(m)-1)
 
             if (pv == 0) | (pv < 1e-14):
                 pv = 1e-14
