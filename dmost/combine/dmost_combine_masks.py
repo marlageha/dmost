@@ -250,7 +250,7 @@ def set_binary_flag(alldata,sys_mask = 0.7):
             alldata['var_max_t'][i] = 24*(np.max(obj['mask_mjd'][m])-np.min(obj['mask_mjd'][m]))
             alldata['var_flag'][i]  = 0
 
-            if lpv < -6:
+            if lpv < -4:
                 alldata['var_flag'][i]  = 1
                 nvar = nvar + 1
 
