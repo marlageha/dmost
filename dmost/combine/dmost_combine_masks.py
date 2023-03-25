@@ -586,7 +586,10 @@ def combine_masks(object_name, **kwargs):
 #    alldata['prob_member'] = dmost_membership.find_members(alldata,object_properties[0])
 
 
-    # REMOVE MASK-LEVEL DATA (UPDATE LATER?)
+    # REMOVE MASK-LEVEL DATA, BUT WRITE OUT FULL FILE FIRST
+    full_outfile       = DEIMOS_REDUX + '/dmost_alldata/full_alldata_'+object_name+'.fits'    
+    alldata.write(full_outfile, overwrite=True)
+
     alldata.remove_columns(['mask_v','mask_v_err','mask_nexp','mask_SN','mask_mjd',\
                             'mask_marz_z','mask_marz_flag','mask_marz_tmpl',\
                             'mask_teff','mask_feh','mask_logg',\
