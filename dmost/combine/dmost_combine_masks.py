@@ -230,7 +230,7 @@ def set_binary_flag(alldata,sys_mask = 0.7):
             alldata['var_flag'][i]  = 0
             ns=ns+1
 
-            v_mean = np.average(obj['mask_v'][m],weights=1./(obj['mask_v_err'][m]**2))
+            v_mean = np.average(obj['mask_v'][m],weights=1./(obj['mask_v_err'][m]**2+ sys_mask**2))
             chi2   = np.sum((obj['mask_v'][m] - v_mean)**2/(obj['mask_v_err'][m]**2 + sys_mask**2))
             pv     = 1 - stats.chi2.cdf(chi2, np.sum(m)-1.)
 
