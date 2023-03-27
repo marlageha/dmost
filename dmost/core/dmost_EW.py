@@ -525,8 +525,8 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
         CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar)
 
-        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 20) |  (CaT_EW < 0):
-            CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
+#        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 20) |  (CaT_EW < 0):
+#            CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
         slits['cat'][arg]      = CaT_EW
