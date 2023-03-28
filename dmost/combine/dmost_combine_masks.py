@@ -307,9 +307,13 @@ def combine_mask_ew(stars):
         naI = sum2n/sum1n
         mgI = sum2m/sum1m
 
-        cat_err = np.sqrt(1./sum1)
-        naI_err = np.sqrt(1./sum1n)
-        mgI_err = np.sqrt(1./sum1m)
+        #  ADD SYSTEMATIC ERRORS
+        sys_cat = 0.2
+        sys_nai = 0.1
+        sys_mgi = 0.07
+        cat_err = np.sqrt(sys_cat**2 + 1./sum1)
+        naI_err = np.sqrt(sys_nai**2 + 1./sum1n)
+        mgI_err = np.sqrt(sys_mgi**2 + 1./sum1m)
 
     return cat,cat_err,mgI,mgI_err,naI,naI_err, ncomb 
 
