@@ -290,8 +290,9 @@ def CaT_gauss_plus_lorentzian(x,*p):
     return p[0] - gauss - lorentz
 
 
+
 ########################################
-def CaII_EW_fit_GL(wvl,spec,ivar):
+def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     
     # CALCULATE IN CENARRO (2001) DEFINED WINDOWS, TABLE 4
     # lines  = [8498.02,8542.09,8662.14]
@@ -312,13 +313,14 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
     # GAUSSIAN +  LORENTZ FIT
     p0 = CaT_GL_guess(wvl[mw],spec[mw])
     errors = 1./np.sqrt(ivar[mw])
+
+
     try:
         p, pcov = curve_fit(CaT_gauss_plus_lorentzian,wvl[mw],spec[mw],sigma = errors,p0=p0,\
                                 bounds=((0.9, 8540., 0.5,0.5, 0,0,0, 0,0,0), (1.5, 8543.5, 5,3, 3,3,3, 3,3,3)))
 
 
         perr = np.sqrt(np.diag(pcov))
-        #print(p)
 
         # INTEGRATE PROFILE -- GAUSSIAN FIRST
         gint1 = p[4] 
@@ -328,6 +330,17 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
         gerr1 = perr[4]
         gerr2 = perr[5]
         gerr3 = perr[6]
+
+        #tmp1 = p[4] * perr[2]* np.sqrt(2*np.pi)
+        #tmp2 = p[2] * perr[4]* np.sqrt(2*np.pi)
+        #gerr1 = np.sqrt(tmp1**2 + tmp2**2)
+        #tmp1 = p[5] * perr[2]* np.sqrt(2*np.pi)
+        #tmp2 = p[2] * perr[5]* np.sqrt(2*np.pi)
+        #gerr2 = np.sqrt(tmp1**2 + tmp2**2)
+        #tmp1 = p[3] * perr[2]* np.sqrt(2*np.pi)
+        #tmp2 = p[2] * perr[3]* np.sqrt(2*np.pi)
+        #gerr3 = np.sqrt(tmp1**2 + tmp2**2)
+
 
 
         # INTEGRATE LORENTIAN
@@ -360,7 +373,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
         p, pcov = p0, None
         chi2    = -99
          
-    # OMG, WHY 0.3?
+    # OMG, WHY 
     return CaT, 0.3*CaT_err, gfit, chi2
 
 
@@ -368,12 +381,17 @@ def CaII_EW_fit_GL(wvl,spec,ivar):
 def CaT_gauss(x,*p):
 # USE ON LOW SN SPECTRA
  
-    gauss = -1.*p[3]*np.exp(-0.5*( (x-p[1])/p[2] )**2) - \
-            p[4]*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) - \
-            p[5]*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
+#    gauss = -1.*p[3]*np.exp(-0.5*( (x-p[1])/p[2] )**2) - \
+#            p[4]*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) - \
+#            p[5]*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
     
+    gauss = -1.*p[3]*np.exp(-1.*(x-p[1])**2/(2.*p[2]**2)) - \
+                p[4]*np.exp(-1.*(x-p[1]*0.994841)**2/(2.*p[2]**2)) -\
+                p[5]*np.exp(-1.*(x-p[1]*1.01405)**2/(2.*p[2]**2)) 
+
 
     return p[0] + gauss
+
 
 
 ########################################
@@ -401,35 +419,43 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         # GAUSSIAN GUESS
         sg=0.3
         p0 = [1.,8542.09,0.8,sg,sg,0.8*sg]
-
         errors = 1./np.sqrt(ivar[mw])
         
 
         try:
             p, pcov = curve_fit(CaT_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                            bounds=((0.5, 8540., 0.5, 0,0,0), (2, 8543.5, 1.5,2,2,2)))
+                            bounds=((0.5, 8540., 0.75, 0.1,0.1,0.1), (2, 8543.5, 1.5,2,2,2)))
         except:
             p, pcov = p0, None
             return CaT, CaT_err, gfit, chi2
 
         perr = np.sqrt(np.diag(pcov))
 
-          
-        # INTEGRATE PROFILE -- GAUSSIAN FIRST
-        gint1 = p[3] * p[2] * np.sqrt(2.*np.pi)
-        gint2 = p[4] * p[2] * np.sqrt(2.*np.pi)
-        gint3 = p[5] * p[2] * np.sqrt(2.*np.pi)
 
-         # CALCUALTE GAUSSIAN ERROR
-        tmp1 = p[4] * perr[2]* np.sqrt(2*np.pi)
-        tmp2 = p[2] * perr[4]* np.sqrt(2*np.pi)
-        gerr1 = np.sqrt(tmp1**2 + tmp2**2)
-        tmp1 = p[5] * perr[2]* np.sqrt(2*np.pi)
-        tmp2 = p[2] * perr[5]* np.sqrt(2*np.pi)
-        gerr2 = np.sqrt(tmp1**2 + tmp2**2)
-        tmp1 = p[3] * perr[2]* np.sqrt(2*np.pi)
-        tmp2 = p[2] * perr[3]* np.sqrt(2*np.pi)
-        gerr3 = np.sqrt(tmp1**2 + tmp2**2)
+        ###########################
+        # INTEGRATE PROFILE
+        FWHM = p[2]*2.355
+        gint1 = FWHM * p[3]/p[0]
+        gint2 = FWHM * p[4]/p[0]
+        gint3 = FWHM * p[5]/p[0]
+
+        # CALCULATE ERRORS
+        term1 = perr[2]**2 * (2.355*p[3]/p[0])**2
+        term2 = perr[3]**2 * (2.355*p[2]/p[0])**2
+        term3 = perr[0]**2 * (2.355*p[3]*p[2]/p[0]**2)**2
+        gerr1 = np.sqrt(term1 + term2 + term3)
+
+        term1 = perr[2]**2 * (2.355*p[4]/p[0])**2
+        term2 = perr[4]**2 * (2.355*p[2]/p[0])**2
+        term3 = perr[0]**2 * (2.355*p[4]*p[2]/p[0]**2)**2
+        gerr2 = np.sqrt(term1 + term2 + term3)
+   
+        term1 = perr[2]**2 * (2.355*p[5]/p[0])**2
+        term2 = perr[5]**2 * (2.355*p[2]/p[0])**2
+        term3 = perr[0]**2 * (2.355*p[5]*p[2]/p[0]**2)**2
+        gerr3 = np.sqrt(term1 + term2 + term3)
+
+
 
         # PUT IT ALL TOGETHER
         CaT = gint1 + gint2 + gint3
@@ -523,10 +549,10 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         #####################             
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
-        CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar)
+        CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
 
-#        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 20) |  (CaT_EW < 0):
-#            CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
+        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 20) |  (CaT_EW < 0):
+            CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
         slits['cat'][arg]      = CaT_EW
