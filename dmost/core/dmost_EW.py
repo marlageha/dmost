@@ -331,17 +331,6 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         gerr2 = perr[5]
         gerr3 = perr[6]
 
-        #tmp1 = p[4] * perr[2]* np.sqrt(2*np.pi)
-        #tmp2 = p[2] * perr[4]* np.sqrt(2*np.pi)
-        #gerr1 = np.sqrt(tmp1**2 + tmp2**2)
-        #tmp1 = p[5] * perr[2]* np.sqrt(2*np.pi)
-        #tmp2 = p[2] * perr[5]* np.sqrt(2*np.pi)
-        #gerr2 = np.sqrt(tmp1**2 + tmp2**2)
-        #tmp1 = p[3] * perr[2]* np.sqrt(2*np.pi)
-        #tmp2 = p[2] * perr[3]* np.sqrt(2*np.pi)
-        #gerr3 = np.sqrt(tmp1**2 + tmp2**2)
-
-
 
         # INTEGRATE LORENTIAN
         lint1 = p[7] 
@@ -352,9 +341,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         lerr1 = perr[7] 
         lerr2 = perr[8] 
         lerr3 = perr[9] 
-        #print(gint1,gint2, gint3 ,lint1 ,lint2 ,lint3)
-        #print(gerr1,gerr1,gerr3,lerr1,lerr2,lerr3)
-        #print()
+
 
         CaT = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
 
@@ -381,9 +368,6 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
 def CaT_gauss(x,*p):
 # USE ON LOW SN SPECTRA
  
-#    gauss = -1.*p[3]*np.exp(-0.5*( (x-p[1])/p[2] )**2) - \
-#            p[4]*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) - \
-#            p[5]*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
     
     gauss = -1.*p[3]*np.exp(-1.*(x-p[1])**2/(2.*p[2]**2)) - \
                 p[4]*np.exp(-1.*(x-p[1]*0.994841)**2/(2.*p[2]**2)) -\
