@@ -361,20 +361,23 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         chi2    = -99
          
     # OMG, WHY 
-    return CaT, 0.3*CaT_err, gfit, chi2
+    return CaT, 0.25*CaT_err, gfit, chi2
 
 
 ###########################################
 def CaT_gauss(x,*p):
 # USE ON LOW SN SPECTRA
  
-    
-    gauss = -1.*p[3]*np.exp(-1.*(x-p[1])**2/(2.*p[2]**2)) - \
-                p[4]*np.exp(-1.*(x-p[1]*0.994841)**2/(2.*p[2]**2)) -\
-                p[5]*np.exp(-1.*(x-p[1]*1.01405)**2/(2.*p[2]**2)) 
+
+    norm  = 1./ (np.sqrt(2*np.pi) * p[2])
+
+    gauss = p[3]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) + \
+            p[4]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) + \
+            p[5]*norm*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
 
 
-    return p[0] + gauss
+
+    return p[0] - gauss
 
 
 
@@ -408,38 +411,23 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
         try:
             p, pcov = curve_fit(CaT_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                            bounds=((0.5, 8540., 0.75, 0.1,0.1,0.1), (2, 8543.5, 1.5,2,2,2)))
+                            bounds=((0.5, 8539.5, 0.75, 0.1,0.1,0.1), (2, 8543.5, 1.5,2,2,2)))
         except:
             p, pcov = p0, None
             return CaT, CaT_err, gfit, chi2
 
         perr = np.sqrt(np.diag(pcov))
 
-
         ###########################
         # INTEGRATE PROFILE
-        FWHM = p[2]*2.355
-        gint1 = FWHM * p[3]/p[0]
-        gint2 = FWHM * p[4]/p[0]
-        gint3 = FWHM * p[5]/p[0]
+ 
+        gint1 =  p[3]
+        gint2 =  p[4]
+        gint3 =  p[5]
 
-        # CALCULATE ERRORS
-        term1 = perr[2]**2 * (2.355*p[3]/p[0])**2
-        term2 = perr[3]**2 * (2.355*p[2]/p[0])**2
-        term3 = perr[0]**2 * (2.355*p[3]*p[2]/p[0]**2)**2
-        gerr1 = np.sqrt(term1 + term2 + term3)
-
-        term1 = perr[2]**2 * (2.355*p[4]/p[0])**2
-        term2 = perr[4]**2 * (2.355*p[2]/p[0])**2
-        term3 = perr[0]**2 * (2.355*p[4]*p[2]/p[0]**2)**2
-        gerr2 = np.sqrt(term1 + term2 + term3)
-   
-        term1 = perr[2]**2 * (2.355*p[5]/p[0])**2
-        term2 = perr[5]**2 * (2.355*p[2]/p[0])**2
-        term3 = perr[0]**2 * (2.355*p[5]*p[2]/p[0]**2)**2
-        gerr3 = np.sqrt(term1 + term2 + term3)
-
-
+        gerr1 = perr[3]
+        gerr2 = perr[4]
+        gerr3 = perr[5]
 
         # PUT IT ALL TOGETHER
         CaT = gint1 + gint2 + gint3
@@ -535,7 +523,7 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
         CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
 
-        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 20) |  (CaT_EW < 0):
+        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 15) |  (CaT_EW < 0):
             CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
