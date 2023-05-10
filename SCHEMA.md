@@ -47,7 +47,8 @@ Label | Unit | Definition
 `gaia_rv_err`  | km/s | Gaia DR3 radial_velocity error
 `gaia_flag`  | --- | Set to unity if Gaia match
 `vv_long_pval` | | Variability parameter between combined exposures (pval < -4 is variable)
-`prob_member`  |  | Membership probability = 1 if good member star
+`Pmem`  |  | Membership probability = 1 if good member star
+`Pmem_pure`  |  | Membership probability = 1 if good member star, excludes velocity variables 
 
 
 ----
