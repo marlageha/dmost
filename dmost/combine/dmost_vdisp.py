@@ -113,7 +113,40 @@ def mcmc_vdisp(vel,vel_err, vr_guess, sig_guess, max_n = 5000, plot=1):
     return sampler, theta
 
 
+######################################################
+def calc_sigma(vel,vel_err, vr_guess, sig_guess,plot=1):
 
+    sampler, theta = mcmc_vdisp(vel,vel_err, vr_guess, sig_guess, plot=plot)
+
+    try:
+        tau    = sampler.get_autocorr_time(tol=0)
+        burnin = int(2 * np.max(tau))
+        converged = np.all(tau * 100 < sampler.iteration)
+        print(tau,burnin, converged)
+        convg = np.sum(converged)
+    except:
+        convg=0
+        burnin=100
+
+    if (burnin < 75):
+        burnin = 75
+
+    print(burnin, convg)
+
+    for ii in [0,1]:
+        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
+        if (ii==0):
+            vr = mcmc[1] 
+            vr_err16 = mcmc[0]
+            vr_err84= mcmc[2] 
+            vr_err   =(vr_err84 - vr_err16)/2.   # APPROX
+        if (ii==1):
+            sigma = mcmc[1] 
+            sigma_err16 = mcmc[0]
+            sigma_err84 = mcmc[2] 
+            sigma_err   = (sigma_err84 - sigma_err16)/2.  # APPROX
+
+    return vr, vr_err, sigma, sigma_err, sampler
 
 
     

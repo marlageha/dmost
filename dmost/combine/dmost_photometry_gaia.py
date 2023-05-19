@@ -110,7 +110,7 @@ def match_gaia(obj,allspec):
     
     if not os.path.isfile(gaia_file):
         print('NO GAIA FILE',gaia_file)
-        #break
+
         
     if os.path.isfile(gaia_file):
 
@@ -130,7 +130,7 @@ def match_gaia(obj,allspec):
         allspec['gaia_pmdec'][mt]        = gaia['pmdec'][mt2] 
         allspec['gaia_pmdec_err'][mt]    = gaia['pmdec_error'][mt2]
         allspec['gaia_parallax'][mt]     = gaia['parallax'][mt2] 
-        allspec['gaia_parallax_over_err'][mt] = gaia['parallax_over_error'][mt2]
+        allspec['gaia_parallax_err'][mt] = gaia['parallax_error'][mt2]
         allspec['gaia_rv'][mt]           = gaia['radial_velocity'][mt2] 
         allspec['gaia_rv_err'][mt]       = gaia['radial_velocity_error'][mt2] 
 
@@ -138,8 +138,15 @@ def match_gaia(obj,allspec):
         allspec['gaia_aen_sig'][mt]      = gaia['astrometric_excess_noise_sig'][mt2]
 
 
-        # SET NON_DETECTED RV BACK TO DEFAULT
-        mrv = allspec['gaia_rv'] == 0
+        # SET NON_DETECTED BACK TO DEFAULT
+        # GAIA DEFAULTS ARE ZERO (CONFUSING!)
+        m = allspec['gaia_pmra_err'] == 0.0
+        allspec['gaia_pmra'][m]  = -999.
+        m = allspec['gaia_pmdec_err'] == 0.0
+        allspec['gaia_pmdec'][m]  = -999.
+        m = allspec['gaia_parallax_err'] == 0.0
+        allspec['gaia_parallax'][m]  = -999.
+        mrv = allspec['gaia_rv'] == 0.0
         allspec['gaia_rv'][mrv]  = -999.
         nrv = np.sum(allspec['gaia_rv'] > -999.)
 
@@ -202,7 +209,7 @@ def match_photometry(obj,allspec):
     if obj['Phot'] == 'PanS':
         file = DEIMOS_RAW + '/Photometry/PanS/PanS_'+obj['Name2']+'.csv'
         pans = ascii.read(file)
-        m=pans['rMeanPSFMag'] != -999
+        m=(pans['rMeanPSFMag'] != -999) & (pans['gMeanPSFMag'] != -999)
         pans=pans[m]
         
         # TRANSFORM TO SDSS USING Tonry et al 2012
@@ -248,26 +255,6 @@ def match_photometry(obj,allspec):
         allspec['gmag_o'][mt] = munozf['g'][idx[d2d < 1.5*u.arcsec]] - Ag[mt]
         allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.5*u.arcsec]]
         allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.5*u.arcsec]]
-
-         
-  
-    #####################
-    ### SDSS PHOTOMETRY
-    if obj['Phot'] == 'sdss_dr14':
-        file = DEIMOS_RAW + '/Photometry/sdss_dr14/sdss_dr14_'+obj['Name2']+'.fits.gz'
-        sdss = Table.read(file)
-        csdss   = SkyCoord(ra=sdss['RA']*u.degree, dec=sdss['DEC']*u.degree) 
-        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
-        
-        idx, d2d, d3d = cdeimos.match_to_catalog_sky(csdss)  
-        foo = np.arange(0,np.size(idx),1)
-        
-        mt = foo[d2d < 2.*u.arcsec]
-        allspec['rmag_o'][mt] = sdss['PSFMAG_R'][idx[d2d < 2.*u.arcsec]] - Ar[mt]
-        allspec['gmag_o'][mt] = sdss['PSFMAG_G'][idx[d2d < 2.*u.arcsec]] - Ag[mt]
-        allspec['rmag_err'][mt] = sdss['PSFMAGERR_R'][idx[d2d < 2.*u.arcsec]]
-        allspec['gmag_err'][mt] = sdss['PSFMAGERR_G'][idx[d2d < 2.*u.arcsec]]
-
         
 
 
@@ -389,7 +376,30 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
         allspec['gmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
 
+ 
+    #####################
+    ### USE GAIA IF THERE ARE NO OTHER OPTIONS
+    if obj['Phot'] == 'gaia':
+        file = DEIMOS_RAW + '/Gaia_DR3/gaia_dr3_'+obj['Name2']+'.csv'
+        gaia = ascii.read(file)
         
+        # THIS IS WRONG
+        gaia.rename_column('phot_g_mean_mag', 'gmag')
+        gaia.rename_column('phot_rp_mean_mag', 'rmag')
+
+        
+        cgaia   = SkyCoord(ra=gaia['ra']*u.degree, dec=gaia['dec']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cgaia)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = gaia['rmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = gaia['gmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = 0.01
+        allspec['gmag_err'][mt] = 0.01
+       
 
 
     ### HST
@@ -493,9 +503,8 @@ def match_photometry(obj,allspec):
 
 
     # DETERMINE MV AND CONVERT CAT -> FEH
-    m_miss_star = (allspec['rmag_o'] < 2) & (allspec['serendip'] != 1) & (allspec['v_err'] > 0)
-    m_miss_gal = (allspec['rmag_o'] < 2) & (allspec['serendip'] != 1) & (allspec['v_err'] ==0)
-    print('PHOT: Missing {} stars and  {} galaxies'.format(np.sum(m_miss_star),np.sum(m_miss_gal)))
+    m_miss_star = (allspec['rmag_o'] < 2)  & (allspec['v_err'] > 0)
+    print('PHOT: Matched {} stars, missing {} star targets'.format(np.size(mt),np.sum(m_miss_star)))
 
     allspec = calc_rproj(allspec,obj)
     allspec = calc_MV_star(allspec,obj)
