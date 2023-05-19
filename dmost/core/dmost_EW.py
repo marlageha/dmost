@@ -317,7 +317,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
 
     try:
         p, pcov = curve_fit(CaT_gauss_plus_lorentzian,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                                bounds=((0.9, 8540., 0.5,0.5, 0,0,0, 0,0,0), (1.5, 8543.5, 5,3, 3,3,3, 3,3,3)))
+                                bounds=((0.9, 8539.5, 0.5,0.5, 0,0,0, 0,0,0), (1.5, 8544.5, 5,3, 3,3,3, 3,3,3)))
 
 
         perr = np.sqrt(np.diag(pcov))
@@ -411,7 +411,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
         try:
             p, pcov = curve_fit(CaT_gauss,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                            bounds=((0.5, 8539.5, 0.75, 0.1,0.1,0.1), (2, 8543.5, 1.5,2,2,2)))
+                            bounds=((0.5, 8539.5, 0.75, 0.1,0.1,0.1), (2, 8544.5, 1.5,2,2,2)))
         except:
             p, pcov = p0, None
             return CaT, CaT_err, gfit, chi2
@@ -436,6 +436,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         # CREATE FIT FOR PLOTTING
         gfit = CaT_gauss(wvl,*p)
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
+        
         
 
     return CaT, CaT_err, gfit, chi2
