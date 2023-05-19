@@ -67,7 +67,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
         combined velocity, error and number of combined exposures
     '''
 
-    v, verr, ncomb    = [-99,-99,-99]
+    v, verr, ncomb    = [-99,-99,0]
     
     # IS THIS A GALAXY?
     if (obj['marz_flag'] > 2):
@@ -90,7 +90,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
         sum2 = np.sum(vt/et**2)
 
         v    = sum2/sum1
-        verr = np.sqrt(1./sum1)
+        verr = np.sqrt(et)
 
 
         # USE COADD IF SINGLE ERROR IS > 10 kms
@@ -101,9 +101,8 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
             if (1.5*terr2 < verr) | (verr > 10):
                 v     = obj['coadd_v']
                 terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-                verr  = np.sqrt(terr**2 + nexp*sys_exp**2)
+                verr  = np.sqrt(terr**2)  # NO SYS_EXP FOR COADD
                 ncomb = nexp + 100.
-
 
 
     # IF NONE, THEN USE COADD 
@@ -111,10 +110,8 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
         if (obj['coadd_good'] ==  1):
             v     = obj['coadd_v']
             terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-            verr   = np.sqrt(terr**2 + nexp*sys_exp**2)
+            verr   = np.sqrt(terr**2)  # NO SYS_EXP FOR COADD
             ncomb = nexp + 100.
-
-
 
 
     return v,verr,ncomb
