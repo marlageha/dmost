@@ -14,8 +14,6 @@ from astropy.io import ascii,fits
 
 import emcee, corner
 import glob
-import numba
-from numba import njit
 import h5py
 
 from dmost import dmost_utils
@@ -58,7 +56,6 @@ def mk_single_model(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly, pf
     return model
 
 
-@njit
 def shift_v(pwave,v):
     swave = pwave * np.e**(v/2.997924e5)
     return swave
@@ -111,7 +108,6 @@ def lnprob_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,pfit):
 
 
 ######################################################
-@numba.jit(nopython=True)
 def lnprior_v(theta):
    
     #v = theta[0],  w = theta[1]
@@ -318,19 +314,19 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
-            slits['emcee_v'][arg,nexp] = mcmc[1] +  mask['vhelio'][nexp]
+            slits['emcee_v'][arg,nexp]       = mcmc[1] +  mask['vhelio'][nexp]
             slits['emcee_v_err16'][arg,nexp] = mcmc[0] +  mask['vhelio'][nexp]
             slits['emcee_v_err84'][arg,nexp] = mcmc[2] +  mask['vhelio'][nexp]
-            slits['emcee_v_err'][arg,nexp]   = slits['emcee_v_err84'][arg,nexp] - slits['emcee_v_err16'][arg,nexp] 
+            slits['emcee_v_err'][arg,nexp]   = (slits['emcee_v_err84'][arg,nexp] - slits['emcee_v_err16'][arg,nexp])/2.
         if (ii==1):
-            slits['emcee_w'][arg,nexp] = mcmc[1]
+            slits['emcee_w'][arg,nexp]       = mcmc[1]
             slits['emcee_w_err16'][arg,nexp] = mcmc[0]
             slits['emcee_w_err84'][arg,nexp] = mcmc[2]
 
     # CALCULATE SKEW/KERTOSIS
     chain  = np.array(sampler.chain[:,burnin:, 0]).flatten()
     slits['emcee_kertosis'][arg,nexp] = kurtosis(chain)
-    slits['emcee_skew'][arg,nexp] = skew(chain)
+    slits['emcee_skew'][arg,nexp]     = skew(chain)
 
 
     # DETERMINE IF MCMC WAS SUCCESSFUL
