@@ -15,7 +15,6 @@ from astropy.io import ascii,fits
 import emcee, corner
 
 import glob
-import numba
 import h5py
 
 
@@ -27,8 +26,8 @@ from scipy.optimize import curve_fit
 from scipy.stats import kurtosis, skew
 
 
-import numba
-from numba import njit
+#import numba
+#from numba import njit
 from numpy.core.multiarray import interp as compiled_interp
 
 
@@ -60,7 +59,6 @@ def mk_single_model(theta, wave, flux, ivar, twave,tflux, pflux,pwave, npoly, pf
     return model
 
 
-@njit
 def shift_v(pwave,v):
     swave = pwave * np.e**(v/2.997924e5)
     return swave
@@ -113,7 +111,7 @@ def lnprob_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,pfit):
 
 
 ######################################################
-@numba.jit(nopython=True)
+#@numba.jit(nopython=True)
 def lnprior_v(theta):
    
     #v = theta[0],  w = theta[1]
@@ -267,19 +265,19 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
-            slits['coadd_v'][arg] = mcmc[1] + vhelio_avg
+            slits['coadd_v'][arg]       = mcmc[1] + vhelio_avg
             slits['coadd_v_err16'][arg] = mcmc[0] + vhelio_avg
             slits['coadd_v_err84'][arg] = mcmc[2] + vhelio_avg
             slits['coadd_v_err'][arg]   = (mcmc[2] - mcmc[0])/2.
 
         if (ii==1):
-            slits['coadd_w'][arg] = mcmc[1] 
-            slits['coadd_w_err'][arg] = (mcmc[0]+mcmc[2])/2.
+            slits['coadd_w'][arg]     = mcmc[1] 
+            slits['coadd_w_err'][arg] = (mcmc[2] - mcmc[0])/2.
 
     # CALCULATE SKEW/KERTOSIS
     chain  = np.array(sampler.chain[:,burnin:, 0]).flatten()
     slits['coadd_kertosis'][arg] = kurtosis(chain)
-    slits['coadd_skew'][arg] = skew(chain)
+    slits['coadd_skew'][arg]     = skew(chain)
 
 
     # DETERMINE IF MCMC WAS SUCCESSFUL
