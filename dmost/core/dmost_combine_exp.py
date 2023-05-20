@@ -88,7 +88,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
                 ncomb=ncomb+1
 
         v    = np.average(vt,weights = 1./et**2)
-        verr = np.sqrt(np.sum(et**2))
+        verr = np.sqrt(1./np.sum(1./et**2))
 
 
         # USE COADD IF SINGLE ERROR IS > 10 kms
