@@ -67,7 +67,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
         combined velocity, error and number of combined exposures
     '''
 
-    v, verr, ncomb    = [-99,-99,0]
+    v, verr, ncomb    = [-999,-99,0]
     
     # IS THIS A GALAXY?
     if (obj['marz_flag'] > 2):
@@ -86,22 +86,19 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
                 terr = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
                 et   = np.append(et,np.sqrt(terr**2 + sys_exp**2))
                 ncomb=ncomb+1
-        sum1 = np.sum(1./et**2)
-        sum2 = np.sum(vt/et**2)
 
-        v    = sum2/sum1
-        verr = np.sqrt(et)
+        v    = np.average(vt,weights = 1./et**2)
+        verr = np.sqrt(np.sum(et**2))
 
 
         # USE COADD IF SINGLE ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
-            terr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-            terr2   = np.sqrt(terr**2 + nexp*sys_exp**2)
-            print('verr, cerr, cerr_sys:  {:0.2f} {:0.2f} {:0.2f}'.format(verr,terr,terr2))
-            if (1.5*terr2 < verr) | (verr > 10):
+            cerr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+
+            print('verr, cerr, cerr_sys:  {:0.2f} {:0.2f} {:0.2f}'.format(verr,cerr))
+            if (1.5*cerr < verr) | (verr > 10):
                 v     = obj['coadd_v']
-                terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-                verr  = np.sqrt(terr**2)  # NO SYS_EXP FOR COADD
+                verr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2. # NO SYS_EXP FOR COADD
                 ncomb = nexp + 100.
 
 
@@ -109,8 +106,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
     else:
         if (obj['coadd_good'] ==  1):
             v     = obj['coadd_v']
-            terr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-            verr   = np.sqrt(terr**2)  # NO SYS_EXP FOR COADD
+            verr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  # NO SYS_EXP FOR COADD
             ncomb = nexp + 100.
 
 
