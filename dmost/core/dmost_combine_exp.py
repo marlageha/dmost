@@ -95,7 +95,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.5):
         if (obj['coadd_good'] ==  1):
             cerr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
 
-            print('verr, cerr, cerr_sys:  {:0.2f} {:0.2f} {:0.2f}'.format(verr,cerr))
+            print('verr, cerr:  {:0.2f} {:0.2f} '.format(verr,cerr))
             if (1.5*cerr < verr) | (verr > 10):
                 v     = obj['coadd_v']
                 verr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2. # NO SYS_EXP FOR COADD
