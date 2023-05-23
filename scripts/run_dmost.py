@@ -68,8 +68,8 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
 
 
     # CALCULATE EQUIVALENT WIDTH QUANTITIES
-    slits, mask  = dmost_EW.run_coadd_EW(data_dir, slits, mask)
-    write_dmost(slits,mask,outfile)
+#    slits, mask  = dmost_EW.run_coadd_EW(data_dir, slits, mask)
+#    write_dmost(slits,mask,outfile)
 
 
 
