@@ -9,6 +9,7 @@ from astropy.io import ascii, fits
 
 from astropy.table import vstack
 from scipy.stats import norm
+from scipy.stats import kurtosis, skew
 
 import glob
 from dmost.core import dmost_utils
@@ -72,6 +73,23 @@ def initialize_walkers(vr_guess,sig_guess):
 
     return ndim,nwalkers,p0
 
+def calc_SK(sampler):
+
+    flag_upper_limit = 0
+
+    chain_v  = np.array(sampler.chain[:,100:, 0]).flatten()
+    chain_s  = np.array(sampler.chain[:,100:, 1]).flatten()
+
+    v_kt = kurtosis(chain_v)
+    v_sw = skew(chain_v)
+
+    s_kt = kurtosis(chain_s)
+    s_sw = skew(chain_s)
+
+
+    return v_kt,v_sw,s_kt,s_sw
+
+
 ######################################################
 def run_sampler(sampler, p0, max_n):
 
@@ -122,7 +140,7 @@ def calc_sigma(vel,vel_err, vr_guess, sig_guess,plot=1):
         tau    = sampler.get_autocorr_time(tol=0)
         burnin = int(2 * np.max(tau))
         converged = np.all(tau * 100 < sampler.iteration)
-        print(tau,burnin, converged)
+        #print(tau,burnin, converged)
         convg = np.sum(converged)
     except:
         convg=0
@@ -131,7 +149,7 @@ def calc_sigma(vel,vel_err, vr_guess, sig_guess,plot=1):
     if (burnin < 75):
         burnin = 75
 
-    print(burnin, convg)
+    #print(burnin, convg)
 
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
@@ -144,9 +162,13 @@ def calc_sigma(vel,vel_err, vr_guess, sig_guess,plot=1):
             sigma = mcmc[1] 
             sigma_err16 = mcmc[0]
             sigma_err84 = mcmc[2] 
-            sigma_err   = (sigma_err84 - sigma_err16)/2.  # APPROX
 
-    return vr, vr_err, sigma, sigma_err, sampler
+            sigma_err_m   = (sigma - sigma_err16)
+            sigma_err_p   = (sigma_err84 - sigma)
+
+
+
+    return vr, vr_err, sigma, sigma_err_p,sigma_err_m, sampler
 
 
     
