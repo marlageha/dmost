@@ -142,8 +142,13 @@ def membership_NaI(alldata, this_obj):
 ######################################################
 def membership_MgI(alldata):
 
-    Pmem_MgI = (alldata['ew_mgI'] < 0.6) 
+    y = 0.26*alldata['ew_cat']  - 0.5206
 
+    mgI_lim1 = (alldata['ew_mgI'] - alldata['ew_mgI_err'] > 0.5)  & (alldata['ew_cat'] < 4)
+    mgI_lim2 = (alldata['ew_mgI'] > y)  & (alldata['ew_cat'] >= 4)
+
+
+    Pmem_MgI = ~(mgI_lim1 | mgI_lim2)
 
     return Pmem_MgI
 
@@ -274,7 +279,16 @@ def flag_variable_stars(alldata):
     return flag_var
 
 
+######################################################
+def flag_poor_data(alldata):
 
+    m_err = alldata['v_err'] > 12
+
+    m_vchi2 = (alldata['v_chi2'] > 25) & (alldata['SN'] < 50)
+
+    flag_poor = m_err | m_vchi2 
+        
+    return flag_poor
 
 ######################################################
 def flag_velocity_outliers(alldata,Pmem, low=3,high=3):
@@ -306,12 +320,14 @@ def find_members(alldata,this_obj):
 
     flag_HB       = flag_HB_stars(alldata,this_obj)
     flag_var      = flag_variable_stars(alldata)
-
+    flag_poor     = flag_poor_data(alldata)
 
     Pmem         =  Pmem_cmd & Pmem_crude_v & Pmem_parallax & Pmem_NaI & Pmem_MgI & Pmem_pm
-    Pmem_v       = flag_velocity_outliers(alldata, Pmem&~flag_var)
+    Pmem_v       = flag_velocity_outliers(alldata, Pmem&~flag_var&~flag_poor)
 
-    Pmem_pure    =  Pmem & ~flag_var & Pmem_v
+   
+
+    Pmem_pure    =  Pmem & ~flag_var & Pmem_v & ~flag_poor
 
 
     return Pmem, Pmem_pure, Pmem_cmd, Pmem_crude_v, Pmem_NaI, Pmem_pm, Pmem_parallax, Pmem_MgI, Pmem_v
