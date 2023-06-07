@@ -31,6 +31,7 @@ def create_allstars(nmasks,nstars):
             filled_column('t_exp',-99.,nstars),
             filled_column('nmask',-99,nstars),
             filled_column('masknames','                                                  ',nstars),
+            filled_column('collate1d_filename','                                                  ',nstars),
             filled_column('slitwidth',-99.,nstars),
 
          
@@ -174,8 +175,9 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
         feh   = good_stars['chi2_feh']
 
         verr     = np.sqrt(good_stars['dmost_v_err']**2)
-        verr_sys = np.sqrt(verr**2 + sys_mask**2)
-        v_chi2   = np.min(good_stars['v_chi2'])
+
+        verr_sys = np.sqrt((verr)**2 + sys_mask**2)
+        v_chi2   = np.max(good_stars['v_chi2'])
         ncomb=ncomb+1
 
     
@@ -185,7 +187,7 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
             vt   = np.append(vt,obj['dmost_v'])
             tt   = np.append(tt,obj['chi2_teff'])
             ft   = np.append(ft,obj['chi2_feh'])
-            et   = np.append(et,obj['dmost_v_err'])
+            et   = np.append(et,np.sqrt((obj['dmost_v_err'])**2 + sys_mask**2))
             ncomb=ncomb+1
 
         sum1 = np.sum(1./et**2)
@@ -197,9 +199,8 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
         teff = sum3/sum1
         feh  = sum4/sum1
 
-        verr     = np.sqrt(1./sum1)
-        verr_sys = np.sqrt(verr**2 + sys_mask**2)
-        v_chi2   = np.min(good_stars['v_chi2'])
+        verr_sys     = np.sqrt(1./sum1)
+        v_chi2       = np.max(good_stars['v_chi2'])
 
     return v, verr_sys, v_chi2, teff, feh, ncomb
 
@@ -287,7 +288,7 @@ def combine_mask_ew(stars):
         ncomb=ncomb+1
 
     
-    if np.size(good_stars) > 1:
+    if np.size(good_stars) >= 1:
         ct,cterr,na,naerr,mg,mgerr = [],[],[],[],[],[]
         for obj in good_stars:
             ct   = np.append(ct,obj['cat'])
@@ -321,7 +322,6 @@ def combine_mask_ew(stars):
         cat_err = np.sqrt(sys_cat**2 + 1./sum1)
         naI_err = np.sqrt(sys_nai**2 + 1./sum1n)
         mgI_err = np.sqrt(sys_mgi**2 + 1./sum1m)
-
     return cat,cat_err,mgI,mgI_err,naI,naI_err, ncomb 
 
 
@@ -443,7 +443,7 @@ def get_unique_spectra(allslits):
 
     cdeimos = SkyCoord(ra=allslits['RA']*u.degree, dec=allslits['DEC']*u.degree) 
     idx, d2d, d3d = cdeimos.match_to_catalog_sky(cdeimos)  
-    mt = d2d < 1.5*u.arcsec
+    mt = d2d < 1.0*u.arcsec
 
     nstars = np.size(allslits)
 
@@ -469,6 +469,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             dmost_allstar['objname'][i] = obj['objname']
             dmost_allstar['slitwidth'][i] = round(obj['slitwidth'], 2)
 
+
             if (obj['serendip'] > 0):
                 dmost_allstar['serendip'][i] = 1
             else:
@@ -481,7 +482,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             
             
             # SET MATCHING THRESHOLD -- 1.5" arcseconds
-            m = diff < 1.5
+            m = diff < 1.0
             
             nrpt = np.sum(m)
             for j,robj in enumerate(test_allslits[m]):
@@ -489,6 +490,8 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
                 # KEEP TRACK OF MASK NAMES
                 if (j==0):
                     dmost_allstar['masknames'][i]   = obj['maskname']
+                    dmost_allstar['collate1d_filename'][i]  = robj['collate1d_filename']
+
                 if (j > 0):
                     dmost_allstar['masknames'][i]   = dmost_allstar['masknames'][i]+'+'+robj['maskname']
 
@@ -503,6 +506,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
                     dmost_allstar['mask_SN'][i,j]    = robj['collate1d_SN']
                     dmost_allstar['mask_nexp'][i,j]  = robj['v_nexp']
                     dmost_allstar['mask_mjd'][i,j]   = robj['mjd']
+
 
                     dmost_allstar['mask_marz_flag'][i,j] = robj['marz_flag']
                     dmost_allstar['mask_marz_z'][i,j]    = robj['marz_z']
