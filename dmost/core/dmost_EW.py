@@ -317,7 +317,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
 
     try:
         p, pcov = curve_fit(CaT_gauss_plus_lorentzian,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                                bounds=((0.9, 8539.5, 0.5,0.5, 0,0,0, 0,0,0), (1.5, 8544.5, 5,3, 3,3,3, 3,3,3)))
+                                bounds=((0.9, 8539.5, 0.5,0.5, 0.1,0.1,0.1, 0,0,0), (1.5, 8544.5, 5,3, 3,3,3, 3,3,3)))
 
 
         perr = np.sqrt(np.diag(pcov))
@@ -527,6 +527,8 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 15) |  (CaT_EW < 0):
             CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
+        if (CaT_chi2 > 50):
+            CaT_EW_err = -99
 
         slits['cat'][arg]      = CaT_EW
         slits['cat_err'][arg]  = CaT_EW_err
