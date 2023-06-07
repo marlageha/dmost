@@ -36,12 +36,17 @@ def calc_MV_star(allspec,obj):
     # DISTANCE MODULUS AND REDDENING
     dmod = 5.*np.log10(obj['Dist_kpc']*1e3) - 5.
 
-    # JORDI TRANSFORMATIONS
-    #V-g   =     (-0.565 ± 0.001)*(g-r) - (0.016 ± 0.001)
-    #V-g   =     (-0.569 ± 0.007)*(g-r) + (0.021 ± 0.004)  metal-poor Table 4
-    
+
+    # Jester 2005
+    # https://classic.sdss.org/dr5/algorithms/sdssUBVRITransform.php    
+    # V = g - 0.59*(g-r) - 0.01 
+    #
+    # Using Lupton
+    # V = g - 0.5784*(g - r) - 0.0038;  sigma = 0.0054
+
     gr_o =  allspec['gmag_o'] - allspec['rmag_o'] 
-    V    =  allspec['gmag_o'] -0.569*gr_o + 0.021
+    V    =  allspec['gmag_o'] - 0.5784*gr_o -0.0038
+
     allspec['MV_o'] = V - dmod
     
     return allspec
@@ -97,7 +102,6 @@ def CaT_to_FeH(alldata):
     
     alldata['ew_feh'][m]      = FeH
     alldata['ew_feh_err'][m]  = FeH_err
-    #alldata['ew_feh_flag'][m] = 1
 
     return alldata
 
@@ -123,8 +127,8 @@ def match_gaia(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cgaia)  
         foo = np.arange(0,np.size(idx),1)
 
-        mt  = foo[d2d < 1.5*u.arcsec]
-        mt2 = idx[d2d < 1.5*u.arcsec]
+        mt  = foo[d2d < 1.*u.arcsec]
+        mt2 = idx[d2d < 1.*u.arcsec]
         allspec['gaia_pmra'][mt]         = gaia['pmra'][mt2] 
         allspec['gaia_pmra_err'][mt]     = gaia['pmra_error'][mt2]
         allspec['gaia_pmdec'][mt]        = gaia['pmdec'][mt2] 
@@ -159,6 +163,7 @@ def match_gaia(obj,allspec):
 
     return allspec
 
+###########################################
 ###########################################
 def match_photometry(obj,allspec):
     
@@ -196,11 +201,11 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cmunf)  
         foo = np.arange(0,np.size(idx),1)
 
-        mt = foo[d2d < 1.5*u.arcsec]
-        allspec['rmag_o'][mt] = munozf['r'][idx[d2d < 1.5*u.arcsec]] - Ar[mt]
-        allspec['gmag_o'][mt] = munozf['g'][idx[d2d < 1.5*u.arcsec]] - Ag[mt]
-        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.5*u.arcsec]]
-        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.5*u.arcsec]]
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = munozf['r'][idx[d2d < 1.*u.arcsec]] - Ar[mt]
+        allspec['gmag_o'][mt] = munozf['g'][idx[d2d < 1.*u.arcsec]] - Ag[mt]
+        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.*u.arcsec]]
+        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.*u.arcsec]]
 
          
                
@@ -250,11 +255,11 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cmunf)  
         foo = np.arange(0,np.size(idx),1)
 
-        mt = foo[d2d < 1.5*u.arcsec]
-        allspec['rmag_o'][mt] = munozf['r'][idx[d2d < 1.5*u.arcsec]] - Ar[mt]
-        allspec['gmag_o'][mt] = munozf['g'][idx[d2d < 1.5*u.arcsec]] - Ag[mt]
-        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.5*u.arcsec]]
-        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.5*u.arcsec]]
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = munozf['r'][idx[d2d < 1.*u.arcsec]] - Ar[mt]
+        allspec['gmag_o'][mt] = munozf['g'][idx[d2d < 1.*u.arcsec]] - Ag[mt]
+        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.*u.arcsec]]
+        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.*u.arcsec]]
         
 
 
@@ -334,25 +339,27 @@ def match_photometry(obj,allspec):
         allspec['gmag_err'][mt] = 0.01
 
     
-#####################
-    ### LEGACY DR9
-    if obj['Phot'] == 'ls_dr9':
-        file = DEIMOS_RAW + '/Photometry/legacy_DR9/dr9_'+obj['Name2']+'.csv'
-        ls_dr9 = ascii.read(file)
+
+
+  #####################
+    ### LEGACY DR10
+    if obj['Phot'] == 'ls_dr10':
+        file = DEIMOS_RAW + '/Photometry/legacy_DR10/dr10_'+obj['Name2']+'.csv'
+        ls_dr10 = ascii.read(file)
         
-        ls_dr9.rename_column('dered_mag_g', 'gmag')
-        ls_dr9.rename_column('dered_mag_r', 'rmag')
+        ls_dr10.rename_column('dered_mag_g', 'gmag')
+        ls_dr10.rename_column('dered_mag_r', 'rmag')
 
         
-        cls_dr9   = SkyCoord(ra=ls_dr9['ra']*u.degree, dec=ls_dr9['dec']*u.degree) 
+        cls_dr10   = SkyCoord(ra=ls_dr10['ra']*u.degree, dec=ls_dr10['dec']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 
-        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr9)  
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
 
         mt = foo[d2d < 1.*u.arcsec]
-        allspec['rmag_o'][mt] = ls_dr9['rmag'][idx[d2d < 1.*u.arcsec]] 
-        allspec['gmag_o'][mt] = ls_dr9['gmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_o'][mt] = ls_dr10['rmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = ls_dr10['gmag'][idx[d2d < 1.*u.arcsec]] 
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
 
@@ -364,10 +371,10 @@ def match_photometry(obj,allspec):
         delve = Table.read(file)
         
         
-        cls_dr9   = SkyCoord(ra=delve['RA']*u.degree, dec=delve['DEC']*u.degree) 
+        cls_dr10   = SkyCoord(ra=delve['RA']*u.degree, dec=delve['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 
-        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr9)  
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
 
         mt = foo[d2d < 1.*u.arcsec]
@@ -427,7 +434,9 @@ def match_photometry(obj,allspec):
     if obj['Phot'] == 'ACS':
         file = DEIMOS_RAW + '/Photometry/hst/hst_'+obj['Name2']+'.fits'
         hst = Table.read(file)
-    
+        # REMOVE SUPER FAINT STARS
+        m=hst['F814W_VEGA'] > 25
+        hst=hst[m]
 
         hst.rename_column('F475W_VEGA', 'gmag')
         hst.rename_column('F814W_VEGA', 'rmag')
@@ -447,7 +456,7 @@ def match_photometry(obj,allspec):
 
 
 #####################
-    ### LEGACY DR9
+    ### PANDAS
     if obj['Phot'] == 'pandas':
         file = DEIMOS_RAW + '/Photometry/PANDAS/PANDAS_'+obj['Name2']+'.csv'
         pandas = ascii.read(file)
