@@ -111,7 +111,7 @@ def lnprob_v(theta, wave, flux, ivar, twave,tflux, pflux,pwave,npoly,pfit):
 def lnprior_v(theta):
    
     #v = theta[0],  w = theta[1]
-    if (-600. < theta[0] < 500.) & (-40. < theta[1] < 40.):
+    if (-800. < theta[0] < 800.) & (-40. < theta[1] < 40.):
         return 0.0
     
     return -np.inf
