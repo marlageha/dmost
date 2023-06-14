@@ -274,7 +274,7 @@ def flag_HB_stars(alldata,this_obj):
 ######################################################
 def flag_variable_stars(alldata):
 
-    flag_var = (alldata['var_flag'] ==1) | (alldata['var_short_flag'] ==1)
+    flag_var = (alldata['flag_var'] ==1) | (alldata['var_short_flag'] ==1)
 
     return flag_var
 
