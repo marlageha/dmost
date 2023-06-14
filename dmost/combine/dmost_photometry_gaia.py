@@ -40,12 +40,14 @@ def calc_MV_star(allspec,obj):
     # Jester 2005
     # https://classic.sdss.org/dr5/algorithms/sdssUBVRITransform.php    
     # V = g - 0.59*(g-r) - 0.01 
-    #
+    #V    =  allspec['gmag_o'] - 0.59*gr_o -0.01
+    # Jordi 2006
+    # V = allspec['gmag_o'] - 0.565*gr_o -0.016
     # Using Lupton
     # V = g - 0.5784*(g - r) - 0.0038;  sigma = 0.0054
 
     gr_o =  allspec['gmag_o'] - allspec['rmag_o'] 
-    V    =  allspec['gmag_o'] - 0.5784*gr_o -0.0038
+    V    = allspec['gmag_o'] - 0.565*gr_o -0.016
 
     allspec['MV_o'] = V - dmod
     
@@ -156,7 +158,7 @@ def match_gaia(obj,allspec):
 
         # SET GAIA FLAG 
         m = allspec['gaia_pmra'] > -999
-        allspec['gaia_flag'][m] = 1
+        allspec['flag_gaia'][m] = 1
 
         print('GAIA: Matched {} stars and {} Gaia RVS'.format(np.size(mt),nrv))
 
@@ -208,37 +210,7 @@ def match_photometry(obj,allspec):
         allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.*u.arcsec]]
 
          
-               
-    ## PANSTARRS DR2
-    #  https://catalogs.mast.stsci.edu/
-    if obj['Phot'] == 'PanS':
-        file = DEIMOS_RAW + '/Photometry/PanS/PanS_'+obj['Name2']+'.csv'
-        pans = ascii.read(file)
-        m=(pans['rMeanPSFMag'] != -999) & (pans['gMeanPSFMag'] != -999)
-        pans=pans[m]
-        
-        # TRANSFORM TO SDSS USING Tonry et al 2012
-        gr_p   = pans['gMeanPSFMag'] - pans['rMeanPSFMag']
-        g_sdss = pans['gMeanPSFMag'] + 0.013 + 0.145*gr_p + 0.019*gr_p**2
-        r_sdss = pans['rMeanPSFMag'] - 0.001 + 0.004*gr_p + 0.007*gr_p**2
-        
-        cpans   = SkyCoord(ra=pans['raMean']*u.degree, dec=pans['decMean']*u.degree) 
-        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
- 
-        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cpans)  
-        foo = np.arange(0,np.size(idx),1)
-
-        # INCREASED TO 2" TO GET CENTRAL GLOBULAR CLUSTER MEMBERS
-        ds = 2.0
-        mt = foo[d2d < ds*u.arcsec]
-        allspec['rmag_o'][mt] = r_sdss[idx[d2d < ds*u.arcsec]] - Ar[mt]
-        allspec['gmag_o'][mt] = g_sdss[idx[d2d < ds*u.arcsec]] - Ag[mt]
-        
-        allspec['rmag_err'][mt] = pans['rMeanPSFMagErr'][idx[d2d < ds*u.arcsec]]
-        allspec['gmag_err'][mt] = pans['gMeanPSFMagErr'][idx[d2d < ds*u.arcsec]]
-
-        
-        
+                  
 
      
     #####################
@@ -292,54 +264,6 @@ def match_photometry(obj,allspec):
 
         
 
-       
- 
-    ### STETSON PHOTOMETRY
-    if obj['Phot'] == 'stetson':
-        
-        # DOWNLOADED FROM STETSON"S WEBSITE, EDIT .pho to add ID column name
-        file_pho = DEIMOS_RAW +'Photometry/stetson/'+obj['Name']+'.pho'
-        file_pos = DEIMOS_RAW +'Photometry/stetson/'+obj['Name']+'.pos'
-
-        pho = ascii.read(file_pho,data_start=1)
-        pos = ascii.read(file_pos,data_start=1)
-        if (np.size(pho) != np.size(pos)):
-            print('STETSON FILES MIS-MATCHED')
-
-        # MATCH TO ASPEC            
-        ra = pos['col1']
-        dec= pos['col2']
-
-
-        # TRANSFORM PHOTOMETRY 
-        # Jordi 2006: http://adsabs.harvard.edu/abs/2006A%26A...460..339J
-        # FOR METAL POOR STARS
-        VR = pho['V'] - pho['R']
-        gr = (1.72)*(VR)  - (0.198)  
-        r  = (0.34)*(VR)  + (0.015) + pho['R']
-        g  = gr + r 
-
-        # IF R ISN"T AVAILABLE, THEN JESTER et al 2005
-        if (np.median(VR) < -10):
-            BV = pho['B'] - pho['V']
-            V  = pho['V']
-            g  =  V + 0.60*(BV) - 0.12    
-            r  =  V - 0.42*(BV) + 0.11    
-
-        cstet   = SkyCoord(ra=ra*u.degree, dec=dec*u.degree) 
-        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
- 
-        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cstet)  
-        foo = np.arange(0,np.size(idx),1)
-
-        mt = foo[d2d < 1.*u.arcsec]
-        allspec['rmag_o'][mt] = r[idx[d2d < 1.*u.arcsec]] - Ar[mt]
-        allspec['gmag_o'][mt] = g[idx[d2d < 1.*u.arcsec]] - Ag[mt]
-        allspec['rmag_err'][mt] = 0.01
-        allspec['gmag_err'][mt] = 0.01
-
-    
-
 
   #####################
     ### LEGACY DR10
@@ -350,9 +274,13 @@ def match_photometry(obj,allspec):
         ls_dr10.rename_column('dered_mag_g', 'gmag')
         ls_dr10.rename_column('dered_mag_r', 'rmag')
 
+        # CORRECT BASS MAGNITUDES NORTHERN MAGNITUDES
+        if np.median(ls_dr10['dec'] > 34.):
+            ls_dr10['rmag'] =  -0.0382 * (ls_dr10['gmag'] - ls_dr10['rmag']) + 0.0108 + ls_dr10['rmag']
+
         
-        cls_dr10   = SkyCoord(ra=ls_dr10['ra']*u.degree, dec=ls_dr10['dec']*u.degree) 
-        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+        cls_dr10 = SkyCoord(ra=ls_dr10['ra']*u.degree, dec=ls_dr10['dec']*u.degree) 
+        cdeimos  = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
@@ -363,7 +291,29 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
 
+
+   ###########################
+    if obj['Phot'] == 'ls_dr10i':
+        file = DEIMOS_RAW + '/Photometry/legacy_DR10/dr10_'+obj['Name2']+'.csv'
+        ls_dr10 = ascii.read(file)
         
+        # hack, if rmag isn't available
+        gmag = ls_dr10['dered_mag_g']
+        rmag = ls_dr10['dered_mag_i'] + 0.3
+
+
+        cls_dr10 = SkyCoord(ra=ls_dr10['ra']*u.degree, dec=ls_dr10['dec']*u.degree) 
+        cdeimos  = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = rmag[idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = gmag[idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = 0.01
+        allspec['gmag_err'][mt] = 0.01
+      
 
     ### DELVE
     if obj['Phot'] == 'delve':
@@ -371,7 +321,7 @@ def match_photometry(obj,allspec):
         delve = Table.read(file)
         
         
-        cls_dr10   = SkyCoord(ra=delve['RA']*u.degree, dec=delve['DEC']*u.degree) 
+        cls_dr10= SkyCoord(ra=delve['RA']*u.degree, dec=delve['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
@@ -383,18 +333,61 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
         allspec['gmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
 
+  
+    ## PANSTARRS DR2
+    #  https://catalogs.mast.stsci.edu/
+    if obj['Phot'] == 'PanS':
+        file = DEIMOS_RAW + '/Photometry/PanS/PanS_'+obj['Name2']+'.csv'
+        pans = ascii.read(file)
+        m=(pans['rMeanPSFMag'] != -999) & (pans['gMeanPSFMag'] != -999)
+        pans=pans[m]
+        
+        # TRANSFORM TO SDSS USING Tonry et al 2012
+        gr_p   = pans['gMeanPSFMag'] - pans['rMeanPSFMag']
+        g_sdss = pans['gMeanPSFMag'] + 0.013 + 0.145*gr_p + 0.019*gr_p**2
+        r_sdss = pans['rMeanPSFMag'] - 0.001 + 0.004*gr_p + 0.007*gr_p**2
+        
+        cpans   = SkyCoord(ra=pans['raMean']*u.degree, dec=pans['decMean']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
  
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cpans)  
+        foo = np.arange(0,np.size(idx),1)
+
+        # INCREASED TO 2" TO GET CENTRAL GLOBULAR CLUSTER MEMBERS
+        ds = 2.0
+        mt = foo[d2d < ds*u.arcsec]
+        allspec['rmag_o'][mt] = r_sdss[idx[d2d < ds*u.arcsec]] - Ar[mt]
+        allspec['gmag_o'][mt] = g_sdss[idx[d2d < ds*u.arcsec]] - Ag[mt]
+        
+        allspec['rmag_err'][mt] = pans['rMeanPSFMagErr'][idx[d2d < ds*u.arcsec]]
+        allspec['gmag_err'][mt] = pans['gMeanPSFMagErr'][idx[d2d < ds*u.arcsec]]
+
+        
+    
     #####################
     ### USE GAIA IF THERE ARE NO OTHER OPTIONS
     if obj['Phot'] == 'gaia':
         file = DEIMOS_RAW + '/Gaia_DR3/gaia_dr3_'+obj['Name2']+'.csv'
         gaia = ascii.read(file)
         
-        # THIS IS WRONG
-        gaia.rename_column('phot_g_mean_mag', 'gmag')
-        gaia.rename_column('phot_rp_mean_mag', 'rmag')
+        # TRANSFORM USING Table 5.7
+        #https://gea.esac.esa.int/archive/documentation/GDR3/Data_processing/chap_cu5pho/cu5pho_sec_photSystem/cu5pho_ssec_photRelations.html#Ch5.T8 
 
-        
+        G_BP_RP = gaia['bp_rp']
+        G       = gaia['phot_g_mean_mag']
+
+        Gr   = -0.09837 + 0.08592*G_BP_RP + 0.1907*G_BP_RP**2 - 0.1701*G_BP_RP**3 + 0.02263*G_BP_RP**4
+        Gg   =  0.2199  - 0.6365*G_BP_RP  - 0.1548*G_BP_RP**2 + 0.0064*G_BP_RP**3
+        rmag =  G - Gr
+        gmag =  G - Gg
+        err  = (2.5/np.log(10)) / gaia['phot_g_mean_flux_over_error']
+        gaia_err  = np.sqrt(err**2 + 0.07**2)
+
+        # TRANSFORMATION IS TOTALLY OFF
+        rmag = gaia['phot_rp_mean_mag']
+        gmag = gaia['phot_g_mean_mag']-0.3
+
+
         cgaia   = SkyCoord(ra=gaia['ra']*u.degree, dec=gaia['dec']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
 
@@ -402,11 +395,10 @@ def match_photometry(obj,allspec):
         foo = np.arange(0,np.size(idx),1)
 
         mt = foo[d2d < 1.*u.arcsec]
-        allspec['rmag_o'][mt] = gaia['rmag'][idx[d2d < 1.*u.arcsec]] 
-        allspec['gmag_o'][mt] = gaia['gmag'][idx[d2d < 1.*u.arcsec]] 
-        allspec['rmag_err'][mt] = 0.01
-        allspec['gmag_err'][mt] = 0.01
-       
+        allspec['rmag_o'][mt]   = rmag[idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt]   = gmag[idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = gaia_err[idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_err'][mt] = gaia_err[idx[d2d < 1.*u.arcsec]] 
 
 
     ### HST
