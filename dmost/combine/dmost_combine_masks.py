@@ -45,7 +45,6 @@ def create_allstars(nmasks,nstars):
             # GALAXIES
             filled_column('marz_z',-999.,nstars),
             filled_column('marz_flag',-99,nstars),
-            filled_column('coadd_flag',-99,nstars),
             filled_column('serendip',-999.,nstars),
 
 
@@ -89,19 +88,21 @@ def create_allstars(nmasks,nstars):
             filled_column('gaia_rv',-999.,nstars),
             filled_column('gaia_rv_err',-999.,nstars),
 
-            filled_column('gaia_flag',-99,nstars),
 
 
             # VARIABLE VELOCITY FLAGS
             filled_column('var_pval',-999.,nstars),
             filled_column('var_max_v',-999.,nstars),
             filled_column('var_max_t',-999.,nstars),
-            filled_column('var_flag',-99,nstars),
 
             filled_column('var_short_flag',-99,nstars),
             filled_column('var_short_max_t',-999.,nstars),
 
-            # MEMBERSHIPS
+            # FLAGS AND MEMBERSHIPS 
+            filled_column('coadd_flag',-99,nstars),
+            filled_column('flag_var',-99,nstars),
+            filled_column('flag_gaia',-99,nstars),
+            filled_column('flag_HB',-99,nstars),
             filled_column('Pmem',-99,nstars),
             filled_column('Pmem_pure',-99,nstars),
 
@@ -235,7 +236,7 @@ def set_binary_flag(alldata,sys_mask = 0.7):
         m = (obj['mask_v_err'] > 0)
         if np.sum(m) > 1:
 
-            alldata['var_flag'][i]  = 0
+            alldata['flag_var'][i]  = 0
             ns=ns+1
 
             v_mean = np.average(obj['mask_v'][m],weights=1./(obj['mask_v_err'][m]**2+ sys_mask**2))
@@ -256,10 +257,10 @@ def set_binary_flag(alldata,sys_mask = 0.7):
             alldata['var_pval'][i]  = lpv
             alldata['var_max_v'][i] = np.max(obj['mask_v'][m]) - np.min(obj['mask_v'][m])
             alldata['var_max_t'][i] = 24*(np.max(obj['mask_mjd'][m])-np.min(obj['mask_mjd'][m]))
-            alldata['var_flag'][i]  = 0
+            alldata['flag_var'][i]  = 0
 
             if lpv < -4:
-                alldata['var_flag'][i]  = 1
+                alldata['flag_var'][i]  = 1
                 nvar = nvar + 1
 
     print('VVAR: Setting {} of {} repeats as velocity variable'.format(nvar,ns))
@@ -625,8 +626,9 @@ def combine_masks(object_name, **kwargs):
 
     # MEMBERSHIP
     Pmem, Pmem_pure, *Pother = dmost_membership.find_members(alldata,object_properties[0])
-    alldata['Pmem'] = Pmem
+    alldata['Pmem']      = Pmem
     alldata['Pmem_pure'] = Pmem_pure
+    alldata['flag_HB']   = dmost_membership.flag_HB_stars(alldata,object_properties[0])
 
 
     # REMOVE MASK-LEVEL DATA, BUT WRITE OUT FULL FILE FIRST
