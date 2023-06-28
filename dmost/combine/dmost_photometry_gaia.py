@@ -131,6 +131,7 @@ def match_gaia(obj,allspec):
 
         mt  = foo[d2d < 1.*u.arcsec]
         mt2 = idx[d2d < 1.*u.arcsec]
+        allspec['gaia_source_id'][mt]    = gaia['source_id'][mt2]
         allspec['gaia_pmra'][mt]         = gaia['pmra'][mt2] 
         allspec['gaia_pmra_err'][mt]     = gaia['pmra_error'][mt2]
         allspec['gaia_pmdec'][mt]        = gaia['pmdec'][mt2] 
