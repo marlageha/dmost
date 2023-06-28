@@ -45,7 +45,7 @@ def create_allstars(nmasks,nstars):
             # GALAXIES
             filled_column('marz_z',-999.,nstars),
             filled_column('marz_flag',-99,nstars),
-            filled_column('serendip',-999.,nstars),
+            filled_column('serendip',-99,nstars),
 
 
             # PHOTOMETRY
@@ -76,6 +76,7 @@ def create_allstars(nmasks,nstars):
 
 
             # GAIA
+            filled_column('gaia_source_id',-999,nstars),
             filled_column('gaia_pmra',-999.,nstars),
             filled_column('gaia_pmra_err',-999.,nstars),            
             filled_column('gaia_pmdec',-999.,nstars),
@@ -168,6 +169,7 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
     # COMBINE STARS WITH MEASURED VELOCITIES
     mgood       = stars['dmost_v_err'] > 0.
     good_stars  = stars[mgood]
+    t_exp=0
     
     v,verr_sys, v_chi2, teff,feh,ncomb = [-999.,-99.,-99,-99.,-99.,0]
     if (np.size(good_stars) == 1):
@@ -179,7 +181,7 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
 
         verr_sys = np.sqrt((verr)**2 + sys_mask**2)
         v_chi2   = np.max(good_stars['v_chi2'])
-        ncomb=ncomb+1
+        t_exp    = good_stars['texp']
 
     
     if np.size(good_stars) > 1:
@@ -189,7 +191,7 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
             tt   = np.append(tt,obj['chi2_teff'])
             ft   = np.append(ft,obj['chi2_feh'])
             et   = np.append(et,np.sqrt((obj['dmost_v_err'])**2 + sys_mask**2))
-            ncomb=ncomb+1
+            t_exp= t_exp + obj['texp']
 
         sum1 = np.sum(1./et**2)
         sum2 = np.sum(vt/et**2)
@@ -203,7 +205,7 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
         verr_sys     = np.sqrt(1./sum1)
         v_chi2       = np.max(good_stars['v_chi2'])
 
-    return v, verr_sys, v_chi2, teff, feh, ncomb
+    return v, verr_sys, v_chi2, teff, feh, t_exp
 
 
 
@@ -402,8 +404,9 @@ def read_dmost_files(masklist):
 
             slits, mask = dmost_utils.read_dmost(dmost_file[0])
             nexp  = mask['nexp'][0]
-            texp  = mask['exptime'][0]
             sltwd = mask['slitwidth'][0]
+            texp  = np.sum(mask['exptime'])
+
 
             nslits = np.size(slits)
             maskname = filled_column('maskname',maskname,nslits)
@@ -528,11 +531,12 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
 
             # COMBINE VELOCITIES      
 
-            v, verr, vchi2, teff, feh, ncomb = combine_mask_velocities(test_allslits[m])
+            v, verr, vchi2, teff, feh, t_exp = combine_mask_velocities(test_allslits[m])
             dmost_allstar['v'][i]      = v
             dmost_allstar['v_err'][i]  = verr
             dmost_allstar['v_chi2'][i] = vchi2
-            dmost_allstar['t_exp'][i]  = np.sum(test_allslits['texp'][m])
+            dmost_allstar['t_exp'][i]  = t_exp
+
 
             dmost_allstar['nmask'][i]  = nrpt
             dmost_allstar['nexp'][i]   = np.sum(test_allslits['nexp'][m])
