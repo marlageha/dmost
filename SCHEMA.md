@@ -40,7 +40,8 @@ Label | Unit | Definition
 `ew_mgI_err`  | Ang | Error on Equivalent width of the MgI line
 `ew_feh`  | Ang | [Fe/H] metallicity based on CaT EW and MV -- only meaningful for RGB stars
 `ew_feh_err`  | Ang | Error on [Fe/H] metallicity based on CaT EW
-`gaia_pmra`  | mas/yr | Gaia DR3 proper motion RA (see [GAIA DR3 schema](https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html))
+`gaia_source_id` | | Gaia DR3 source_id (see [GAIA DR3 schema](https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html))
+`gaia_pmra`  | mas/yr | Gaia DR3 proper motion RA 
 `gaia_pmra_err`  | mas/yr | Gaia DR3 proper motion RA error
 `gaia_pmdec`  | mas/yr | Gaia DR3 proper motion DEC
 `gaia_pmdec_err`  | mas/yr | Gaia DR3 proper motion DEC error
