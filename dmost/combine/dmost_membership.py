@@ -268,6 +268,7 @@ def flag_HB_stars(alldata,this_obj):
 
     flag_HB = np.array(dmin) < np.sqrt(0.2**2 + np.array(emin)**2)
 
+    
     return flag_HB
 
 
@@ -318,7 +319,10 @@ def find_members(alldata,this_obj):
 
     Pmem_pm       = membership_PM(alldata, Pmem_cmd&Pmem_crude_v&Pmem_NaI)
 
+    # FLAG HB AND SET FEH TO ZERO
     flag_HB       = flag_HB_stars(alldata,this_obj)
+    alldata['ew_feh'][(flag_HB ==1)] = -999.
+
     flag_var      = flag_variable_stars(alldata)
     flag_poor     = flag_poor_data(alldata)
 
