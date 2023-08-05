@@ -210,7 +210,7 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.*u.arcsec]]
         allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.*u.arcsec]]
 
-         
+        allspec['phot_source'][mt] = 'munozf'
                   
 
      
@@ -234,6 +234,7 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.*u.arcsec]]
         allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.*u.arcsec]]
         
+        allspec['phot_source'][mt] = 'munoz18_2'
 
 
     #####################
@@ -263,7 +264,8 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = sdss['rmag_err'][idx[d2d < 1.*u.arcsec]]
         allspec['gmag_err'][mt] = sdss['gmag_err'][idx[d2d < 1.*u.arcsec]]
 
-        
+        allspec['phot_source'][mt] = 'sdss_gc'
+
 
 
   #####################
@@ -292,6 +294,8 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
 
+        allspec['phot_source'][mt] = 'ls_dr10'
+
 
    ###########################
     if obj['Phot'] == 'ls_dr10i':
@@ -315,6 +319,7 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
       
+        allspec['phot_source'][mt] = 'ls_dr10'
 
     ### DELVE
     if obj['Phot'] == 'delve':
@@ -334,7 +339,9 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
         allspec['gmag_err'][mt] = delve['rmag_err'][idx[d2d < 1.*u.arcsec]] 
 
-  
+        allspec['phot_source'][mt] = 'delve'
+
+
     ## PANSTARRS DR2
     #  https://catalogs.mast.stsci.edu/
     if obj['Phot'] == 'PanS':
@@ -363,7 +370,8 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = pans['rMeanPSFMagErr'][idx[d2d < ds*u.arcsec]]
         allspec['gmag_err'][mt] = pans['gMeanPSFMagErr'][idx[d2d < ds*u.arcsec]]
 
-        
+        allspec['phot_source'][mt] = 'PanS'
+
     
     #####################
     ### USE GAIA IF THERE ARE NO OTHER OPTIONS
@@ -401,6 +409,7 @@ def match_photometry(obj,allspec):
         allspec['rmag_err'][mt] = gaia_err[idx[d2d < 1.*u.arcsec]] 
         allspec['gmag_err'][mt] = gaia_err[idx[d2d < 1.*u.arcsec]] 
 
+        allspec['phot_source'][mt] = 'gaia'
 
     ### HST
     if obj['Phot'] == 'hst':
@@ -471,6 +480,8 @@ def match_photometry(obj,allspec):
         allspec['gmag_o'][mt] = pandas['gmag'][idx[d2d < 1.*u.arcsec]] 
         allspec['rmag_err'][mt] = 0.01
         allspec['gmag_err'][mt] = 0.01
+
+        allspec['phot_source'][mt] = 'pandas'
 
         
 
