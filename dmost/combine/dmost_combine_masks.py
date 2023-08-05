@@ -49,6 +49,7 @@ def create_allstars(nmasks,nstars):
 
 
             # PHOTOMETRY
+            filled_column('phot_source','       ',nstars),
             filled_column('gmag_o',-999.,nstars),
             filled_column('rmag_o',-999.,nstars),
             filled_column('gmag_err',-999.,nstars),
@@ -338,32 +339,35 @@ def combine_mask_marz(star):
   
     mset       = star['marz_flag'] > -1
     marz_obj   = star[mset]
-    marz_flag, marz_z, marz_tmpl = -99,-99,-99
+    marz_flag, marz_z, t_exp = -99,-99,0
+
+
 
     # COPY SINGLE MEASUREMENT
     if (np.size(marz_obj) == 1):
         marz_z    = marz_obj['marz_z'][0]
         marz_flag = marz_obj['marz_flag'][0]
+        if (marz_flag > 2):     
+            t_exp     = np.sum(marz_obj['texp'])
 
 
     # PARSE MULTIPLE MEASUREMENTS
     if (np.size(marz_obj) >1):
 
-
         if np.any(marz_obj['marz_flag'] == 2):
-            marz_z    = 2
+            marz_flag    = 2
 
         # IF ANY EXP IS QSO, SET AS 6
         if np.any(marz_obj['marz_flag'] == 3):
-            marz_z    = 3
+            marz_flag   = 3
 
         # IF ANY EXP IS GOOD GALAXY, SET AS 4
         if np.any(marz_obj['marz_flag'] == 4):
-            marz_z    = 4
+            marz_flag   = 4
 
         # IF ANY EXP IS QSO, SET AS 6
         if np.any(marz_obj['marz_flag'] == 6):
-            marz_z    = 6
+            marz_flag  = 6
 
         if np.all(marz_obj['marz_flag'] == 1):
             marz_flag = 1
@@ -372,8 +376,13 @@ def combine_mask_marz(star):
         # ELSE AVERAGE THE FLAGS
         if (marz_flag == -1):
             marz_flag = np.mean(marz_obj['marz_flag'])
-            
-    return marz_z, marz_flag
+
+        # SET EXP TIME IF EXTRAGALACTIC
+        if (marz_flag > 2):              
+            t_exp= np.sum(marz_obj['texp'])
+
+
+    return marz_z, marz_flag, t_exp
 
 
 
@@ -529,8 +538,9 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
                     dmost_allstar['mask_var_short_flag'][i,j]  = robj['vv_short_flag']
                     dmost_allstar['mask_var_short_max_t'][i,j] = robj['vv_short_max_t']
 
-            # COMBINE VELOCITIES      
 
+
+            # COMBINE VELOCITIES      
             v, verr, vchi2, teff, feh, t_exp = combine_mask_velocities(test_allslits[m])
             dmost_allstar['v'][i]      = v
             dmost_allstar['v_err'][i]  = verr
@@ -554,15 +564,13 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             dmost_allstar['ew_naI'][i]       = naI
             dmost_allstar['ew_naI_err'][i]   = naI_err
 
-            # COMBINE MARZ
-            zgal, zflag  = combine_mask_marz(test_allslits[m])
-            dmost_allstar['marz_z'][i]   = zgal
+           # COMBINE MARZ
+            zgal, zflag, zexp  = combine_mask_marz(test_allslits[m])
+            dmost_allstar['marz_z'][i]    = zgal
             dmost_allstar['marz_flag'][i] = zflag
+            if (zexp > 0):
+                dmost_allstar['t_exp'][i]     = zexp
 
-            # SET EXTRAGALACTIC VALUES
-            mgal  = dmost_allstar['marz_flag']  > 2
-            dmost_allstar['v'][mgal]     =  dmost_allstar['marz_z'][mgal]*3e5  
-            dmost_allstar['v_err'][mgal] =  0
 
 
             # CALCULATE SN -- IS THIS RIGHT?
@@ -572,10 +580,15 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             test_allslits['RA'][m] = -99
             
         
-        
     # REMOVE EXTRA LINES
     m=dmost_allstar['RA'] != -999.0
     dmost_allstar = dmost_allstar[m]
+
+  # SET EXTRAGALACTIC VALUES
+    mgal  = dmost_allstar['marz_flag']  > 2
+    dmost_allstar['v'][mgal]     =  dmost_allstar['marz_z'][mgal]*3e5  
+    dmost_allstar['v_err'][mgal] =  0
+
 
     return dmost_allstar
 
