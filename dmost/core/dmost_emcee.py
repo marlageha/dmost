@@ -322,6 +322,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
             slits['emcee_w'][arg,nexp]       = mcmc[1]
             slits['emcee_w_err16'][arg,nexp] = mcmc[0]
             slits['emcee_w_err84'][arg,nexp] = mcmc[2]
+            slits['emcee_w_err'][arg,nexp]   = (slits['emcee_w_err84'][arg,nexp] - slits['emcee_w_err16'][arg,nexp])/2.
 
     # CALCULATE SKEW/KERTOSIS
     chain  = np.array(sampler.chain[:,burnin:, 0]).flatten()
