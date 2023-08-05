@@ -47,7 +47,7 @@ def set_mask_binary_flag(slits,mask):
 
     return slits
 
-def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.0x):
+def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.0):
 
     '''
     Combine velocity and velocity errors for single object 
