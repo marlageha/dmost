@@ -466,7 +466,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
        
 
     SNmax = 30
-    SNmin = 2.
+    SNmin = 1.
     nexp = mask['nexp'][0]
 
 
