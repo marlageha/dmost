@@ -280,7 +280,7 @@ def add_marz(data_dir,mask,slits,log):
 
         m1,m2,dd = sm.spherematch(slits['RA'], slits['DEC'],mz_gal['RA'],mz_gal['DEC'],1./3600)
         slits['marz_flag'][m1] = mz_gal['ZQUALITY'][m2]
-        slits['marz_z'][m1]    = mz_gal['SPEC_Z'][m2]
+        slits['marz_z'][m1]    = mz_gal['SPEC_Z'][m2]  + np.mean(mask['vhelio'])
         slits['marz_tmpl'][m1] = mz_gal['TYPE'][m2]
 
         ngal   = np.sum(mz_gal['ZQUALITY'] > 2) # GALAXIES
