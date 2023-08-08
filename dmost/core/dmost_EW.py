@@ -301,6 +301,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     wline3 = [8642, 8682]
 
     CaT, CaT_err, p   = -99, -99, 0
+    CaT_all = [-99.,-99.,-99.]
     gfit    = -99*wvl
 
     # FIT SIMULTANOUSLY IN THE THREE WINDOWS
@@ -344,7 +345,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
 
 
         CaT = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
-
+        CaT_all = [gint1+lint1, gint2+lint2, gint3+lint3]
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
                           lerr1**2 + lerr2**2 + lerr3**2)
 
@@ -361,7 +362,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         chi2    = -99
          
     # OMG, WHY 
-    return CaT, 0.25*CaT_err, gfit, chi2
+    return CaT, 0.25*CaT_err, gfit, CaT_all, chi2
 
 
 ###########################################
@@ -392,6 +393,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
 
     CaT, CaT_err, p, chi2   = -99, -99, 0, -99
+    CaT_all = [-99.,-99.,-99.]
     gfit    = -99*wvl
 
     if np.mean(spec) > 0:
@@ -414,7 +416,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
                             bounds=((0.5, 8539.5, 0.75, 0.1,0.1,0.1), (2, 8544.5, 1.5,4,4,4)))
         except:
             p, pcov = p0, None
-            return CaT, CaT_err, gfit, chi2
+            return CaT, CaT_err, gfit, CaT_all, chi2
 
         perr = np.sqrt(np.diag(pcov))
 
@@ -431,6 +433,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
         # PUT IT ALL TOGETHER
         CaT = gint1 + gint2 + gint3
+        CaT_all = [gint1, gint2, gint3]
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2)
 
         # CREATE FIT FOR PLOTTING
@@ -522,10 +525,10 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         #####################             
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
-        CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
+        CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
 
         if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 15) |  (CaT_EW < 0):
-            CaT_EW, CaT_EW_err, CaT_fit, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
+            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
         if (CaT_chi2 > 50):
             CaT_EW_err = -99
