@@ -535,6 +535,7 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
 
         slits['cat'][arg]      = CaT_EW
         slits['cat_err'][arg]  = CaT_EW_err
+        slits['cat_all'][arg]  = CaT_all
         slits['cat_chi2'][arg] = CaT_chi2
 
         ##########################
