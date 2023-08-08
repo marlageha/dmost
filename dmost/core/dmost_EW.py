@@ -535,7 +535,7 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
             CaT_EW_err = -99
 
         cols = slits.colnames
-        if (np.sum(np.in1d(cols,'cat_all')) == 1):
+        if (np.sum(np.in1d(cols,'cat_all')) == 0):
             slits.add_column([-99.*np.ones(3)], name='cat_all')
 
         slits['cat'][arg]      = CaT_EW
