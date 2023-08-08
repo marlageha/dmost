@@ -443,7 +443,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         
         
 
-    return CaT, CaT_err, gfit, chi2
+    return CaT, CaT_err, gfit, CaT_all, chi2
 
 
 ########################################
