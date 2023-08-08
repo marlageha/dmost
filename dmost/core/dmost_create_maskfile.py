@@ -190,6 +190,8 @@ def create_slits(nslits,nexp):
            # EQUIVALENT WIDTHS FROM COADD1D FILES
             filled_column('cat',-99.,nslits),
             filled_column('cat_err',-99.,nslits),
+            filled_column('cat_all',[-99.,-99.,-99.],nslits),
+            filled_column('cat_all_err',[-99.,-99.,-99.],nslits),
             filled_column('cat_chi2',-99.,nslits),
             filled_column('naI',-99.,nslits),
             filled_column('naI_err',-99.,nslits),
