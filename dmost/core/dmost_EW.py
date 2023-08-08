@@ -287,7 +287,7 @@ def CaT_gauss_plus_lorentzian(x,*p):
               (p[9]*norm2/( (x-p[1]*1.01405)**2 + (p[3]/2.)**2 ))
 
 
-    return p[0] - gauss - lorentz
+    return p[0] *(1. - gauss - lorentz)
 
 
 
@@ -379,7 +379,7 @@ def CaT_gauss(x,*p):
 
 
 
-    return p[0] - gauss
+    return p[0] * (1. - gauss)
 
 
 
