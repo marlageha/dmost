@@ -342,6 +342,28 @@ def match_photometry(obj,allspec):
         allspec['phot_source'][mt] = 'delve'
 
 
+
+    ### DELVE
+    if obj['Phot'] == 'decaps':
+        file = DEIMOS_RAW + '/Photometry/decaps/decaps_'+obj['Name2']+'.csv'
+        decaps = Table.read(file)
+        
+        
+        cls_dr10= SkyCoord(ra=decaps['ra_ok']*u.degree, dec=decaps['dec_ok']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
+        foo = np.arange(0,np.size(idx),1)
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = decaps['mean_mag_r'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = decaps['mean_mag_g'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = 0.1
+        allspec['gmag_err'][mt] = 0.1
+
+        allspec['phot_source'][mt] = 'decaps'
+
+
     ## PANSTARRS DR2
     #  https://catalogs.mast.stsci.edu/
     if obj['Phot'] == 'PanS':
