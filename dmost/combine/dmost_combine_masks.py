@@ -33,11 +33,13 @@ def create_allstars(nmasks,nstars):
             filled_column('masknames','                                                  ',nstars),
             filled_column('collate1d_filename','                                                  ',nstars),
             filled_column('slitwidth',-99.,nstars),
+            filled_column('mean_mjd',-999.,nstars),
 
          
             # COMBINED FINAL PROPERTIES
             filled_column('v',-999.,nstars),
             filled_column('v_err',-999.,nstars),
+            filled_column('verr_rand',-999.,nstars),
             filled_column('v_chi2',-999.,nstars),
             filled_column('SN',-999.,nstars),
 
@@ -74,6 +76,12 @@ def create_allstars(nmasks,nstars):
 
             filled_column('tmpl_teff',-999.,nstars),
             filled_column('tmpl_feh',-999.,nstars),
+
+
+            # TMP
+            filled_column('ew_w1',-999.,nstars),
+            filled_column('ew_w2',-999.,nstars),
+            filled_column('ew_w3',-999.,nstars),
 
 
             # GAIA
@@ -132,7 +140,8 @@ def create_allstars(nmasks,nstars):
             filled_column('mask_mgI_err',-999.*np.ones(nmasks),nstars),
             
             filled_column('mask_var_short_flag',-999.*np.ones(nmasks),nstars),
-            filled_column('mask_var_short_max_t',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_var_short_max_t',-999.*np.ones(nmasks),nstars)
+
 
            ]
             
@@ -165,14 +174,14 @@ def filled_column(name, fill_value, size):
 
 
 ######################################################
-def combine_mask_velocities(stars, sys_mask = 0.7):
+def combine_mask_velocities(stars, sys_mask = 1.1):
     
     # COMBINE STARS WITH MEASURED VELOCITIES
     mgood       = stars['dmost_v_err'] > 0.
     good_stars  = stars[mgood]
     t_exp=0
     
-    v,verr_sys, v_chi2, teff,feh,ncomb = [-999.,-99.,-99,-99.,-99.,0]
+    v,verr_rand,verr_sys, v_chi2, teff,feh,ncomb = [-999.,-99.,-99.,-99,-99.,-99.,0]
     if (np.size(good_stars) == 1):
         v     = good_stars['dmost_v']
         teff  = good_stars['chi2_teff']
@@ -180,7 +189,9 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
 
         verr     = np.sqrt(good_stars['dmost_v_err']**2)
 
-        verr_sys = np.sqrt((verr)**2 + sys_mask**2)
+        verr_rand = np.sqrt((1.5*verr)**2)
+        verr_sys  = np.sqrt(verr_rand**2 + sys_mask**2)
+
         v_chi2   = np.max(good_stars['v_chi2'])
         t_exp    = good_stars['texp']
 
@@ -191,7 +202,7 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
             vt   = np.append(vt,obj['dmost_v'])
             tt   = np.append(tt,obj['chi2_teff'])
             ft   = np.append(ft,obj['chi2_feh'])
-            et   = np.append(et,np.sqrt((obj['dmost_v_err'])**2 + sys_mask**2))
+            et   = np.append(et,np.sqrt((1.5*obj['dmost_v_err'])**2))
             t_exp= t_exp + obj['texp']
 
         sum1 = np.sum(1./et**2)
@@ -203,17 +214,21 @@ def combine_mask_velocities(stars, sys_mask = 0.7):
         teff = sum3/sum1
         feh  = sum4/sum1
 
-        verr_sys     = np.sqrt(1./sum1)
+
+        verr         = np.sqrt(1./sum1) 
+        verr_rand    = verr
+        verr_sys     = np.sqrt(verr_rand**2 + sys_mask**2)
+
         v_chi2       = np.max(good_stars['v_chi2'])
 
-    return v, verr_sys, v_chi2, teff, feh, t_exp
+    return v, verr_rand, verr_sys, v_chi2, teff, feh, t_exp
 
 
 
 
 #####################################
 #####################################
-def set_binary_flag(alldata,sys_mask = 0.7):
+def set_binary_flag(alldata,sys_mask = 1.0):
 
 
     ns, nvar = 0,0
@@ -242,8 +257,8 @@ def set_binary_flag(alldata,sys_mask = 0.7):
             alldata['flag_var'][i]  = 0
             ns=ns+1
 
-            v_mean = np.average(obj['mask_v'][m],weights=1./(obj['mask_v_err'][m]**2+ sys_mask**2))
-            chi2   = np.sum((obj['mask_v'][m] - v_mean)**2/(obj['mask_v_err'][m]**2 + sys_mask**2))
+            v_mean = np.average(obj['mask_v'][m],weights=1./(1.4*obj['mask_v_err'][m]**2+ sys_mask**2))
+            chi2   = np.sum((obj['mask_v'][m] - v_mean)**2/(1.4*obj['mask_v_err'][m]**2 + sys_mask**2))
             pv     = 1 - stats.chi2.cdf(chi2, np.sum(m)-1.)
 
 
@@ -281,6 +296,7 @@ def combine_mask_ew(stars):
     good_stars  = stars[mgood]
     
     cat,cat_err,naI,naI_err,mgI,mgI_err, ncomb = [-99.,-99.,-99.,-99.,-99.,-99.,0]
+    w1,w2,w3 = [-99,-99,-99]
     if (np.size(good_stars) == 1):
         cat      = good_stars['cat']
         cat_err  = good_stars['cat_err']
@@ -288,6 +304,7 @@ def combine_mask_ew(stars):
         naI_err  = good_stars['naI_err']
         mgI      = good_stars['mgI']
         mgI_err  = good_stars['mgI_err']
+
 
         ncomb=ncomb+1
 
@@ -326,7 +343,15 @@ def combine_mask_ew(stars):
         cat_err = np.sqrt(sys_cat**2 + 1./sum1)
         naI_err = np.sqrt(sys_nai**2 + 1./sum1n)
         mgI_err = np.sqrt(sys_mgi**2 + 1./sum1m)
-    return cat,cat_err,mgI,mgI_err,naI,naI_err, ncomb 
+
+
+
+    for obj in good_stars:
+        w1       = obj['w1']
+        w2       = obj['w2']
+        w3       = obj['w3']
+
+    return cat,cat_err,mgI,mgI_err,naI,naI_err, w1,w2,w3, ncomb 
 
 
 
@@ -420,13 +445,14 @@ def read_dmost_files(masklist):
             nslits = np.size(slits)
             maskname = filled_column('maskname',maskname,nslits)
 
-            mjd      = filled_column('mjd',np.mean(mask['mjd']),nslits)
+            mjd      = filled_column('mean_mjd',np.mean(mask['mjd']),nslits)
             nexp     = filled_column('nexp',nexp,nslits)
             slitwidth= filled_column('slitwidth',sltwd,nslits)
             texp     = filled_column('texp',texp,nslits)
 
             # 
             slits = set_v_chi2(slits)
+
 
             # KEEP ONLY MASK AVERAGED QUANTITIES
             new_slits = Table([maskname, mjd,nexp,slitwidth,texp,slits['objname'],slits['RA'],slits['DEC'],slits['collate1d_filename'],\
@@ -439,7 +465,10 @@ def read_dmost_files(masklist):
                              slits['naI'],slits['naI_err'],\
                              slits['mgI'],slits['mgI_err']])
                              
-                            
+            new_slits.add_column(slits['cat_all'][:,0],name='w1')
+            new_slits.add_column(slits['cat_all'][:,1],name='w2')
+            new_slits.add_column(slits['cat_all'][:,2],name='w3')
+
             # CREATE OR APPEND TO ALL TABLE
             if (n==0):  allslits = new_slits
             if (n > 0): allslits = table.vstack([allslits,new_slits])
@@ -481,6 +510,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             dmost_allstar['DEC'][i]     = obj['DEC']
             dmost_allstar['objname'][i] = obj['objname']
             dmost_allstar['slitwidth'][i] = round(obj['slitwidth'], 2)
+            dmost_allstar['mean_mjd'][i] = obj['mean_mjd']
 
 
             if (obj['serendip'] > 0):
@@ -494,7 +524,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             diff     = 3600.*np.sqrt(ra_diff**2 + dec_diff**2)
             
             
-            # SET MATCHING THRESHOLD -- 1.5" arcseconds
+            # SET MATCHING THRESHOLD -- 1.0" arcseconds
             m = diff < 1.0
             
             nrpt = np.sum(m)
@@ -518,7 +548,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
                     dmost_allstar['mask_v_err'][i,j] = robj['dmost_v_err']
                     dmost_allstar['mask_SN'][i,j]    = robj['collate1d_SN']
                     dmost_allstar['mask_nexp'][i,j]  = robj['v_nexp']
-                    dmost_allstar['mask_mjd'][i,j]   = robj['mjd']
+                    dmost_allstar['mask_mjd'][i,j]   = robj['mean_mjd']
 
 
                     dmost_allstar['mask_marz_flag'][i,j] = robj['marz_flag']
@@ -541,9 +571,10 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
 
 
             # COMBINE VELOCITIES      
-            v, verr, vchi2, teff, feh, t_exp = combine_mask_velocities(test_allslits[m])
+            v, verr_rand,verr_sys, vchi2, teff, feh, t_exp = combine_mask_velocities(test_allslits[m])
             dmost_allstar['v'][i]      = v
-            dmost_allstar['v_err'][i]  = verr
+            dmost_allstar['verr_rand'][i]  = verr_rand
+            dmost_allstar['v_err'][i]  = verr_sys
             dmost_allstar['v_chi2'][i] = vchi2
             dmost_allstar['t_exp'][i]  = t_exp
 
@@ -556,13 +587,17 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
             dmost_allstar['tmpl_feh'][i]   = feh
 
             # COMBINE EW 
-            cat,cat_err,mgI,mgI_err,naI,naI_err, ncomb = combine_mask_ew(test_allslits[m])
+            cat,cat_err,mgI,mgI_err,naI,naI_err, w1,w2,w3, ncomb = combine_mask_ew(test_allslits[m])
             dmost_allstar['ew_cat'][i]       = cat
             dmost_allstar['ew_cat_err'][i]   = cat_err
             dmost_allstar['ew_mgI'][i]       = mgI
             dmost_allstar['ew_mgI_err'][i]   = mgI_err
             dmost_allstar['ew_naI'][i]       = naI
             dmost_allstar['ew_naI_err'][i]   = naI_err
+            dmost_allstar['ew_w1'][i]        = w1
+            dmost_allstar['ew_w2'][i]        = w2
+            dmost_allstar['ew_w3'][i]        = w3
+
 
            # COMBINE MARZ
             zgal, zflag, zexp  = combine_mask_marz(test_allslits[m])
