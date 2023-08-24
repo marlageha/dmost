@@ -10,9 +10,9 @@ from scipy import stats
 
 
 # SET BINARY FLAG WITHIN MASK
-def set_mask_binary_flag(slits,mask):
+def set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr):
 
-    sys_err_exp = 0.5
+
     for i,obj in enumerate(slits):
     
 
@@ -21,8 +21,8 @@ def set_mask_binary_flag(slits,mask):
         if np.sum(m) > 1:
 
 
-            err = (obj['emcee_v_err84'] - obj['emcee_v_err16'])/2.
-            err = np.sqrt(err**2 + sys_err_exp**2)
+            err = sys_exp_mult * (obj['emcee_v_err84'] - obj['emcee_v_err16'])/2.
+            err = np.sqrt(err**2 + sys_err_flr**2)
             ivar = 1./err*2
         
 
@@ -47,7 +47,7 @@ def set_mask_binary_flag(slits,mask):
 
     return slits
 
-def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.0):
+def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr):
 
     '''
     Combine velocity and velocity errors for single object 
@@ -84,23 +84,24 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.0):
         for j in np.arange(0,nexp,1):
             if obj['emcee_good'][j]  == 1:
                 vt   = np.append(vt,obj['emcee_v'][j])
-                terr = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
-                et   = np.append(et,np.sqrt(terr**2 + sys_exp**2))
+                terr = sys_exp_mult * (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
+                et   = np.append(et,terr)
                 ncomb=ncomb+1
 
         v    = np.average(vt,weights = 1./et**2)
-        verr = np.sqrt(1./np.sum(1./et**2))
+        sverr = np.sqrt(1./np.sum(1./et**2))
+        verr  = np.sqrt(sverr**2 + ncomb*sys_exp_flr**2)
 
 
         # USE COADD IF SINGLE ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
-            cerr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+            cerr    = sys_exp_mult*(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
 
             print('{} verr, cerr:  {:0.2f} {:0.2f} '.format(obj['objname'],verr,cerr))
 
             if (1.5*cerr < verr) | (verr > 10):
                 v     = obj['coadd_v']
-                verr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2. # NO SYS_EXP FOR COADD
+                verr  = cerr
                 ncomb = nexp + 100.
 
 
@@ -108,43 +109,47 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp = 0.0):
     else:
         if (obj['coadd_good'] ==  1):
             v     = obj['coadd_v']
-            verr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  # NO SYS_EXP FOR COADD
+            verr  = sys_exp_mult * (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  # NO FLOOR FOR COADD
             ncomb = nexp + 100.
 
 
     return v,verr,ncomb
   
     
-def combine_single_exp(obj, mask, sys_exp = 0.0):
+#def combine_single_exp(obj, mask, sys_exp_mult, sys_exp_flr):
 
-    v, verr, ncomb    = [-1,-1,0]
+#    v, verr, ncomb    = [-1,-1,0]
     
     # IS THIS A GALAXY?
-    if (obj['marz_flag'] > 2):
-        v    = obj['marz_z'] * 3e5
-        verr = 0
-        ncomb= 100
-        return v,verr,ncomb
+#    if (obj['marz_flag'] > 2):
+#        v    = obj['marz_z'] * 3e5
+#        verr = 0
+#        ncomb= 100
+#        return v,verr,ncomb
 
     
     # USE VELOCITY IF ANY EXPOSURE IS GOOD
-    if (obj['emcee_good'] == 1):
-        v     = obj['emcee_v']
-        terr  = (obj['emcee_v_err84']-obj['emcee_v_err16'])/2.
+#    if (obj['emcee_good'] == 1):
+#        v     = obj['emcee_v']
+#        terr  = sys_exp_mult * (obj['emcee_v_err84']-obj['emcee_v_err16'])/2.
         
         # ADDING SYS ERROR 
-        err   =  np.sqrt(terr**2 + sys_exp**2)
-        ncomb = 1                     
+#        err   =  np.sqrt(terr**2 + sys_exp_flr**2)
+#        ncomb = 1                     
             
-    return v,verr,ncomb    
+#    return v,verr,ncomb    
   
   
-def combine_exp(slits, mask, sys_exp = 0.0):
+def combine_exp(slits, mask):
     '''
     Combine exposures in a single mask, 
     either single or multiple exposures
     '''  
   
+
+    sys_exp_mult = 1.3
+    sys_exp_flr  = 0.4
+
     # READ MASK, SLIT FILES
     nexp = mask['nexp'][0]
     
@@ -155,7 +160,7 @@ def combine_exp(slits, mask, sys_exp = 0.0):
     if (nexp > 0):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_exp=sys_exp)
+            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_exp_mult,sys_exp_flr)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
