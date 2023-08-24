@@ -153,8 +153,7 @@ def create_planfile(mask_table,rawdir):
 
 # RUN IN PRESENT DIRECTORY
 rawdir = os.path.basename(os.getcwd())
-rawfiles = glob.glob('DE*.fits*')
-
+rawfiles     = glob.glob('DE*.fits*') 
 
 nf=0
 for file in rawfiles:
