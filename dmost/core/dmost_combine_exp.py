@@ -22,7 +22,7 @@ def set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr):
 
 
             err = sys_exp_mult * (obj['emcee_v_err84'] - obj['emcee_v_err16'])/2.
-            err = np.sqrt(err**2 + sys_err_flr**2)
+            err = np.sqrt(err**2 + sys_exp_flr**2)
             ivar = 1./err*2
         
 
