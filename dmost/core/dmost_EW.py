@@ -361,7 +361,6 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         p, pcov = p0, None
         chi2    = -99
          
-    print(p[0])
     # OMG, WHY 
     return CaT, 0.25*CaT_err, gfit, CaT_all, chi2
 
