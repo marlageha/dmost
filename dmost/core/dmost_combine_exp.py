@@ -168,7 +168,7 @@ def combine_exp(slits, mask):
             if ncomb > 99:
                 slits['coadd_flag'][i] = 1                           
 
-    slits = set_mask_binary_flag(slits,mask)
+    slits = set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr)
 
     #print()
     ngal = np.sum((slits['marz_flag'] > 2))
