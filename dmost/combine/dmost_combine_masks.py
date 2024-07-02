@@ -30,7 +30,7 @@ def create_allstars(nmasks,nstars):
             filled_column('nexp',-99,nstars),
             filled_column('t_exp',-99.,nstars),
             filled_column('nmask',-99,nstars),
-            filled_column('masknames','                                                            ',nstars),
+            filled_column('masknames','                                                              ',nstars),
             filled_column('collate1d_filename','                                                  ',nstars),
             filled_column('slitwidth',-99.,nstars),
             filled_column('mean_mjd',-999.,nstars),
