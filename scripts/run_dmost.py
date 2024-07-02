@@ -39,8 +39,8 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
     # RUN TELLURIC -- USE OLD FILES IF AVAILABLE
     tfile = glob.glob(data_dir+'/dmost/telluric_'+maskname+'*.fits')
     if ~(np.sum(mask['flag_telluric']) == nexp) | ~(np.size(tfile) == nexp):
-#        slits,mask = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
-#        slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
+        slits,mask = dmost_telluric.run_telluric_mask(data_dir, slits, mask)
+        slits,mask = dmost_chip_gap.run_chip_gap(data_dir, slits, mask, clobber=0)
         write_dmost(slits,mask,outfile)
 
 
@@ -68,10 +68,8 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
 
 
     # CALCULATE EQUIVALENT WIDTH QUANTITIES
-#    slits, mask  = dmost_EW.run_coadd_EW(data_dir, slits, mask)
-#    write_dmost(slits,mask,outfile)
-
-
+    slits, mask  = dmost_EW.run_coadd_EW(data_dir, slits, mask)
+    write_dmost(slits,mask,outfile)
 
 
     print()
