@@ -570,6 +570,9 @@ def run_coadd_EW(data_dir, slits, mask):
     CALCUALTE EW USING COADDED SPECTRA
     '''    
 
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')   
+
 
     file  = data_dir+'/QA/ew_'+mask['maskname'][0]+'.pdf'
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
@@ -577,7 +580,7 @@ def run_coadd_EW(data_dir, slits, mask):
 
     m = (slits['dmost_v_err'] > 0) & (slits['marz_flag'] < 3)
     print('{} EW estimates for {} slits '.format(mask['maskname'][0],np.sum(m)))
-    
+    dmost_utils.printlog(log,'{} EW estimates for {} slits '.format(mask['maskname'][0],np.sum(m)))
 
     # FOR EACH SLIT
     for ii,slt in enumerate(slits): 
@@ -592,6 +595,7 @@ def run_coadd_EW(data_dir, slits, mask):
 
     pdf.close()
     plt.close('all')
+    log.close()
 
         
     return slits, mask
