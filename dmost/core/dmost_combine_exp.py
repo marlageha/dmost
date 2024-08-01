@@ -173,7 +173,6 @@ def combine_exp(data_dir,slits, mask):
 
     slits = set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr)
 
-    #print()
     ngal = np.sum((slits['marz_flag'] > 2))
     dmost_utils.printlog(log,'{} Velocities measured for {} galaxies'.format(mask['maskname'][0],ngal))
 
