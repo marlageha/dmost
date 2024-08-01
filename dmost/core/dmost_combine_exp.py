@@ -2,6 +2,7 @@
 
 import numpy as np
 from scipy import stats
+from dmost import dmost_utils
 
 
 
