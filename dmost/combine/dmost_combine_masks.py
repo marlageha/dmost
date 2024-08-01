@@ -629,7 +629,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
 
 
 ######################################################
-def combine_masks(object_name, **kwargs):
+def combine_masks(object_name, max_obs_date = 20500101,**kwargs):
 
 
     DEIMOS_REDUX  = os.getenv('DEIMOS_REDUX')
@@ -639,6 +639,11 @@ def combine_masks(object_name, **kwargs):
     else:
         objlist  = kwargs['objlist']
         masklist = kwargs['masklist']
+
+
+    # CHECK FOR DATE LIMITS ON MASKS
+    m = masklist['DateObs'] < max_obs_date
+    masklist=masklist[m]
 
     # PROPERTIES OF OBJECT
     object_properties = objlist[(objlist['Name2'] == object_name)]
