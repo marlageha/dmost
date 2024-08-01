@@ -241,7 +241,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
          
     # OR JUST READ IN PREVIOUS RESULTS
     if (erun == 0): 
-        print('Reading previous chains')
+        print('Coadd:  Reading previous chains')
         print(filename)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_v,\
                                   args=(wave, flux, ivar, twave,sm_tell,sm_pflux,plogwave,npoly,pfit),\
@@ -479,6 +479,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
     m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
 
     nslits = np.sum(m)
+    print()
     dmost_utils.printlog(log,'{}  Coadd emcee with {} slits {} < SN < {} and poor emcee result'.format(mask['maskname'][0],\
                                                                 nslits,SNmin,SNmax))
     
