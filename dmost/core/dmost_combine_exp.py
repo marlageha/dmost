@@ -156,7 +156,7 @@ def combine_exp(slits, mask):
     # READ MASK, SLIT FILES
     nexp = mask['nexp'][0]
     
-    print('{} Combining {} exposure results'.format(mask['maskname'][0],nexp))
+    dmost_utils.printlog(log,'{} Combining {} exposure results'.format(mask['maskname'][0],nexp))
 
 
     
@@ -181,7 +181,7 @@ def combine_exp(slits, mask):
     ngood  = nstar & np.sum((slits['dmost_v_err'] > 0))
     ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & np.sum((slits['coadd_flag'] ==1))
 
-    dmost_utils.printlog(log,'{} Stellar velocities measured for {} of {} ({} coadds) stars SN > 3'.format(mask['maskname'][0],ngood,nstar,ncoadd))
+    dmost_utils.printlog(log,'{} Stellar velocities measured for {} of {} ({} coadds)'.format(mask['maskname'][0],ngood,nstar,ncoadd))
     log.close()
 
             
