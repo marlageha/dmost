@@ -140,7 +140,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr):
 #    return v,verr,ncomb    
   
   
-def combine_exp(slits, mask):
+def combine_exp(data_dir,slits, mask):
     '''
     Combine exposures in a single mask, 
     either single or multiple exposures
