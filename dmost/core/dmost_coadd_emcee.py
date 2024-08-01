@@ -152,6 +152,12 @@ def initialize_walkers(vguess,wguess):
 
 ######################################################
 def read_best_template(pfile):
+
+
+    if (strip(pfile) == ''):
+        pfile = 'grid1/dmost_lte_4500_5.0_-2.0_.fits'    
+        print('** No template file, using default')
+
     pfile    = DEIMOS_RAW + '/templates/pheonix/'+pfile
     phdu     = fits.open(pfile)
     data     = phdu[1].data
