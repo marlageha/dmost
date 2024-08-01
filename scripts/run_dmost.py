@@ -63,7 +63,7 @@ def run_dmost(maskname, rerun_chi2 = 0, rerun_emcee = 0, rerun_coadd = 0):
         write_dmost(slits,mask,outfile)
 
     # COMBINE VELOCITIES ACROSS MULTIPLE EXPOSURES
-    slits, mask = dmost_combine_exp.combine_exp(slits, mask)
+    slits, mask = dmost_combine_exp.combine_exp(data_dir,slits, mask)
     write_dmost(slits,mask,outfile)
 
 
