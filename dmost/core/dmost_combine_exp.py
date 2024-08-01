@@ -150,6 +150,9 @@ def combine_exp(slits, mask):
     sys_exp_mult = 1.3
     sys_exp_flr  = 0.4
 
+    logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
+    log          = open(logfile,'a')   
+
     # READ MASK, SLIT FILES
     nexp = mask['nexp'][0]
     
@@ -172,13 +175,14 @@ def combine_exp(slits, mask):
 
     #print()
     ngal = np.sum((slits['marz_flag'] > 2))
-    print('{} Velocities measured for {} galaxies'.format(mask['maskname'][0],ngal))
+    dmost_utils.printlog(log,'{} Velocities measured for {} galaxies'.format(mask['maskname'][0],ngal))
 
     nstar  = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 3))
     ngood  = nstar & np.sum((slits['dmost_v_err'] > 0))
     ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & np.sum((slits['coadd_flag'] ==1))
 
-    print('{} Stellar velocities measured for {} of {} ({} coadds) stars SN > 3'.format(mask['maskname'][0],ngood,nstar,ncoadd))
+    dmost_utils.printlog(log,'{} Stellar velocities measured for {} of {} ({} coadds) stars SN > 3'.format(mask['maskname'][0],ngood,nstar,ncoadd))
+    log.close()
 
             
     return slits,mask
