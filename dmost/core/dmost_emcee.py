@@ -17,7 +17,7 @@ import glob
 import h5py
 
 from dmost import dmost_utils
-from dmost.dmost_create_maskfile import write_dmost
+#from dmost.dmost_create_maskfile import write_dmost
 
 import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
@@ -471,7 +471,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         mask['flag_emcee'][ii] = 1
         
         # WRITE DMOST FILE
-        write_dmost(slits,mask,outfile)
+#        write_dmost(slits,mask,outfile)
         
     log.close()
     return slits, mask
