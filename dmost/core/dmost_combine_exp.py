@@ -84,19 +84,23 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr):
         vt,et = [], []
         for j in np.arange(0,nexp,1):
             if obj['emcee_good'][j]  == 1:
+
+                verr_rand = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
+                verr_sys = np.sqrt((sys_exp_mult * verr_rand)**2 + sys_exp_flr**2)
+
                 vt   = np.append(vt,obj['emcee_v'][j])
-                terr = sys_exp_mult * (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
-                et   = np.append(et,terr)
+                et   = np.append(et,verr_sys)
                 ncomb=ncomb+1
 
         v    = np.average(vt,weights = 1./et**2)
         sverr = np.sqrt(1./np.sum(1./et**2))
-        verr  = np.sqrt(sverr**2 + ncomb*sys_exp_flr**2)
+        verr  = np.sqrt(sverr**2)
+        print(verr)
 
 
         # USE COADD IF SINGLE ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
-            cerr    = sys_exp_mult*(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+            cerr    = np.sqrt(sys_exp_mult)*(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
 
             print('{} verr, cerr:  {:0.2f} {:0.2f} '.format(obj['objname'],verr,cerr))
 
@@ -110,35 +114,13 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr):
     else:
         if (obj['coadd_good'] ==  1):
             v     = obj['coadd_v']
-            verr  = sys_exp_mult * (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  # NO FLOOR FOR COADD
+            verr  = np.sqrt(sys_exp_mult) * (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  
             ncomb = nexp + 100.
 
 
     return v,verr,ncomb
   
-    
-#def combine_single_exp(obj, mask, sys_exp_mult, sys_exp_flr):
 
-#    v, verr, ncomb    = [-1,-1,0]
-    
-    # IS THIS A GALAXY?
-#    if (obj['marz_flag'] > 2):
-#        v    = obj['marz_z'] * 3e5
-#        verr = 0
-#        ncomb= 100
-#        return v,verr,ncomb
-
-    
-    # USE VELOCITY IF ANY EXPOSURE IS GOOD
-#    if (obj['emcee_good'] == 1):
-#        v     = obj['emcee_v']
-#        terr  = sys_exp_mult * (obj['emcee_v_err84']-obj['emcee_v_err16'])/2.
-        
-        # ADDING SYS ERROR 
-#        err   =  np.sqrt(terr**2 + sys_exp_flr**2)
-#        ncomb = 1                     
-            
-#    return v,verr,ncomb    
   
   
 def combine_exp(data_dir,slits, mask):
@@ -148,8 +130,9 @@ def combine_exp(data_dir,slits, mask):
     '''  
   
 
-    sys_exp_mult = 1.3
-    sys_exp_flr  = 0.4
+    sys_exp_mult  = 1.3
+    sys_exp_flr   = 0.4
+    sys_coadd_flr = 1.
 
     logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
     log          = open(logfile,'a')   
