@@ -156,8 +156,8 @@ def combine_exp(data_dir,slits, mask):
             slits['coadd_flag'][i]  = 0
             if ncomb > 99:
                 slits['coadd_flag'][i] = 1        
+                print(verr)
 
-        print(np.sum(slits['coadd_flag']==1))                   
 
     slits = set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr)
 
@@ -167,7 +167,6 @@ def combine_exp(data_dir,slits, mask):
     nstar  = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 2))
     ngood  = nstar & np.sum((slits['dmost_v_err'] > 0))
     ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & np.sum((slits['coadd_flag'] ==1))
-    print(np.sum(slits['coadd_flag']==1))                   
 
     dmost_utils.printlog(log,'{} Stellar velocities measured for {} of {} ({} coadds)'.format(mask['maskname'][0],ngood,nstar,ncoadd))
     log.close()
