@@ -103,7 +103,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
             cerr_rand = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
             cerr      = np.sqrt((sys_coadd_mult*cerr_rand)**2 + sys_coadd_flr**2)
 
-            if (1.25*cerr < verr) | (verr > 10):
+            if (verr > 10):
                 v     = obj['coadd_v']
                 verr  = cerr
                 ncomb = nexp + 100.
