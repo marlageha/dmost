@@ -80,7 +80,8 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
 
     
     # USE VELOCITY IF ANY TWO SINLGE EXPOSURES ARE GOOD
-    if (np.any(obj['emcee_good'] == 1) > 1):
+    if (np.sum(obj['emcee_good'] == 1) > 1):
+        
         vt,et = [], []
         for j in np.arange(0,nexp,1):
             if obj['emcee_good'][j]  == 1:
