@@ -118,7 +118,6 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
             ncomb = nexp + 100.
 
 
-    print(v,verr,ncomb)
     return v,verr,ncomb
   
 
