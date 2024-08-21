@@ -48,7 +48,7 @@ def set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr):
 
     return slits
 
-def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr):
+def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mult,sys_coadd_flr):
 
     '''
     Combine velocity and velocity errors for single object 
@@ -95,18 +95,16 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr):
         v    = np.average(vt,weights = 1./et**2)
         sverr = np.sqrt(1./np.sum(1./et**2))
         verr  = np.sqrt(sverr**2)
-        print(verr)
+        
 
 
         # USE COADD IF SINGLE ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
-            cerr    = np.sqrt(sys_exp_mult)*(obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-
-            print('{} verr, cerr:  {:0.2f} {:0.2f} '.format(obj['objname'],verr,cerr))
+            cerr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
 
             if (1.5*cerr < verr) | (verr > 10):
                 v     = obj['coadd_v']
-                verr  = cerr
+                verr  = np.sqrt((sys_coadd_mult*cerr)**2 + sys_coadd_flr**2)
                 ncomb = nexp + 100.
 
 
@@ -114,7 +112,8 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr):
     else:
         if (obj['coadd_good'] ==  1):
             v     = obj['coadd_v']
-            verr  = np.sqrt(sys_exp_mult) * (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  
+            cerr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  
+            verr  = np.sqrt((sys_coadd_mult*cerr)**2 + sys_coadd_flr**2)
             ncomb = nexp + 100.
 
 
@@ -130,9 +129,10 @@ def combine_exp(data_dir,slits, mask):
     '''  
   
 
-    sys_exp_mult  = 1.3
-    sys_exp_flr   = 0.4
-    sys_coadd_flr = 1.
+    sys_exp_mult   = 1.3
+    sys_exp_flr    = 0.4
+    sys_coadd_mult = 0.6
+    sys_coadd_flr  = 1.5
 
     logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
     log          = open(logfile,'a')   
@@ -147,7 +147,7 @@ def combine_exp(data_dir,slits, mask):
     if (nexp > 0):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_exp_mult,sys_exp_flr)
+            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mult,sys_coadd_flr)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
@@ -160,7 +160,7 @@ def combine_exp(data_dir,slits, mask):
     ngal = np.sum((slits['marz_flag'] > 2))
     dmost_utils.printlog(log,'{} Velocities measured for {} galaxies'.format(mask['maskname'][0],ngal))
 
-    nstar  = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 3))
+    nstar  = np.sum((slits['marz_flag'] < 3) & (slits['collate1d_SN'] > 2))
     ngood  = nstar & np.sum((slits['dmost_v_err'] > 0))
     ncoadd = nstar & np.sum((slits['dmost_v_err'] > 0)) & np.sum((slits['coadd_flag'] ==1))
 
