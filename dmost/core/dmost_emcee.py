@@ -471,7 +471,7 @@ def run_emcee(data_dir, slits, mask, outfile, clobber=0):
         mask['flag_emcee'][ii] = 1
         
         # WRITE DMOST FILE
-#        write_dmost(slits,mask,outfile)
+        write_dmost(slits,mask,outfile)
         
     log.close()
     return slits, mask
