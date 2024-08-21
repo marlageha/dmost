@@ -100,7 +100,8 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
 
         # USE COADD IF SINGLE ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
-            cerr    = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+            cerr_rand = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
+            cerr      = np.sqrt((sys_coadd_mult*cerr_rand)**2 + sys_coadd_flr**2)
 
             if (1.5*cerr < verr) | (verr > 10):
                 v     = obj['coadd_v']
@@ -117,6 +118,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
             ncomb = nexp + 100.
 
 
+    print(v,verr,ncomb)
     return v,verr,ncomb
   
 
