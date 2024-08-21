@@ -79,8 +79,8 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
         return v,verr,ncomb
 
     
-    # USE VELOCITY IF ANY EXPOSURE IS GOOD
-    if np.any(obj['emcee_good'] == 1):
+    # USE VELOCITY IF ANY TWO SINLGE EXPOSURES ARE GOOD
+    if (np.any(obj['emcee_good'] == 1) > 1):
         vt,et = [], []
         for j in np.arange(0,nexp,1):
             if obj['emcee_good'][j]  == 1:
@@ -98,7 +98,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
         
 
 
-        # USE COADD IF SINGLE ERROR IS > 10 kms
+        # USE COADD IF SINGLE COMBINED ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
             cerr_rand = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
             cerr      = np.sqrt((sys_coadd_mult*cerr_rand)**2 + sys_coadd_flr**2)
