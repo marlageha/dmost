@@ -133,8 +133,8 @@ def combine_exp(data_dir,slits, mask):
 
     sys_exp_mult   = 1.3
     sys_exp_flr    = 0.4
-    sys_coadd_mult = 0.9
-    sys_coadd_flr  = 1.5
+    sys_coadd_mult = 0.7
+    sys_coadd_flr  = 0.4
 
     logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
     log          = open(logfile,'a')   
