@@ -21,7 +21,6 @@ import scipy.ndimage as scipynd
 from scipy.optimize import curve_fit
 
 
-
 DEIMOS_RAW     = os.getenv('DEIMOS_RAW')
 DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
@@ -345,9 +344,17 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         lerr3 = perr[9] 
 
 
-        CaT = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
+        CaT     = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
         CaT_all = [gint1+lint1, gint2+lint2, gint3+lint3]
+
+        # Covarience for each line
+        CaT_cov = 2*pcov[4,7] + 2*pcov[5,8] + 2*pcov[6,9]
+
+
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
+                          lerr1**2 + lerr2**2 + lerr3**2 + CaT_cov)
+
+        CaT_err_old = 0.25*np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
                           lerr1**2 + lerr2**2 + lerr3**2)
 
         # CREATE FIT FOR PLOTTING
@@ -361,9 +368,10 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     except:
         p, pcov = p0, None
         chi2    = -99
-         
-    # OMG, WHY 
-    return CaT, 0.25*CaT_err, gfit, CaT_all, chi2
+
+    #print('cat = {:0.4f} cat_old={:0.4f} cat_cov={:0.4f}'.format(CaT, CaT_err_old,CaT_err))
+
+    return CaT, CaT_err_old, gfit, CaT_all, chi2
 
 
 ###########################################
@@ -440,7 +448,6 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         # CREATE FIT FOR PLOTTING
         gfit = CaT_gauss(wvl,*p)
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
-        
         
 
     return CaT, CaT_err, gfit, CaT_all, chi2
@@ -579,15 +586,17 @@ def run_coadd_EW(data_dir, slits, mask):
  
 
     m = (slits['dmost_v_err'] > 0) & (slits['marz_flag'] < 3)
-    print('{} EW estimates for {} slits '.format(mask['maskname'][0],np.sum(m)))
+    m =  (slits['marz_flag'] < 3)
+
     dmost_utils.printlog(log,'{} EW estimates for {} slits '.format(mask['maskname'][0],np.sum(m)))
 
     # FOR EACH SLIT
     for ii,slt in enumerate(slits): 
 
 
-        if (slt['dmost_v_err'] > 0) & (slt['marz_flag'] < 3):
-      
+        #if (slt['dmost_v_err'] > 0) & (slt['marz_flag'] < 3):
+        if  (slt['marz_flag'] < 3):
+
 
             # RUN EMCEE ON COADD
             slits = calc_all_EW(data_dir, slits, mask, ii, pdf)
