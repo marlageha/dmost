@@ -131,7 +131,7 @@ def combine_exp(data_dir,slits, mask):
     '''  
   
 
-    sys_exp_mult   = 1.4
+    sys_exp_mult   = 1.3
     sys_exp_flr    = 0.3
 
     sys_coadd_mult = 0.8
