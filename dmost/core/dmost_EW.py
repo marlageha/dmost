@@ -301,6 +301,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     wline3 = [8642, 8682]
 
     CaT, CaT_err, p   = -99, -99, 0
+    CaT_err_old = -99
     CaT_all = [-99.,-99.,-99.]
     gfit    = -99*wvl
 
@@ -362,14 +363,14 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
 
         if (CaT > 14.0) | ~(np.isfinite(CaT_err)):
-            CaT, CaT_err   = -99, -99
+            CaT, CaT_err, CaT_err_old   = -99, -99, -99
 
 
     except:
         p, pcov = p0, None
         chi2    = -99
 
-    #print('cat = {:0.4f} cat_old={:0.4f} cat_cov={:0.4f}'.format(CaT, CaT_err_old,CaT_err))
+   # print('cat = {:0.4f} cat_old={:0.4f} cat_cov={:0.4f}'.format(CaT, CaT_err_old,CaT_err))
 
     return CaT, CaT_err_old, gfit, CaT_all, chi2
 
@@ -429,6 +430,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
         perr = np.sqrt(np.diag(pcov))
 
+        
         ###########################
         # INTEGRATE PROFILE
  
@@ -594,8 +596,7 @@ def run_coadd_EW(data_dir, slits, mask):
     for ii,slt in enumerate(slits): 
 
 
-        #if (slt['dmost_v_err'] > 0) & (slt['marz_flag'] < 3):
-        if  (slt['marz_flag'] < 3):
+        if (slt['dmost_v_err'] > 0) & (slt['marz_flag'] < 3):
 
 
             # RUN EMCEE ON COADD
