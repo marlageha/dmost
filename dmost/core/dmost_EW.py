@@ -26,7 +26,7 @@ DEIMOS_REDUX   = os.getenv('DEIMOS_REDUX')
 
 
 ######################################################
-def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na_fit,p_na,p_mg):
+def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na_fit,p_na,p_mg,CaT_chi2,GL):
 
     fig, (ax1, ax2,ax3,ax4) = plt.subplots(1, 4,figsize=(22,5))
 
@@ -34,7 +34,7 @@ def mk_EW_plots(pdf, this_slit, nwave,nspec, nawave, naspec, cat_fit, mg_fit, na
     ax1.set_xlim(8484, 8560)
     ax1.plot(nwave,cat_fit,'r')
     ax1.set_title('SN= {:0.1f} v = {:0.1f}'.format(this_slit['collate1d_SN'], this_slit['dmost_v']))
-    ax1.legend(loc=3)
+    ax1.legend(loc=3,title='CaT Chi2 = {:0.1f}, GL = {}'.format(CaT_chi2,GL))
 
     ax2.plot(nwave,nspec)
     ax2.set_xlim(8630,8680)
@@ -117,7 +117,7 @@ def NaI_normalize(wave,spec,ivar):
 
 
 ######################################
-def NaI_double_gauss(x,*p) :
+def NaI_double_gauss(x,*p):
     # A gaussian peak with:
     #   Constant Background          : p[0]
     #   Central value                : p[1]
@@ -237,7 +237,7 @@ def mgI_EW_fit(wvl,spec,ivar,SN):
             p, pcov = curve_fit(MgI_gaussian,wvl[mw],spec[mw],sigma = errors,p0=p0, \
                             bounds=((0.5, 0.0, 0.45, 8806.2), (2, 2, 0.8,8807.4)))
         perr = np.sqrt(np.diag(pcov))
-     
+
         # INTEGRATE PROFILE
         mg1_EW = (p[1])*(p[2]*np.sqrt(2.*np.pi))
 
@@ -277,13 +277,13 @@ def CaT_gauss_plus_lorentzian(x,*p):
 
     norm  = 1./ (np.sqrt(2*np.pi) * p[2])
 
-    gauss = p[4]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) + \
-            p[5]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) + \
+    gauss = p[4]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) + \
+            p[5]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) + \
             p[6]*norm*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
     
     norm2   = p[3] / (2.*np.pi)
-    lorentz = (p[7]*norm2/( (x-p[1])**2 + (p[3]/2.)**2 )) + \
-              (p[8]*norm2/( (x-p[1]*0.994841)**2 + (p[3]/2.)**2 )) + \
+    lorentz = (p[7]*norm2/( (x-p[1]*0.994841)**2 + (p[3]/2.)**2 )) + \
+              (p[8]*norm2/( (x-p[1])**2 + (p[3]/2.)**2 )) + \
               (p[9]*norm2/( (x-p[1]*1.01405)**2 + (p[3]/2.)**2 ))
 
 
@@ -300,7 +300,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     wline2 = [8522, 8562]
     wline3 = [8642, 8682]
 
-    CaT, CaT_err, p   = -99, -99, 0
+    CaT, CaT_err, GL, p   = -99, -99, -99, 0
     CaT_err_old = -99
     CaT_all = [-99.,-99.,-99.]
     gfit    = -99*wvl
@@ -319,7 +319,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
 
     try:
         p, pcov = curve_fit(CaT_gauss_plus_lorentzian,wvl[mw],spec[mw],sigma = errors,p0=p0,\
-                                bounds=((0.9, 8539.5, 0.5,0.5, 0.1,0.1,0.1, 0,0,0), (1.5, 8544.5, 5,3, 4,4,4, 3,3,3)))
+                                bounds=((0.9, 8539.5, 0.5,0.5, 0.1,0.1,0.1, 0,0,0), (1.5, 8544.5, 3,3, 4,4,4, 3,3,3)))
 
 
         perr = np.sqrt(np.diag(pcov))
@@ -349,16 +349,24 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         CaT_all = [gint1+lint1, gint2+lint2, gint3+lint3]
 
         # Covarience for each line
-        CaT_cov = 2*pcov[4,7] + 2*pcov[5,8] + 2*pcov[6,9]
+        CaT_cov = 2*pcov[4,7]**2 + 2*pcov[5,8]**2 + 2*pcov[6,9]**2
 
 
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
                           lerr1**2 + lerr2**2 + lerr3**2 + CaT_cov)
 
-        CaT_err_old = 0.25*np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
-                          lerr1**2 + lerr2**2 + lerr3**2)
 
-        # CREATE FIT FOR PLOTTING
+
+        # Fix if missing thrid line
+        GL = 2
+        if np.max(wvl) < 8682:
+            CaT= gint1 + gint2 + + lint1 + lint2 + 0.82*(gint1 + lint1)
+            CaT_err = np.sqrt(gerr1**2 + gerr2**2 + lerr1**2 + lerr2**2 + (0.82*gerr1)**2 + (0.82*lerr1)**2)
+            CaT_all[2] = -99
+            GL=4
+
+
+            # CREATE FIT FOR PLOTTING
         gfit = CaT_gauss_plus_lorentzian(wvl,*p)
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
 
@@ -370,9 +378,8 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         p, pcov = p0, None
         chi2    = -99
 
-   # print('cat = {:0.4f} cat_old={:0.4f} cat_cov={:0.4f}'.format(CaT, CaT_err_old,CaT_err))
 
-    return CaT, CaT_err_old, gfit, CaT_all, chi2
+    return CaT, CaT_err, gfit, CaT_all, chi2, GL
 
 
 ###########################################
@@ -382,8 +389,8 @@ def CaT_gauss(x,*p):
 
     norm  = 1./ (np.sqrt(2*np.pi) * p[2])
 
-    gauss = p[3]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) + \
-            p[4]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) + \
+    gauss = p[3]*norm*np.exp(-0.5*( (x-p[1]*0.994841)/p[2])**2) + \
+            p[4]*norm*np.exp(-0.5*( (x-p[1])/p[2] )**2) + \
             p[5]*norm*np.exp(-0.5*( (x-p[1]*1.01405)/p[2])**2)
 
 
@@ -402,7 +409,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
     wline3 = [8642, 8682]
 
 
-    CaT, CaT_err, p, chi2   = -99, -99, 0, -99
+    CaT, CaT_err, p, chi2, GL   = -99, -99, 0, -99, -99
     CaT_all = [-99.,-99.,-99.]
     gfit    = -99*wvl
 
@@ -447,12 +454,23 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         CaT_all = [gint1, gint2, gint3]
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2)
 
+
+        # Fix if missing thrid line
+        GL=1
+        if np.max(wvl) < 8682:
+            CaT= gint1 + gint2 + 0.82*gint1
+            CaT_err = np.sqrt(gerr1**2 + gerr2**2 + (0.82*gerr1)**2)
+            CaT_all[2] = -99
+            GL=3
+
+
+
         # CREATE FIT FOR PLOTTING
         gfit = CaT_gauss(wvl,*p)
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
         
 
-    return CaT, CaT_err, gfit, CaT_all, chi2
+    return CaT, CaT_err, gfit, CaT_all, chi2, GL
 
 
 ########################################
@@ -462,6 +480,7 @@ def CaT_GL_guess(x,y):
     p0 = [1.,8542.09,sg,0.8*sg, Ng,Ng,Ng,Ng,Ng,Ng]
 
     return p0
+
 def calc_chi2_ew(wave,spec,ivar,mwindow, fit):
 
     model = fit[mwindow]
@@ -471,8 +490,6 @@ def calc_chi2_ew(wave,spec,ivar,mwindow, fit):
     chi2 = np.sum((data - model)**2 * ivar)/np.size(data)
 
     return chi2
-
-
 
 ########################################
 def CaII_normalize(wave,spec,ivar):
@@ -529,28 +546,42 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
     wave     = wvl / (1.0+redshift)  
 
     wlims = (wvl > 8100) & (wvl < 8700)
-    if (np.sum(flux[wlims] > 0) > 1200):
+    if (np.sum(flux[wlims] > 0) > 1200) & (np.max(wave) > 8562):
+
 
         
         #####################             
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
-        CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2 = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
 
-        if (CaT_EW_err == -99) | (slits['collate1d_SN'][arg] < 15) |  (CaT_EW < 0):
-            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2 = CaII_EW_fit_gauss(nwave,nspec,nivar)
+        CaT_EW_err, CaT_chi2  = 0,0
+        CaT_EW_GL, CaT_err_GL, CaT_chi2_GL = 0,0,0
+        CaT_all = [-99.,-99.,-99.]
 
-        if (CaT_chi2 > 50):
+        if  (slits['collate1d_SN'][arg] > 15):
+            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2, GL = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
+
+
+        mpoor  = (CaT_EW_err > 1.0)  & (slits['collate1d_SN'][arg] < 50)
+        mpoor2 = CaT_all[1]/CaT_all[2] > 2.2
+
+        if  (slits['collate1d_SN'][arg] <= 15) | (mpoor) | (mpoor2):
+            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2, GL = CaII_EW_fit_gauss(nwave,nspec,nivar)
+
+
+        if (CaT_chi2 > 50) & (slits['collate1d_SN'][arg] < 200):
+            CaT_EW_err = -99
+        if (CaT_all[1]/CaT_all[2] > 2.2):
             CaT_EW_err = -99
 
-        cols = slits.colnames
-        if (np.sum(np.in1d(cols,'cat_all')) == 0):
-            slits.add_column([-99.*np.ones(3)], name='cat_all')
+
 
         slits['cat'][arg]      = CaT_EW
         slits['cat_err'][arg]  = CaT_EW_err
         slits['cat_all'][arg]  = CaT_all
         slits['cat_chi2'][arg] = CaT_chi2
+        slits['cat_gl'][arg]   = GL
+
 
         ##########################
         # CALCULATE MgI LINES
@@ -566,11 +597,33 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         slits['naI'][arg]     = NaI_EW
         slits['naI_err'][arg] = NaI_EW_err
 
-        mk_EW_plots(pdf, slits[arg], nwave, nspec, nawave, naspec, CaT_fit, MgI_fit, NaI_fit,p_na,p_mg)
+        mk_EW_plots(pdf, slits[arg], nwave, nspec, nawave, naspec, CaT_fit, MgI_fit, NaI_fit,p_na,p_mg, CaT_chi2, GL)
 
 
     return slits
     
+########################################################
+def ew_sys_errors(slits):
+
+    # FOR NaI and MgI, multiplier only
+    m = slits['naI_err'] > 0
+    slits['naI_err'][m] =  0.7*slits['naI_err'][m]
+
+
+    m = slits['mgI_err'] > 0
+    slits['mgI_err'][m] =  0.7*slits['mgI_err'][m]
+
+    # CaT has two multiplers:  Guass and GL profiles
+    mcat    = slits['cat_err'] > 0
+    m_gauss = (slits['cat_gl'] == 1) | (slits['cat_gl'] == 3):
+    m_gl    = (slits['cat_gl'] == 2) | (slits['cat_gl'] == 4):
+
+    slits['cat_err'][mcat&m_guass] = 1.2 * slits['cat_err'][mcat&m_guass]
+    slits['cat_err'][mcat&m_gl]    = 0.3 * slits['cat_err'][mcat&m_gl]
+
+
+    return slits
+
 
 ######################################################
 
@@ -596,16 +649,23 @@ def run_coadd_EW(data_dir, slits, mask):
     for ii,slt in enumerate(slits): 
 
 
-        if (slt['dmost_v_err'] > 0) & (slt['marz_flag'] < 3):
+        if (slt['dmost_v_err'] > 0) & (slt['marz_flag'] < 2):
 
 
             # RUN EMCEE ON COADD
             slits = calc_all_EW(data_dir, slits, mask, ii, pdf)
             
 
+
+
+    # ADD EW SYSTEMATIC ERRORS HERE
+    slits = ew_sys_errors(slits)
+
+
     pdf.close()
     plt.close('all')
     log.close()
+
 
         
     return slits, mask
