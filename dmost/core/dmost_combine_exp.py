@@ -10,8 +10,31 @@ from dmost import dmost_utils
 # Combine results from multiple exposures
 
 
-# SET BINARY FLAG WITHIN MASK
-def set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr):
+########################################################
+def ew_sys_errors(slits):
+
+    # FOR NaI and MgI, multiplier only
+    m = slits['naI_err'] > 0
+    slits['naI_err'][m] =  0.7*slits['naI_err'][m]
+
+
+    m = slits['mgI_err'] > 0
+    slits['mgI_err'][m] =  0.7*slits['mgI_err'][m]
+
+    # CaT has two multiplers:  Guass and GL profiles
+    mcat    = slits['cat_err'] > 0
+    m_gauss = (slits['cat_gl'] == 1) | (slits['cat_gl'] == 3):
+    m_gl    = (slits['cat_gl'] == 2) | (slits['cat_gl'] == 4):
+
+    slits['cat_err'][mcat&m_guass] = 1.2 * slits['cat_err'][mcat&m_guass]
+    slits['cat_err'][mcat&m_gl]    = 0.3 * slits['cat_err'][mcat&m_gl]
+
+
+    return slits
+
+########################################################
+# SET SHORT VELOCITY VARIABLE FLAG WITHIN MASK
+def set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr):
 
 
     for i,obj in enumerate(slits):
@@ -23,8 +46,8 @@ def set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr):
 
 
             err = sys_exp_mult * (obj['emcee_v_err84'] - obj['emcee_v_err16'])/2.
-            err = np.sqrt(err**2 + sys_exp_flr**2)
-            ivar = 1./err*2
+            err2 = err**2 + sys_exp_flr**2
+            ivar = 1./err2
         
 
             v_mean = np.average(obj['emcee_v'][m],weights=ivar[m])
@@ -131,11 +154,9 @@ def combine_exp(data_dir,slits, mask):
     '''  
   
 
-    sys_exp_mult   = 1.0
-    sys_exp_flr    = 0
-
-    sys_coadd_mult = 1.0
-    sys_coadd_flr  = 0
+    # THIS IS USED ONLY TO SET VARIABLE FLAG
+    sys_exp_mult   = 1.4
+    sys_exp_flr    = 0.3
 
 
     logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
@@ -151,7 +172,7 @@ def combine_exp(data_dir,slits, mask):
     if (nexp > 0):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mult,sys_coadd_flr)
+            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
@@ -159,8 +180,12 @@ def combine_exp(data_dir,slits, mask):
             if ncomb > 99:
                 slits['coadd_flag'][i] = 1        
 
+    # SET FLAG IF EXPOSURE VELOCITIES ARE VARIABLE
+    slits = set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr)
 
-    slits = set_mask_binary_flag(slits,mask,sys_exp_mult,sys_exp_flr)
+    # ADD EW SYSTEMATIC ERRORS HERE
+    slits = ew_sys_errors(slits)
+
 
     ngal = np.sum((slits['marz_flag'] > 2))
     dmost_utils.printlog(log,'{} Velocities measured for {} galaxies'.format(mask['maskname'][0],ngal))
