@@ -8,7 +8,7 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 
-from astropy.table import Table
+from astropy.table import Table, Column
 from astropy import units as u
 from astropy.io import ascii,fits
 
@@ -570,9 +570,9 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
 
 
         if (CaT_chi2 > 50) & (slits['collate1d_SN'][arg] < 200):
-            CaT_EW_err = -99
+            CaT_EW_err = -99.
         if (CaT_all[1]/CaT_all[2] > 2.2):
-            CaT_EW_err = -99
+            CaT_EW_err = -99.
 
 
 
@@ -597,33 +597,43 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         slits['naI'][arg]     = NaI_EW
         slits['naI_err'][arg] = NaI_EW_err
 
+
+        # ADD EW SYSTEMATIC ERRORS HERE
+        slits[arg] = ew_sys_errors(slits[arg])
+
         mk_EW_plots(pdf, slits[arg], nwave, nspec, nawave, naspec, CaT_fit, MgI_fit, NaI_fit,p_na,p_mg, CaT_chi2, GL)
 
 
     return slits
     
 ########################################################
-def ew_sys_errors(slits):
+def ew_sys_errors(slit):
+
+    slit['naI_err_rand'] = slit['naI_err']
+    slit['mgI_err_rand'] = slit['mgI_err']
+    slit['cat_err_rand'] = slit['cat_err']
 
     # FOR NaI and MgI, multiplier only
-    m = slits['naI_err'] > 0
-    slits['naI_err'][m] =  0.7*slits['naI_err'][m]
+    if (slit['naI_err'] > 0):
+        slit['naI_err'] =  np.sqrt((0.7*slit['naI_err'])**2 + 0.05**2)
 
 
-    m = slits['mgI_err'] > 0
-    slits['mgI_err'][m] =  0.7*slits['mgI_err'][m]
+    if slit['mgI_err'] > 0:
+        slit['mgI_err'] =  np.sqrt((0.7*slit['mgI_err'])**2 + 0.05**2)
 
     # CaT has two multiplers:  Guass and GL profiles
-    mcat    = slits['cat_err'] > 0
-    m_gauss = (slits['cat_gl'] == 1) | (slits['cat_gl'] == 3):
-    m_gl    = (slits['cat_gl'] == 2) | (slits['cat_gl'] == 4):
+    mcat    = slit['cat_err'] > 0
+    m_gauss = (slit['cat_gl'] == 1) | (slit['cat_gl'] == 3)
+    m_gl    = (slit['cat_gl'] == 2) | (slit['cat_gl'] == 4)
 
-    slits['cat_err'][mcat&m_guass] = 1.2 * slits['cat_err'][mcat&m_guass]
-    slits['cat_err'][mcat&m_gl]    = 0.3 * slits['cat_err'][mcat&m_gl]
+    if (mcat&m_gauss):
+        slit['cat_err'] = 1.2 * slit['cat_err']
+
+    if (mcat&m_gl):
+        slit['cat_err']    = np.sqrt((0.3 * slit['cat_err'])**2 + 0.05**2)
 
 
-    return slits
-
+    return slit
 
 ######################################################
 
@@ -640,9 +650,17 @@ def run_coadd_EW(data_dir, slits, mask):
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
  
 
-    m = (slits['dmost_v_err'] > 0) & (slits['marz_flag'] < 3)
-    m =  (slits['marz_flag'] < 3)
 
+    if not 'naI_err_rand' in slits.columns:
+
+        tmp= Column(data=slits['naI_err'], name='naI_err_rand')
+        slits.add_column(tmp)
+        tmp= Column(data=slits['mgI_err'], name='mgI_err_rand')
+        slits.add_column(tmp)
+        tmp= Column(data=slits['cat_err'], name='cat_err_rand')
+        slits.add_column(tmp)
+
+    m = (slits['dmost_v_err'] > 0) & (slits['marz_flag'] < 3)
     dmost_utils.printlog(log,'{} EW estimates for {} slits '.format(mask['maskname'][0],np.sum(m)))
 
     # FOR EACH SLIT
@@ -655,12 +673,6 @@ def run_coadd_EW(data_dir, slits, mask):
             # RUN EMCEE ON COADD
             slits = calc_all_EW(data_dir, slits, mask, ii, pdf)
             
-
-
-
-    # ADD EW SYSTEMATIC ERRORS HERE
-    slits = ew_sys_errors(slits)
-
 
     pdf.close()
     plt.close('all')
