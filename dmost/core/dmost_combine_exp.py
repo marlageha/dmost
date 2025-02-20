@@ -11,28 +11,6 @@ from dmost import dmost_utils
 
 
 ########################################################
-def ew_sys_errors(slits):
-
-    # FOR NaI and MgI, multiplier only
-    m = slits['naI_err'] > 0
-    slits['naI_err'][m] =  0.7*slits['naI_err'][m]
-
-
-    m = slits['mgI_err'] > 0
-    slits['mgI_err'][m] =  0.7*slits['mgI_err'][m]
-
-    # CaT has two multiplers:  Guass and GL profiles
-    mcat    = slits['cat_err'] > 0
-    m_gauss = (slits['cat_gl'] == 1) | (slits['cat_gl'] == 3):
-    m_gl    = (slits['cat_gl'] == 2) | (slits['cat_gl'] == 4):
-
-    slits['cat_err'][mcat&m_guass] = 1.2 * slits['cat_err'][mcat&m_guass]
-    slits['cat_err'][mcat&m_gl]    = 0.3 * slits['cat_err'][mcat&m_gl]
-
-
-    return slits
-
-########################################################
 # SET SHORT VELOCITY VARIABLE FLAG WITHIN MASK
 def set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr):
 
@@ -182,9 +160,6 @@ def combine_exp(data_dir,slits, mask):
 
     # SET FLAG IF EXPOSURE VELOCITIES ARE VARIABLE
     slits = set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr)
-
-    # ADD EW SYSTEMATIC ERRORS HERE
-    slits = ew_sys_errors(slits)
 
 
     ngal = np.sum((slits['marz_flag'] > 2))
