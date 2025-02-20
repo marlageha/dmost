@@ -93,12 +93,17 @@ def truncated_normal(loc, scale, size, lowerbound = 0.1):
     return truncnorm.rvs(a, b, loc=loc, scale=scale, size=size)
 
 
-def calculate_FeH(V0, ew_cat, ew_cat_err, use_truncnorm = True):
+def calculate_FeH(V0, V0err, ew_cat, ew_cat_err, use_truncnorm = True):
 
     # MAG AND DISTANCE ERROR-- could improve this
-    Vmag0_abs = np.random.normal(loc=V0, scale=0.1, size=5000)
+    V0err     = np.sqrt(V0err**2 + 0.1**2)  # add dmod error
+    Vmag0_abs = np.random.normal(loc=V0, scale=V0err, size=5000)
     
     
+    # Distribute equivalent widths as Truncated Normal (cutoff at 0.1 dex)
+    ew_cat_distrib = truncated_normal(loc=ew_cat, scale=ew_cat_err, lowerbound = 0.1, size=5000)
+    
+
     # #######Carrera 2013##########
     # [value, error]  using M_V
     #a = [-3.45,0.04]
@@ -114,16 +119,11 @@ def calculate_FeH(V0, ew_cat, ew_cat_err, use_truncnorm = True):
     d = np.random.normal(loc=-0.53, scale=0.11, size=5000)
     e = np.random.normal(loc=0.019, scale=0.002,size=5000)
 
-    
-    # Distribute equivalent widths as Truncated Normal (cutoff at 0.1 dex)
-    ew_cat_distrib = truncated_normal(loc=ew_cat, scale=ew_cat_err, size=5000)
-    
-   
     # Calculate [Fe/H]
     FeH = a + (b * Vmag0_abs) + (c * ew_cat_distrib) + (d * ew_cat_distrib**(-1.5)) + \
                                 (e * ew_cat_distrib * Vmag0_abs)
     
-    masked_FeH = FeH.copy()
+    masked_FeH = sig_carrera*FeH.copy()
     masked_FeH[masked_FeH < -6] = np.nan
        
     feh_medians = np.nanpercentile(masked_FeH, [16,50,84])
@@ -132,23 +132,33 @@ def calculate_FeH(V0, ew_cat, ew_cat_err, use_truncnorm = True):
     feh_err_upper = feh_medians[2] - feh_medians[1]
     feh_err_lower = feh_medians[1] - feh_medians[0]
 
+    # 0.1 dex systematic error due to scatter of the Carrera reln itself
+    feh_err = np.sqrt(feh_err**2 + (0.1)**2)
+
     return feh,feh_err, feh_err_upper,feh_err_lower
 
 
 # CALCULATE FeH FROM CaT EWs
 def CaT_to_FeH(alldata):
     
+
     for ii,slt in enumerate(alldata): 
 
         alldata['ew_feh'][ii]      = -99.
         alldata['ew_feh_err'][ii]  = -99.
         if (slt['MV_o'] != -99) & (slt['ew_cat'] > 0.):
 
+            # MAGNITUDE ERRORS
             mag     = slt['MV_o']
+            magerr  = slt['rmag_err']
+            if magerr < 0: 
+                magerr = 0.1
+
+            # EW ERRORS    
             CaT     = slt['ew_cat']
             CaTerr  = slt['ew_cat_err']
 
-            FeH, FeH_err, ferru,ferrl = calculate_FeH(mag, CaT, CaTerr)
+            FeH, FeH_err, ferru,ferrl = calculate_FeH(mag, magerr, CaT, CaTerr)
 
             alldata['ew_feh'][ii]      = FeH
             alldata['ew_feh_err'][ii]  = FeH_err
@@ -179,29 +189,30 @@ def match_gaia(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cgaia)  
         foo = np.arange(0,np.size(idx),1)
 
-        mt  = foo[d2d < 1.*u.arcsec]
-        mt2 = idx[d2d < 1.*u.arcsec]
-        allspec['gaia_source_id'][mt]    = gaia['source_id'][mt2]
-        allspec['gaia_pmra'][mt]         = gaia['pmra'][mt2] 
-        allspec['gaia_pmra_err'][mt]     = gaia['pmra_error'][mt2]
-        allspec['gaia_pmdec'][mt]        = gaia['pmdec'][mt2] 
-        allspec['gaia_pmdec_err'][mt]    = gaia['pmdec_error'][mt2]
+        mt  = foo[d2d < 1.25*u.arcsec]
+        mt2 = idx[d2d < 1.25*u.arcsec]
+        allspec['gaia_source_id'][mt]     = gaia['source_id'][mt2]
+        allspec['gaia_pmra'][mt]          = gaia['pmra'][mt2] 
+        allspec['gaia_pmra_err'][mt]      = gaia['pmra_error'][mt2]
+        allspec['gaia_pmdec'][mt]         = gaia['pmdec'][mt2] 
+        allspec['gaia_pmdec_err'][mt]     = gaia['pmdec_error'][mt2]
         allspec['gaia_pmra_pmdec_corr'][mt]  = gaia['pmra_pmdec_corr'][mt2]
 
-        allspec['gaia_parallax'][mt]     = gaia['parallax'][mt2] 
-        allspec['gaia_parallax_err'][mt] = gaia['parallax_error'][mt2]
-        allspec['gaia_rv'][mt]           = gaia['radial_velocity'][mt2] 
-        allspec['gaia_rv_err'][mt]       = gaia['radial_velocity_error'][mt2] 
-        allspec['gaia_grvs_mag'][mt]     = gaia['grvs_mag'][mt2] 
+        allspec['gaia_parallax'][mt]      = gaia['parallax'][mt2] 
+        allspec['gaia_parallax_err'][mt]  = gaia['parallax_error'][mt2]
+        allspec['gaia_phot_variable'][mt] = gaia['phot_variable_flag'][mt2]
+        allspec['gaia_rv'][mt]            = gaia['radial_velocity'][mt2] 
+        allspec['gaia_rv_err'][mt]        = gaia['radial_velocity_error'][mt2] 
+        allspec['gaia_grvs_mag'][mt]      = gaia['grvs_mag'][mt2] 
 
-        allspec['gaia_aen'][mt]          = gaia['astrometric_excess_noise'][mt2] 
-        allspec['gaia_aen_sig'][mt]      = gaia['astrometric_excess_noise_sig'][mt2]
+        allspec['gaia_aen'][mt]           = gaia['astrometric_excess_noise'][mt2] 
+        allspec['gaia_aen_sig'][mt]       = gaia['astrometric_excess_noise_sig'][mt2]
 
 
         # SET NON_DETECTED BACK TO DEFAULT
         # GAIA DEFAULTS ARE ZERO (CONFUSING!)
         m = allspec['gaia_pmra_err'] == 0.0
-        allspec['gaia_pmra'][m]  = -999.
+        allspec['gaia_pmra'][m]   = -999.
         m = allspec['gaia_pmdec_err'] == 0.0
         allspec['gaia_pmdec'][m]  = -999.
         m = allspec['gaia_parallax_err'] == 0.0
@@ -227,11 +238,11 @@ def match_gaia(obj,allspec):
 def legacy_mag_err(flux, flux_ivar):
 
     # MINIMUM MAG ERROR
-    mag_err    = -99*np.zeros(np.size(flux))
-
+    mag_err    = np.zeros(np.size(flux))
     m          = (np.isfinite(flux_ivar)) & (flux_ivar >0)
-    mag_err[m] = (2.5/np.log(10.)) * (np.sqrt(flux_ivar[m] * flux[m])) + 0.02
-    mag_err[m] = np.sqrt(mag_err[m]**2 + 0.02**2)
+
+    flux_err   = 1./np.sqrt(flux_ivar[m])
+    mag_err[m] = (2.5/np.log(10.)) * (flux_err/flux[m])
 
     return mag_err
 
@@ -290,15 +301,16 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
 
-        mt = foo[d2d < 1.*u.arcsec]
-        allspec['rmag_o'][mt] = ls_dr10['rmag'][idx[d2d < 1.*u.arcsec]] 
-        allspec['gmag_o'][mt] = ls_dr10['gmag'][idx[d2d < 1.*u.arcsec]] 
+        dm = 1.25
+        mt = foo[d2d < dm*u.arcsec]
+        allspec['rmag_o'][mt] = ls_dr10['rmag'][idx[d2d < dm*u.arcsec]] 
+        allspec['gmag_o'][mt] = ls_dr10['gmag'][idx[d2d < dm*u.arcsec]] 
 
-        allspec['rmag_err'][mt] = legacy_mag_err(ls_dr10['flux_r'][idx[d2d < 1.*u.arcsec]] , ls_dr10['flux_ivar_r'][idx[d2d < 1.*u.arcsec]] )
-        allspec['gmag_err'][mt] = legacy_mag_err(ls_dr10['flux_g'][idx[d2d < 1.*u.arcsec]] , ls_dr10['flux_ivar_g'][idx[d2d < 1.*u.arcsec]] )
+        allspec['rmag_err'][mt] = legacy_mag_err(ls_dr10['flux_r'][idx[d2d < dm*u.arcsec]] , ls_dr10['flux_ivar_r'][idx[d2d < dm*u.arcsec]] )
+        allspec['gmag_err'][mt] = legacy_mag_err(ls_dr10['flux_g'][idx[d2d < dm*u.arcsec]] , ls_dr10['flux_ivar_g'][idx[d2d < dm*u.arcsec]] )
 
         allspec['phot_source'][mt] = 'ls_dr10'
-        allspec['phot_type'][mt] = ls_dr10['type'][idx[d2d < 1.*u.arcsec]] 
+        allspec['phot_type'][mt] = ls_dr10['type'][idx[d2d < dm*u.arcsec]] 
 
 
 
@@ -329,25 +341,51 @@ def match_photometry(obj,allspec):
         foo = np.arange(0,np.size(idx),1)
 
     
-
         # TRANSFORM SDSS TO DECALS
-        r_sdss = munozf['r'][idx[d2d < 1.*u.arcsec]] 
-        g_sdss = munozf['g'][idx[d2d < 1.*u.arcsec]] 
+        dm = 1.25
+        r_sdss = munozf['r'][idx[d2d < dm*u.arcsec]] 
+        g_sdss = munozf['g'][idx[d2d < dm*u.arcsec]] 
         r_decals,g_decals = transform_sdss2decals(r_sdss,g_sdss)
 
         # Get Ar/Ag
         allspec, Ar, Ag = get_ebv(allspec)
-        mt = foo[d2d < 1.*u.arcsec]
-
+        mt = foo[d2d < dm*u.arcsec]
 
         allspec['rmag_o'][mt]   = r_decals - Ar[mt]
         allspec['gmag_o'][mt]   = g_decals - Ag[mt]
-        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < 1.*u.arcsec]]
-        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < 1.*u.arcsec]]
+        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < dm*u.arcsec]]
+        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < dm*u.arcsec]]
 
         allspec['phot_source'][mt] = 'munozf'
                   
      
+    if obj['Phot'] == 'munoz18_2':
+        
+        file = DEIMOS_RAW + '/Photometry/munoz18/munoz18_secondary.txt'
+        # Get Ar/Ag
+        allspec, Ar, Ag = get_ebv(allspec)
+
+        munozf = ascii.read(file)
+
+        cmunf   = SkyCoord(ra=munozf['ra']*u.degree, dec=munozf['dec']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+ 
+        dm=1.25
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cmunf)  
+        foo = np.arange(0,np.size(idx),1)
+        mt  = foo[d2d < dm*u.arcsec]
+        
+        r_sdss = munozf['r'][idx[d2d < dm*u.arcsec]] 
+        g_sdss = munozf['g'][idx[d2d < dm*u.arcsec]] 
+        r_decals,g_decals = transform_sdss2decals(r_sdss,g_sdss)
+
+        allspec['rmag_o'][mt]   = r_decals - Ar[mt]
+        allspec['gmag_o'][mt]   = g_decals - Ag[mt]
+        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < dm*u.arcsec]]
+        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < dm*u.arcsec]]
+        
+        allspec['phot_source'][mt] = 'munoz18_2'
+
 
     #####################
     ### GC SDSS PHOTOMETRY
@@ -367,22 +405,23 @@ def match_photometry(obj,allspec):
         csdss   = SkyCoord(ra=sdss['RA']*u.degree, dec=sdss['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
  
+        dm = 1.25
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(csdss)  
         foo = np.arange(0,np.size(idx),1)
-        mt = foo[d2d < 1.*u.arcsec]
+        mt = foo[d2d < dm*u.arcsec]
 
         # TRANSFORM SDSS TO DECALS
-        r_sdss = sdss['rmag'][idx[d2d < 1.*u.arcsec]]
-        g_sdss = sdss['gmag'][idx[d2d < 1.*u.arcsec]]
-        r_decals,g_decals = transform_sdss2decam(r_sdss,g_sdss)
+        r_sdss = sdss['rmag'][idx[d2d < dm*u.arcsec]]
+        g_sdss = sdss['gmag'][idx[d2d < dm*u.arcsec]]
+        r_decals,g_decals = transform_sdss2decals(r_sdss,g_sdss)
 
         # Get Ar/Ag
-        allspec, Ar, Ag = get_ebv(allspec,obj['Phot'])
+        allspec, Ar, Ag = get_ebv(allspec)
 
         allspec['rmag_o'][mt] =  r_decals - Ar[mt]
         allspec['gmag_o'][mt] =  g_decals - Ag[mt]
-        allspec['rmag_err'][mt] = sdss['rmag_err'][idx[d2d < 1.*u.arcsec]]
-        allspec['gmag_err'][mt] = sdss['gmag_err'][idx[d2d < 1.*u.arcsec]]
+        allspec['rmag_err'][mt] = sdss['rmag_err'][idx[d2d < dm*u.arcsec]]
+        allspec['gmag_err'][mt] = sdss['gmag_err'][idx[d2d < dm*u.arcsec]]
 
         allspec['phot_source'][mt] = 'sdss_gc'
 
@@ -400,9 +439,10 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
 
-        mt = foo[d2d < 1.*u.arcsec]
-        allspec['rmag_o'][mt] = decaps['mean_mag_r'][idx[d2d < 1.*u.arcsec]] 
-        allspec['gmag_o'][mt] = decaps['mean_mag_g'][idx[d2d < 1.*u.arcsec]] 
+        dm=1.25
+        mt = foo[d2d < dm*u.arcsec]
+        allspec['rmag_o'][mt] = decaps['mean_mag_r'][idx[d2d < dm*u.arcsec]] 
+        allspec['gmag_o'][mt] = decaps['mean_mag_g'][idx[d2d < dm*u.arcsec]] 
         allspec['rmag_err'][mt] = 0.1
         allspec['gmag_err'][mt] = 0.1
 
@@ -442,6 +482,40 @@ def match_photometry(obj,allspec):
 
         allspec['phot_source'][mt] = 'PanS'
 
+
+ #####################
+    ## PANSTARRS DR2
+    #  https://catalogs.mast.stsci.edu/
+    if obj['Phot'] == 'PanS1':
+        file = DEIMOS_RAW + '/Photometry/PanS/PanS1_'+obj['Name2']+'.csv'
+        pans = ascii.read(file)
+        m=(pans['rPSFMag'] != -999) & (pans['gPSFMag'] != -999)
+        pans=pans[m]
+        
+        # TRANSFORM TO DECALS
+        g_decals, r_decals = transform_ps12decals(pans['gPSFMag'] , pans['rPSFMag'])
+
+        cpans   = SkyCoord(ra=pans['raMean']*u.degree, dec=pans['decMean']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+ 
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cpans)  
+        foo = np.arange(0,np.size(idx),1)
+
+        # GET reddening 
+        allspec, Ar, Ag = get_ebv(allspec)
+
+
+        # INCREASED TO 2" TO GET CENTRAL GLOBULAR CLUSTER MEMBERS
+        ds = 2.25
+        mt = foo[d2d < ds*u.arcsec]
+        allspec['rmag_o'][mt] = r_decals[idx[d2d < ds*u.arcsec]] - Ar[mt]
+        allspec['gmag_o'][mt] = g_decals[idx[d2d < ds*u.arcsec]] - Ag[mt]
+        
+        allspec['rmag_err'][mt] = pans['rPSFMagErr'][idx[d2d < ds*u.arcsec]]
+        allspec['gmag_err'][mt] = pans['gPSFMagErr'][idx[d2d < ds*u.arcsec]]
+
+        allspec['phot_source'][mt] = 'PanS'
+
     
     #####################
     ### USE GAIA IF THERE ARE NO OTHER OPTIONS
@@ -473,11 +547,12 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cgaia)  
         foo = np.arange(0,np.size(idx),1)
 
-        mt = foo[d2d < 1.*u.arcsec]
-        allspec['rmag_o'][mt]   = rmag[idx[d2d < 1.*u.arcsec]] 
-        allspec['gmag_o'][mt]   = gmag[idx[d2d < 1.*u.arcsec]] 
-        allspec['rmag_err'][mt] = gaia_err[idx[d2d < 1.*u.arcsec]] 
-        allspec['gmag_err'][mt] = gaia_err[idx[d2d < 1.*u.arcsec]] 
+        dm=1.25
+        mt = foo[d2d < dm*u.arcsec]
+        allspec['rmag_o'][mt]   = rmag[idx[d2d < dm*u.arcsec]] 
+        allspec['gmag_o'][mt]   = gmag[idx[d2d < dm*u.arcsec]] 
+        allspec['rmag_err'][mt] = gaia_err[idx[d2d < dm*u.arcsec]] 
+        allspec['gmag_err'][mt] = gaia_err[idx[d2d < dm*u.arcsec]] 
 
         allspec['phot_source'][mt] = 'gaia'
 
