@@ -193,10 +193,14 @@ def create_slits(nslits,nexp):
             filled_column('cat_all',-99.*np.ones(3),nslits),
             filled_column('cat_all_err',-99.*np.ones(3),nslits),
             filled_column('cat_chi2',-99.,nslits),
+            filled_column('cat_gl',-99.,nslits),
             filled_column('naI',-99.,nslits),
             filled_column('naI_err',-99.,nslits),
             filled_column('mgI',-99.,nslits),
-            filled_column('mgI_err',-99.,nslits)
+            filled_column('mgI_err',-99.,nslits),
+            filled_column('mgI_err_rand',-99.,nslits),
+            filled_column('ngI_err_rand',-99.,nslits),
+            filled_column('cat_err_rand',-99.,nslits)
 
            ]
             
