@@ -28,7 +28,7 @@ def set_cmd_lims(rmag):
     
     try:
         cmin = np.max(rmag)+0.25
-        cmax = np.min(rmag[rmag >0])-0.25
+        cmax = np.min(rmag[rmag >0])-0.25 
     except:
         cmin,cmax = 24,13
 
@@ -58,12 +58,10 @@ def plot_isochrone_padova(dist,str_iso):
 ######################################################
 def plot_isochrone_HB(dist):
 
-    iso = Table.read(DEIMOS_RAW+'/Photometry/isochrones/M92_fiducial.dat',format='ascii',guess=False)
-    hb = iso['typ'] == 1
+    iso = Table.read(DEIMOS_RAW+'/Photometry/isochrones/M92_fiducial_HB.dat',format='ascii',guess=False)
     
-
-    r_iso = iso['rmag'][hb] + 5.*np.log10(dist*1e3) - 5. 
-    gr_iso = iso['gmr'][hb] + 0.2
+    r_iso  = iso['rmag'][hb] + 5.*np.log10(dist*1e3) - 5. 
+    gr_iso = iso['gmr'][hb] 
     
     return r_iso,gr_iso 
 
@@ -82,60 +80,59 @@ def mg_wmean(x, x_err):
 
 
 ######################################################
-def membership_v_crude(alldata,this_obj,cmd_mem=0,sig=3.):
+def membership_v_crude(alldata,this_obj,cmd_mem=0,sig=5.):
 
-    # REMOVE BAD FITS
-    m_good = (alldata['v_chi2'] < 100) & (alldata['v_err'] < 25)
-
-
+ 
     # MIN MAX     
     min_v = this_obj['v_guess'] - this_obj['s_guess']*sig
     max_v = this_obj['v_guess'] + this_obj['s_guess']*sig
 
-    Pmem_crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v) & m_good
+    Pmem_crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v)
 
     return Pmem_crude_v
 
 
 ######################################################
-def membership_v(alldata,this_obj,cmd_mem=0,crude_cut=50.,sig=3.5):
+def membership_vdisp(alldata,this_obj,Pmem_tmp,crude_cut=25.):
     
     min_v = this_obj['v_guess'] - crude_cut
     max_v = this_obj['v_guess'] + crude_cut
 
-    crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v)
+    crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v) & (Pmem_tmp > 0.5)
 
-    v = alldata['v'][crude_v]
+
+    v_true   = this_obj['v_guess']
+    sig_true = this_obj['s_guess']
+    v    = alldata['v'][crude_v]
     verr = alldata['v_err'][crude_v]
-    if np.sum(cmd_mem) > 0:
-        cm = (cmd_mem == 1)
-        v = alldata['v'][cm&crude_v]
-        verr = alldata['v_err'][cm&crude_v]
 
-    sampler, theta = dmost_vdisp.mcmc_vdisp(v,verr, this_obj['v_guess'],5,plot=0)
-    
-    min_v = theta[0] - sig*theta[1]
-    max_v = theta[0] + sig*theta[1]
+    if np.sum(crude_v) > 5:
+        v_true,sig_true = mg_wmean(v,verr)
+    #if np.sum(crude_v) > 10:
+    #    sampler, theta = dmost_vdisp.mcmc_vdisp(v,verr, this_obj['v_guess'],5,plot=0)
+    #    v_true   = theta[0]
+    #    sig_true = theta[1]
 
-    vmem = (alldata['v'] > min_v) & (alldata['v'] < max_v)
-    if np.sum(cmd_mem) > 0:
-        vmem = (alldata['v'] > min_v) & (alldata['v'] < max_v) & (cm)
 
-    
+    #  V Prob PLUS PHOTOMETRIC ERROR
+    texp     = np.array(alldata['v'] - v_true)**2 / (2*(alldata['v_err']**2 + (3.*sig_true)**2))
+    Pmem_v = np.exp(-1.*texp)
+ 
 
-    return Pmem_vmem
+    return Pmem_v
+
+
 
 ######################################################
+# REMOVE STARS WITH STRONG NaI lines
 def membership_NaI(alldata, this_obj):
 
-    # ALL STARS
-    Pmem_NaI = (alldata['ew_naI'] < 1.0) 
+    naI_lim =  1.
+#    if np.isfinite(this_obj['NaI_lim']):
+#        naI_lim = this_obj['NaI_lim']
 
-    # TIGHTER CONSTRAINT ON RGBs
-    naI_lim2 = this_obj['NaI_lim']
-
-    m_rmv    = ((alldata['ew_naI']-alldata['ew_naI_err']) > naI_lim2) & (alldata['MV_o'] < 4)
-    Pmem_NaI[m_rmv] = 0
+    m_rmv    = ((alldata['ew_naI'] - alldata['ew_naI_err']) > naI_lim) & (alldata['MV_o'] < 4)
+    Pmem_NaI = ~m_rmv
 
     return Pmem_NaI
 
@@ -148,38 +145,18 @@ def membership_MgI(alldata):
     mgI_lim2 = (alldata['ew_mgI'] > y)  & (alldata['ew_cat'] >= 4)
 
 
+    #Pmem_MgI = (alldata['ew_mgI'] < 0.65)
+
     Pmem_MgI = ~(mgI_lim1 | mgI_lim2)
 
     return Pmem_MgI
 
-######################################################
-def membership_parallax(alldata, this_obj):
-    nstar         = np.size(alldata)
-    Pmem_parallax = np.ones(nstar)
-
-    obj_parallax  = 1./this_obj['Dist_kpc']
-    diff_parallax = alldata['gaia_parallax'] - obj_parallax
-    p_over_e = np.abs(alldata['gaia_parallax']/alldata['gaia_parallax_err'])
-
-    # ONLY TEST STARS WITH AVAILABLE PARALLAX
-    m_good   =(alldata['gaia_parallax'] > -100)
-
-    # REMOVE STARS WITH LARGE MEASURED PARALLAX
-    # diff > sig*error
-    # diff > 0.5
-    # parallax_over_error > sig
-    sig = 5
-    mrm = (np.abs(diff_parallax) > sig*alldata['gaia_parallax_err']) & (np.abs(diff_parallax) > 0.5) & (p_over_e > sig)
-        
-    Pmem_parallax = ~(mrm & m_good)
-
-
-    return Pmem_parallax
-
 
 
 ######################################################
-def membership_PM(alldata, Pmem):
+# REMOVE FOREGROUND STARS WITH LARGE PROPER MOTIONS
+# USE GUESS PM, ELSE 
+def membership_PM(alldata, this_obj, Pmem):
 
     # IF THERE ARE ENOUGH MEASURED PMs
     m_pm    = alldata['gaia_pmra_err'] > 0
@@ -208,15 +185,9 @@ def membership_PM(alldata, Pmem):
     return Pmem_pm
 
 
-######################################################
-def membership_MgI(alldata):
-
-    Pmem_MgI = (alldata['ew_mgI'] < 0.65)
-
-    return Pmem_MgI
 
 ######################################################
-def membership_CMD(alldata,this_obj):
+def membership_CMD(alldata,this_obj,cmd_min = 0.2):
 
     # GET ISOCHRONE PROPERTIES    
     dist= this_obj['Dist_kpc']
@@ -243,8 +214,10 @@ def membership_CMD(alldata,this_obj):
         emin.append(err)
             
 
-    #  CMD THRESHOLD PLUS PHOTOMETRIC ERROR
-    Pmem_cmd = np.array(dmin) < np.sqrt(0.2**2 + np.array(emin)**2)
+    #  CMD Prob PLUS PHOTOMETRIC ERROR
+    texp     = np.array(dmin)**2 / (2*(np.array(emin)**2 + cmd_min**2))
+    Pmem_cmd = np.exp(-1.*texp)
+ 
 
     return Pmem_cmd
 
@@ -281,17 +254,6 @@ def flag_variable_stars(alldata):
 
 
 ######################################################
-def flag_poor_data(alldata):
-
-    m_err = alldata['v_err'] > 12
-
-    m_vchi2 = (alldata['v_chi2'] > 25) & (alldata['SN'] < 50)
-
-    flag_poor = m_err | m_vchi2 
-        
-    return flag_poor
-
-######################################################
 def flag_velocity_outliers(alldata,Pmem, low=3,high=3):
 
     x = alldata['v'][Pmem]
@@ -306,35 +268,70 @@ def flag_velocity_outliers(alldata,Pmem, low=3,high=3):
         
     return Pmem_v
 
+
+######################################################
+# REMOVE FOREGROUND STARS WITH LARGE GAIA PARALLAX 
+def membership_parallax(alldata, this_obj):
+
+    nstar         = np.size(alldata)
+    Pmem_parallax = np.ones(nstar)
+
+    obj_parallax  = 1./this_obj['Dist_kpc']
+
+    # ONLY TEST STARS WITH AVAILABLE PARALLAX
+    m_parallax   =(alldata['gaia_parallax_err'] > 0)
+
+
+    # REMOVE STARS WITH LARGE MEASURED PARALLAX
+    parallax_criteria = alldata['gaia_parallax'] - 3. * alldata['gaia_parallax_err']
+    mrm               = parallax_criteria > 2. * obj_parallax        
+    Pmem_parallax     = ~(mrm & m_parallax)
+
+    return Pmem_parallax
+
+
+######################################################
+def flag_good_data(alldata):
+
+    m_err = alldata['v_err'] > 12
+
+    m_vchi2 = (alldata['v_chi2'] > 100) & (alldata['SN'] < 50)
+
+    flag_poor = m_err | m_vchi2 
+    flag_good = ~flag_poor
+
+    return flag_good
+
 ######################################################
 ######################################################
 def find_members(alldata,this_obj):
     
 
-    Pmem_cmd      = membership_CMD(alldata, this_obj)
-    Pmem_crude_v  = membership_v_crude(alldata, this_obj)
-    Pmem_NaI      = membership_NaI(alldata, this_obj)
-    Pmem_MgI      = membership_MgI(alldata)
-    Pmem_parallax = membership_parallax(alldata, this_obj)
+    flag_good       = flag_good_data(alldata)
+    flag_parallax   = membership_parallax(alldata, this_obj)
+    flag_NaI        = membership_NaI(alldata, this_obj)
+    flag_MgI        = membership_MgI(alldata)
 
-    Pmem_pm       = membership_PM(alldata, Pmem_cmd&Pmem_crude_v&Pmem_NaI)
+    #flag_pm         = membership_PM(alldata, this_obj, Pmem_cmd&Pmem_crude_v&Pmem_NaI)
+
+    all_flags =  flag_parallax&flag_NaI&flag_MgI& flag_good
+
+    Pmem_cmd        = membership_CMD(alldata, this_obj)
+    Pmem_v          = membership_vdisp(alldata,this_obj,Pmem_cmd*all_flags)
+    #Pmem_feh        = membership_v_crude(alldata, this_obj)
+
 
     # FLAG HB AND SET FEH TO ZERO
     flag_HB       = flag_HB_stars(alldata,this_obj)
-    alldata['ew_feh'][(flag_HB ==1)] = -999.
-
     flag_var      = flag_variable_stars(alldata)
-    flag_poor     = flag_poor_data(alldata)
 
-    Pmem         =  Pmem_cmd & Pmem_crude_v & Pmem_parallax & Pmem_NaI & Pmem_MgI & Pmem_pm
-    Pmem_v       = flag_velocity_outliers(alldata, Pmem&~flag_var&~flag_poor)
-
-   
-
-    Pmem_pure    =  Pmem & ~flag_var & Pmem_v & ~flag_poor
+    Pmem_inclusive   =  Pmem_cmd * Pmem_v * all_flags
 
 
-    return Pmem, Pmem_pure, Pmem_cmd, Pmem_crude_v, Pmem_NaI, Pmem_pm, Pmem_parallax, Pmem_MgI, Pmem_v
+    Pmem      =  Pmem_inclusive * ~flag_var 
+
+
+    return Pmem_inclusive, Pmem#, Pmem_cmd, Pmem_crude_v, Pmem_NaI, Pmem_pm, Pmem_parallax, Pmem_MgI, Pmem_v
 
 
 
