@@ -52,17 +52,24 @@ def calc_MV_star(allspec,obj):
     dmod = 5.*np.log10(obj['Dist_kpc']*1e3) - 5.
 
 
-    # Jester 2005
-    # https://classic.sdss.org/dr5/algorithms/sdssUBVRITransform.php    
-    # V = g - 0.59*(g-r) - 0.01 
-    #V    =  allspec['gmag_o'] - 0.59*gr_o -0.01
-    # Jordi 2006
+    # SDSS Jordi 2006
     # V = allspec['gmag_o'] - 0.565*gr_o -0.016
-    # Using Lupton
-    # V = g - 0.5784*(g - r) - 0.0038;  sigma = 0.0054
+
+    # Abbott et al 
+    # https://iopscience.iop.org/article/10.3847/1538-4365/ac00b3
+    # Appendix A  - piecewise transformation
 
     gr_o =  allspec['gmag_o'] - allspec['rmag_o'] 
-    V    =  allspec['gmag_o'] - 0.565*gr_o -0.016
+    V    = np.zeros(np.size(gr_o))
+
+    m1    = gr_o <= 0.2
+    V[m1] =  allspec['gmag_o'][m1] - 0.465*gr_o[m1] -0.02
+
+    m2    = (gr_o > 0.2) & (gr_o <= 0.7)
+    V[m2] =  allspec['gmag_o'][m2] - 0.496*gr_o[m2] -0.015
+
+    m3    = gr_o > 0.7
+    V[m3] = allspec['gmag_o'][m3] - 0.445*gr_o[m3] -0.062
 
     allspec['MV_o'] = V - dmod
     
@@ -123,7 +130,7 @@ def calculate_FeH(V0, V0err, ew_cat, ew_cat_err, use_truncnorm = True):
     FeH = a + (b * Vmag0_abs) + (c * ew_cat_distrib) + (d * ew_cat_distrib**(-1.5)) + \
                                 (e * ew_cat_distrib * Vmag0_abs)
     
-    masked_FeH = sig_carrera*FeH.copy()
+    masked_FeH = FeH.copy()
     masked_FeH[masked_FeH < -6] = np.nan
        
     feh_medians = np.nanpercentile(masked_FeH, [16,50,84])
@@ -200,7 +207,7 @@ def match_gaia(obj,allspec):
 
         allspec['gaia_parallax'][mt]      = gaia['parallax'][mt2] 
         allspec['gaia_parallax_err'][mt]  = gaia['parallax_error'][mt2]
-        allspec['gaia_phot_variable'][mt] = gaia['phot_variable_flag'][mt2]
+        allspec['gaia_phot_variable_flag'][mt] = gaia['phot_variable_flag'][mt2]
         allspec['gaia_rv'][mt]            = gaia['radial_velocity'][mt2] 
         allspec['gaia_rv_err'][mt]        = gaia['radial_velocity_error'][mt2] 
         allspec['gaia_grvs_mag'][mt]      = gaia['grvs_mag'][mt2] 
@@ -211,13 +218,13 @@ def match_gaia(obj,allspec):
 
         # SET NON_DETECTED BACK TO DEFAULT
         # GAIA DEFAULTS ARE ZERO (CONFUSING!)
-        m = allspec['gaia_pmra_err'] == 0.0
+        m = allspec['gaia_pmra_err'] == -999.
         allspec['gaia_pmra'][m]   = -999.
-        m = allspec['gaia_pmdec_err'] == 0.0
+        m = allspec['gaia_pmdec_err'] == -999.
         allspec['gaia_pmdec'][m]  = -999.
-        m = allspec['gaia_parallax_err'] == 0.0
+        m = allspec['gaia_parallax_err'] == -999.
         allspec['gaia_parallax'][m]  = -999.
-        mrv = allspec['gaia_rv'] == 0.0
+        mrv = allspec['gaia_rv'] == -999.
         allspec['gaia_rv'][mrv]  = -999.
         allspec['gaia_rv_err'][mrv]  = -999.
 
@@ -243,6 +250,8 @@ def legacy_mag_err(flux, flux_ivar):
 
     flux_err   = 1./np.sqrt(flux_ivar[m])
     mag_err[m] = (2.5/np.log(10.)) * (flux_err/flux[m])
+
+    mag_err = np.sqrt(mag_err**2 + 0.05**2)
 
     return mag_err
 
@@ -279,6 +288,9 @@ def match_photometry(obj,allspec):
     nobj            = np.sum(allspec['v_err'] >= 0)
     nstar           = np.sum(allspec['v_err'] > 0)
 
+    # DEFINE MATCHING LENGTH
+    dm = 1.25
+    dm_serendip = 2.
 
   #####################
     ### PRIMARY SOURCE:   LEGACY DR10
@@ -286,7 +298,8 @@ def match_photometry(obj,allspec):
     if obj['Phot'] == 'ls_dr10':
         file = DEIMOS_RAW + '/Photometry/legacy_DR10/dr10_'+obj['Name2']+'.csv'
         ls_dr10 = ascii.read(file)
-        
+        ls_dr10 = ls_dr10[ls_dr10['dered_mag_r'] < 25]
+
         ls_dr10.rename_column('dered_mag_g', 'gmag')
         ls_dr10.rename_column('dered_mag_r', 'rmag')
 
@@ -301,7 +314,6 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
 
-        dm = 1.25
         mt = foo[d2d < dm*u.arcsec]
         allspec['rmag_o'][mt] = ls_dr10['rmag'][idx[d2d < dm*u.arcsec]] 
         allspec['gmag_o'][mt] = ls_dr10['gmag'][idx[d2d < dm*u.arcsec]] 
@@ -313,6 +325,25 @@ def match_photometry(obj,allspec):
         allspec['phot_type'][mt] = ls_dr10['type'][idx[d2d < dm*u.arcsec]] 
 
 
+        # INCREASE FOR SERENDIPS W/O Match
+        sm  = (d2d < dm_serendip*u.arcsec) & (allspec['serendip'] == 1) & (allspec['rmag_o'] < 0)
+        print('ls_dr10')
+
+        if np.sum(sm) > 0:
+            mts = foo[sm]
+            print(allspec['rmag_o'][mts])
+
+            allspec['rmag_o'][mts] = ls_dr10['rmag'][idx[sm]] 
+            allspec['gmag_o'][mts] = ls_dr10['gmag'][idx[sm]] 
+
+            allspec['rmag_err'][mts] = legacy_mag_err(ls_dr10['flux_r'][idx[sm]] , ls_dr10['flux_ivar_r'][idx[sm]] )
+            allspec['gmag_err'][mts] = legacy_mag_err(ls_dr10['flux_g'][idx[sm]] , ls_dr10['flux_ivar_g'][idx[sm]] )
+
+            allspec['phot_source'][mts] = 'ls_dr10'
+            allspec['phot_type'][mts] = ls_dr10['type'][idx[sm]] 
+
+            for ob in allspec[mts]:
+                print(ob['rmag_o'],ob['RA'],ob['DEC'],ob['SN'],ob['marz_flag'])
 
 
     #####################
@@ -334,6 +365,7 @@ def match_photometry(obj,allspec):
            (obj['Name2'] == 'Seg2') | (obj['Name2'] == 'N2419')| (obj['Name2'] == 'Pal2'):
             munozf['RA'] *= 15.
         
+        munozf  = munozf[munozf['r'] < 25.0]
         cmunf   = SkyCoord(ra=munozf['RA']*u.degree, dec=munozf['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
  
@@ -342,22 +374,39 @@ def match_photometry(obj,allspec):
 
     
         # TRANSFORM SDSS TO DECALS
-        dm = 1.25
-        r_sdss = munozf['r'][idx[d2d < dm*u.arcsec]] 
-        g_sdss = munozf['g'][idx[d2d < dm*u.arcsec]] 
+        r_sdss = munozf['r']
+        g_sdss = munozf['g']
         r_decals,g_decals = transform_sdss2decals(r_sdss,g_sdss)
 
         # Get Ar/Ag
         allspec, Ar, Ag = get_ebv(allspec)
         mt = foo[d2d < dm*u.arcsec]
 
-        allspec['rmag_o'][mt]   = r_decals - Ar[mt]
-        allspec['gmag_o'][mt]   = g_decals - Ag[mt]
+        allspec['rmag_o'][mt]   = r_decals[idx[d2d < dm*u.arcsec]]  - Ar[mt]
+        allspec['gmag_o'][mt]   = g_decals[idx[d2d < dm*u.arcsec]]  - Ag[mt]
         allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < dm*u.arcsec]]
         allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < dm*u.arcsec]]
 
         allspec['phot_source'][mt] = 'munozf'
                   
+
+       # INCREASE FOR SERENDIPS W/O Match
+        sm  = (d2d < dm_serendip*u.arcsec) & (allspec['serendip'] == 1) & (allspec['rmag_o'] < 0)
+        print('munoz')
+
+        if np.sum(sm) > 0:
+            mts = foo[sm]
+            print(allspec['rmag_o'][mts])
+
+            allspec['rmag_o'][mts]   = r_decals[idx[sm]]  - Ar[mts]
+            allspec['gmag_o'][mts]   = g_decals[idx[sm]]  - Ag[mts]
+            allspec['rmag_err'][mts] = munozf['rerr'][idx[sm]]
+            allspec['gmag_err'][mts] = munozf['gerr'][idx[sm]]
+            allspec['phot_source'][mts] = 'munozf' 
+            for ob in allspec[mts]:
+                print(ob['rmag_o'],ob['RA'],ob['DEC'],ob['SN'],ob['marz_flag'])
+
+
      
     if obj['Phot'] == 'munoz18_2':
         
@@ -370,7 +419,6 @@ def match_photometry(obj,allspec):
         cmunf   = SkyCoord(ra=munozf['ra']*u.degree, dec=munozf['dec']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
  
-        dm=1.25
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cmunf)  
         foo = np.arange(0,np.size(idx),1)
         mt  = foo[d2d < dm*u.arcsec]
@@ -405,7 +453,6 @@ def match_photometry(obj,allspec):
         csdss   = SkyCoord(ra=sdss['RA']*u.degree, dec=sdss['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
  
-        dm = 1.25
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(csdss)  
         foo = np.arange(0,np.size(idx),1)
         mt = foo[d2d < dm*u.arcsec]
@@ -439,7 +486,6 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
 
-        dm=1.25
         mt = foo[d2d < dm*u.arcsec]
         allspec['rmag_o'][mt] = decaps['mean_mag_r'][idx[d2d < dm*u.arcsec]] 
         allspec['gmag_o'][mt] = decaps['mean_mag_g'][idx[d2d < dm*u.arcsec]] 
@@ -547,7 +593,6 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cgaia)  
         foo = np.arange(0,np.size(idx),1)
 
-        dm=1.25
         mt = foo[d2d < dm*u.arcsec]
         allspec['rmag_o'][mt]   = rmag[idx[d2d < dm*u.arcsec]] 
         allspec['gmag_o'][mt]   = gmag[idx[d2d < dm*u.arcsec]] 
