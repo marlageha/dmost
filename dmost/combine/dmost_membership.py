@@ -39,29 +39,37 @@ def set_cmd_lims(rmag):
 
     return cmin,cmax
 
+
+
 ######################################################
-def plot_isochrone_padova(dist,str_iso):
-
-    iso = ascii.read(DEIMOS_RAW+'/Photometry/isochrones/iso_t12_z'+str(str_iso)+'.dat')
-
-    #A(g)/(E(B-V)) = 3.793    
-    #Ag = 3.793 * EBV
-    #Ar = 2.751 * EBV
-
-    r_iso = iso['rmag'] + 5.*np.log10(dist*1e3) - 5.  # + Ar
-    gr_iso = iso['gmag'] - iso['rmag'] #+ (Ag - Ar)
+def plot_isochrone_parsec_decam(dist,feh):
     
+    DEIMOS_RAW = '/Users/mg37/Dropbox/DEIMOS/'
+    iso = ascii.read(DEIMOS_RAW+'/Photometry/isochrones/iso_decam_t12.dat',header_start=13)
+
+    # FIND MATCHING [Fe/H]
+    marg = np.argmin(np.abs(iso['MH'] - feh))
+    m    = (iso['MH'] == iso['MH'][marg]) & (iso['rmag'] < 25)
+    single_iso = iso[m]
+    label = single_iso['label']
+
+    
+    m = single_iso['label'] < 4
+    ms_rbg = single_iso[m]
+    ms_rbg.sort('rmag')
+
+    r_iso  = ms_rbg['rmag'] + 5.*np.log10(dist*1e3) - 5.  
+    gr_iso = ms_rbg['gmag'] - ms_rbg['rmag'] + 0.03
+
     return r_iso,gr_iso
-
-
 
 ######################################################
 def plot_isochrone_HB(dist):
 
     iso = Table.read(DEIMOS_RAW+'/Photometry/isochrones/M92_fiducial_HB.dat',format='ascii',guess=False)
     
-    r_iso  = iso['rmag'][hb] + 5.*np.log10(dist*1e3) - 5. 
-    gr_iso = iso['gmr'][hb] 
+    r_iso  = iso['rmag'] + 5.*np.log10(dist*1e3) - 5. 
+    gr_iso = iso['gmr'] 
     
     return r_iso,gr_iso 
 
@@ -128,8 +136,6 @@ def membership_vdisp(alldata,this_obj,Pmem_tmp,crude_cut=25.):
 def membership_NaI(alldata, this_obj):
 
     naI_lim =  1.
-#    if np.isfinite(this_obj['NaI_lim']):
-#        naI_lim = this_obj['NaI_lim']
 
     m_rmv    = ((alldata['ew_naI'] - alldata['ew_naI_err']) > naI_lim) & (alldata['MV_o'] < 4)
     Pmem_NaI = ~m_rmv
@@ -144,8 +150,6 @@ def membership_MgI(alldata):
     mgI_lim1 = (alldata['ew_mgI'] - alldata['ew_mgI_err'] > 0.5)  & (alldata['ew_cat'] < 4)
     mgI_lim2 = (alldata['ew_mgI'] > y)  & (alldata['ew_cat'] >= 4)
 
-
-    #Pmem_MgI = (alldata['ew_mgI'] < 0.65)
 
     Pmem_MgI = ~(mgI_lim1 | mgI_lim2)
 
@@ -191,12 +195,11 @@ def membership_CMD(alldata,this_obj,cmd_min = 0.2):
 
     # GET ISOCHRONE PROPERTIES    
     dist= this_obj['Dist_kpc']
-    iso = this_obj['iso_guess']
+    feh = this_obj['feh_guess']
 
-    r,gr       = plot_isochrone_padova(dist,iso)
+    r,gr       = plot_isochrone_parsec_decam(dist,feh)
     r_hb,gr_hb = plot_isochrone_HB(dist)
-
-        
+       
     dmin, emin = [],[]
     for star in alldata:
         err = np.sqrt(star['gmag_err']**2 + star['rmag_err']**2)
@@ -293,11 +296,13 @@ def membership_parallax(alldata, this_obj):
 ######################################################
 def flag_good_data(alldata):
 
-    m_err = alldata['v_err'] > 12
+    m_err = (alldata['v_err'] > 15) | (alldata['v_err'] < 0)
 
-    m_vchi2 = (alldata['v_chi2'] > 100) & (alldata['SN'] < 50)
+    # REMOVE SERENDIPS THAT DON"T PASS STRICTER QUALITY CUTS
+    m_ser1 = (alldata['objname'] == 'SERENDIP') & (alldata['v_chi2'] > 50) & (alldata['SN'] < 50) 
+    m_ser2 = (alldata['objname'] == 'SERENDIP') & (alldata['rmag_o'] < 0)
 
-    flag_poor = m_err | m_vchi2 
+    flag_poor = m_err | m_ser1 | m_ser2
     flag_good = ~flag_poor
 
     return flag_good
@@ -308,15 +313,17 @@ def find_members(alldata,this_obj):
     
 
     flag_good       = flag_good_data(alldata)
+    Pmem_cmd        = membership_CMD(alldata, this_obj)
+
     flag_parallax   = membership_parallax(alldata, this_obj)
     flag_NaI        = membership_NaI(alldata, this_obj)
-    flag_MgI        = membership_MgI(alldata)
+#    flag_MgI        = membership_MgI(alldata)
 
-    #flag_pm         = membership_PM(alldata, this_obj, Pmem_cmd&Pmem_crude_v&Pmem_NaI)
+    all_flags =  flag_parallax&flag_NaI&flag_good
 
-    all_flags =  flag_parallax&flag_NaI&flag_MgI& flag_good
 
-    Pmem_cmd        = membership_CMD(alldata, this_obj)
+#    Pmem_pm         = membership_PM(alldata, this_obj, Pmem_cmd*all_flags)
+
     Pmem_v          = membership_vdisp(alldata,this_obj,Pmem_cmd*all_flags)
     #Pmem_feh        = membership_v_crude(alldata, this_obj)
 
