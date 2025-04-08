@@ -651,14 +651,13 @@ def run_coadd_EW(data_dir, slits, mask):
  
 
 
-    if not 'naI_err_rand' in slits.columns:
-
-        tmp= Column(data=slits['naI_err'], name='naI_err_rand')
-        slits.add_column(tmp)
-        tmp= Column(data=slits['mgI_err'], name='mgI_err_rand')
-        slits.add_column(tmp)
-        tmp= Column(data=slits['cat_err'], name='cat_err_rand')
-        slits.add_column(tmp)
+#    if not 'naI_err_rand' in slits.columns:
+#        tmp= Column(data=slits['naI_err'], name='naI_err_rand')
+#        slits.add_column(tmp)
+#        tmp= Column(data=slits['mgI_err'], name='mgI_err_rand')
+#        slits.add_column(tmp)
+#        tmp= Column(data=slits['cat_err'], name='cat_err_rand')
+#        slits.add_column(tmp)
 
     m = (slits['dmost_v_err'] > 0) & (slits['marz_flag'] < 3)
     dmost_utils.printlog(log,'{} EW estimates for {} slits '.format(mask['maskname'][0],np.sum(m)))
