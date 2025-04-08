@@ -135,7 +135,8 @@ def combine_exp(data_dir,slits, mask):
     # THIS IS USED ONLY TO SET VARIABLE FLAG
     sys_exp_mult   = 1.4
     sys_exp_flr    = 0.3
-
+    sys_coadd_mult = 1.4
+    sys_coadd_flr  = 0.3
 
     logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
     log          = open(logfile,'a')   
@@ -150,7 +151,7 @@ def combine_exp(data_dir,slits, mask):
     if (nexp > 0):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp)
+            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp,sys_exp_mult,sys_exp_flr,sys_coadd_mult,sys_coadd_flr)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
