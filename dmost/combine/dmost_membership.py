@@ -156,9 +156,10 @@ def membership_vdisp(alldata,this_obj,Pmem_tmp,crude_cut=25.):
     min_v = this_obj['v_guess'] - crude_cut
     max_v = this_obj['v_guess'] + crude_cut
 
-    crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v) & (Pmem_tmp > 0.5)
+    crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v) & (Pmem_tmp > 0.2)
 
 
+    # FIRST ITERATION
     v_true   = this_obj['v_guess']
     sig_true = this_obj['s_guess']
     v    = alldata['v'][crude_v]
@@ -166,18 +167,60 @@ def membership_vdisp(alldata,this_obj,Pmem_tmp,crude_cut=25.):
 
     if np.sum(crude_v) > 5:
         v_true,sig_true = mg_wmean(v,verr)
-    #if np.sum(crude_v) > 10:
-    #    sampler, theta = dmost_vdisp.mcmc_vdisp(v,verr, this_obj['v_guess'],5,plot=0)
-    #    v_true   = theta[0]
-    #    sig_true = theta[1]
-
-
+  
     #  V Prob PLUS PHOTOMETRIC ERROR
     texp     = np.array(alldata['v'] - v_true)**2 / (2*(alldata['v_err']**2 + (3.*sig_true)**2))
     Pmem_v = np.exp(-1.*texp)
  
+    #  IF SUFFICIENT NUMBER OF MEMBERS, SECOND ITERATION
+    Pmem_2 = Pmem_tmp * Pmem_v
+
+    mnew = Pmem_2 > 0.2
+    if np.sum(mnew) > 5:
+        v    = alldata['v'][mnew]
+        verr = alldata['v_err'][mnew]
+        v_true,sig_true = mg_wmean(v,verr)
+
+        #sampler, theta = dmost_vdisp.mcmc_vdisp(v,verr, v_true, sig_true,plot=0)
+        #v_true,sig_true  = theta[0], theta[1]
+        texp     = np.array(alldata['v'] - v_true)**2 / (2*(alldata['v_err']**2 + (3.*sig_true)**2))
+        Pmem_v = np.exp(-1.*texp)
+ 
+
 
     return Pmem_v
+
+def membership_feh(alldata, this_obj, Pmem_tmp):
+
+
+    Pmem_feh = np.ones(np.size(Pmem_tmp))
+
+    Pv_crude = membership_v_crude(alldata, this_obj)
+    good_feh = (Pmem_tmp > 0.2) & (alldata['ew_feh_err'] > 0) &  (alldata['ew_feh_err'] < 10) & \
+                                 (alldata['MV_o'] < 3.) & (alldata['tmpl_teff'] < 6500 ) & (Pv_crude == 1)
+
+    if np.sum(good_feh) > 2:
+        feh     = alldata['ew_feh'][good_feh]
+        feh_err = alldata['ew_feh_err'][good_feh]
+
+        # DETERMINE [FE/H] GUESSES
+        feh_tmp, feh_sig_tmp = mg_wmean(feh,feh_err)
+        print('{:0.2f}  {:0.2f}'.format(feh_tmp,feh_sig_tmp))
+
+        if (feh_sig_tmp < 0.2):
+            feh_sig_tmp = 0.2
+
+        diff2 = (alldata['ew_feh'] - feh_tmp)**2
+        texp  = np.array(diff2 / (2*(np.array(alldata['ew_feh_err'])**2 + (3.*feh_sig_tmp)**2)))
+
+        # APPLY ONLY IN METAL-RICH DIRECTION
+        mrich = (good_feh) & ((alldata['ew_feh'] - feh_tmp) > 0)
+        Pmem_feh[mrich] = np.exp(-1.*texp[mrich])
+
+
+
+
+    return Pmem_feh
 
 
 
@@ -309,16 +352,17 @@ def find_members(alldata,this_obj):
 
 
     all_flags2      = all_flags1 * Pmem_pm
-    Pmem_v          = membership_vdisp(alldata,this_obj,all_flags2)
 
-    #Pmem_feh        = membership_feh(alldata, this_obj,all_flags2*Pmem_v)
+
+    Pmem_feh        = membership_feh(alldata, this_obj,all_flags2)
+    Pmem_v          = membership_vdisp(alldata,this_obj,all_flags2*Pmem_feh)
 
 
     # FLAG HB AND SET FEH TO ZERO
     flag_HB       = flag_HB_stars(alldata,this_obj)
     flag_var      = flag_variable_stars(alldata)
 
-    Pmem_inclusive   =  all_flags2 * Pmem_v 
+    Pmem_inclusive   =  all_flags2 * Pmem_v * Pmem_feh
 
 
     Pmem      =  Pmem_inclusive * ~flag_var 
