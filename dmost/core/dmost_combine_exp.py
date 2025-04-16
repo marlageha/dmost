@@ -160,7 +160,7 @@ def combine_exp(data_dir,slits, mask):
 
 
     # SET FLAG IF EXPOSURE VELOCITIES ARE VARIABLE
-    slits = set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr)
+    slits = set_short_var_flag(slits,mask,sys_mask_mult,sys_exp_flr)
 
 
     ngal = np.sum((slits['marz_flag'] > 2))
