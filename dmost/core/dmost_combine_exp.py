@@ -70,7 +70,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
         combined velocity, error and number of combined exposures
     '''
 
-    v, verr, ncomb    = [-999,-99,0]
+    v, verr, verr_rand, ncomb    = [-999,-99,-99,0]
     
     # IS THIS A GALAXY?
     if (obj['marz_flag'] > 2):
