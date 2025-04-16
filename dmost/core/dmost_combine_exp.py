@@ -87,10 +87,10 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
         for j in np.arange(0,nexp,1):
             if obj['emcee_good'][j]  == 1:
 
-                verr_rand = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
+                verr_exp = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
 
                 vt   = np.append(vt,obj['emcee_v'][j])
-                et   = np.append(et,verr_sys)
+                et   = np.append(et,verr_exp)
                 ncomb=ncomb+1
 
         v         = np.average(vt,weights = 1./et**2)
