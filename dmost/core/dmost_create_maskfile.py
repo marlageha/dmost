@@ -178,6 +178,7 @@ def create_slits(nslits,nexp):
             # COMBINED VELOCITIES
             filled_column('dmost_v',-999.,nslits),
             filled_column('dmost_v_err',-99.,nslits),
+            filled_column('dmost_v_err_rand',-99.,nslits),
             filled_column('v_nexp',-99,nslits),
 
             # SHORT BINARY FLAGS
