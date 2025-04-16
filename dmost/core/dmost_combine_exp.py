@@ -12,7 +12,7 @@ from dmost import dmost_utils
 
 ########################################################
 # SET SHORT VELOCITY VARIABLE FLAG WITHIN MASK
-def set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr):
+def set_short_var_flag(slits,mask,sys_mult,sys_exp_flr):
 
 
     for i,obj in enumerate(slits):
@@ -23,7 +23,7 @@ def set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr):
         if np.sum(m) > 1:
 
 
-            err = sys_exp_mult * (obj['emcee_v_err84'] - obj['emcee_v_err16'])/2.
+            err = sys_mult * (obj['emcee_v_err84'] - obj['emcee_v_err16'])/2.
             err2 = err**2 + sys_exp_flr**2
             ivar = 1./err2
         
@@ -45,11 +45,11 @@ def set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr):
             if lpv < -4:
                 slits['vv_short_flag'][i]  = 1
 
-
-
     return slits
 
-def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mult,sys_coadd_flr):
+    
+
+def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
 
     '''
     Combine velocity and velocity errors for single object 
@@ -74,9 +74,9 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
     
     # IS THIS A GALAXY?
     if (obj['marz_flag'] > 2):
-        v    = obj['marz_z'] * 3e5
-        verr = 0
-        ncomb= 100
+        v     = obj['marz_z'] * 3e5
+        verr  = 0
+        ncomb = 100
         return v,verr,ncomb
 
     
@@ -88,22 +88,20 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
             if obj['emcee_good'][j]  == 1:
 
                 verr_rand = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
-                verr_sys = np.sqrt((sys_exp_mult * verr_rand)**2 + sys_exp_flr**2)
 
                 vt   = np.append(vt,obj['emcee_v'][j])
                 et   = np.append(et,verr_sys)
                 ncomb=ncomb+1
 
-        v    = np.average(vt,weights = 1./et**2)
-        sverr = np.sqrt(1./np.sum(1./et**2))
-        verr  = np.sqrt(sverr**2)
-        
+        v     = np.average(vt,weights = 1./et**2)
+        sverr = np.sqrt(1./np.sum(1./et**2))        
+        verr  = np.sqrt((sys_mult * sverr)**2 + sys_flr**2)   # RANDOM + SYSTEMATIC
 
 
         # USE COADD IF SINGLE COMBINED ERROR IS > 10 kms
         if (obj['coadd_good'] ==  1):
             cerr_rand = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.
-            cerr      = np.sqrt((sys_coadd_mult*cerr_rand)**2 + sys_coadd_flr**2)
+            cerr      = np.sqrt((sys_mult*cerr_rand)**2 + sys_flr**2)  # RANDOM + SYSTEMATIC COADD
 
             if (verr > 10):
                 v     = obj['coadd_v']
@@ -116,7 +114,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_exp_mult,sys_exp_flr,sys_coadd_mul
         if (obj['coadd_good'] ==  1):
             v     = obj['coadd_v']
             cerr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  
-            verr  = np.sqrt((sys_coadd_mult*cerr)**2 + sys_coadd_flr**2)
+            verr  = np.sqrt((sys_mult*cerr)**2 + sys_flr**2)  # RANDOM + SYSTEMATIC COADD
             ncomb = nexp + 100.
 
 
@@ -132,11 +130,10 @@ def combine_exp(data_dir,slits, mask):
     '''  
   
 
-    # THIS IS USED ONLY TO SET VARIABLE FLAG
-    sys_exp_mult   = 1.4
-    sys_exp_flr    = 0.3
-    sys_coadd_mult = 1.4
-    sys_coadd_flr  = 0.3
+    # DETERMINED IN PAPER I
+    sys_mask_mult   = 1.4  # Multiplier for final mask error
+    sys_mask_flr    = 1.1  # Floor for final mask error
+    sys_exp_flr     = 0.3  # Floor only when comparing internal exposures
 
     logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
     log          = open(logfile,'a')   
@@ -146,12 +143,11 @@ def combine_exp(data_dir,slits, mask):
     
     dmost_utils.printlog(log,'{} Combining {} exposure results'.format(mask['maskname'][0],nexp))
 
-
     
     if (nexp > 0):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp,sys_exp_mult,sys_exp_flr,sys_coadd_mult,sys_coadd_flr)
+            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_mask_mult, sys_mask_flr)
             slits['dmost_v'][i]     = v
             slits['dmost_v_err'][i] = verr
             slits['v_nexp'][i]      = ncomb
