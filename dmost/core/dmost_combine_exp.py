@@ -77,7 +77,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
         v     = obj['marz_z'] * 3e5
         verr  = 0
         ncomb = 100
-        return v,verr,ncomb
+        return v,verr,verr_rand,ncomb
 
     
     # USE VELOCITY IF ANY TWO SINLGE EXPOSURES ARE GOOD
