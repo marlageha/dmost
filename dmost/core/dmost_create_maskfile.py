@@ -182,9 +182,9 @@ def create_slits(nslits,nexp):
             filled_column('v_nexp',-99,nslits),
 
             # SHORT BINARY FLAGS
-            filled_column('vv_short_pval',-99.,nslits),
-            filled_column('vv_short_max_v',-99.,nslits),
-            filled_column('vv_short_max_t',-99.,nslits),
+            filled_column('var_short_pval',-99.,nslits),
+            filled_column('var_short_max_v',-99.,nslits),
+            filled_column('var_short_max_t',-99.,nslits),
             filled_column('flag_short_var',-99,nslits),
 
 
