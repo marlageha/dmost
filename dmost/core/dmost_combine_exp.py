@@ -47,7 +47,7 @@ def set_short_var_flag(slits,mask,sys_mult,sys_exp_flr):
 
     return slits
 
-    
+
 
 def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
 
@@ -93,9 +93,9 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
                 et   = np.append(et,verr_sys)
                 ncomb=ncomb+1
 
-        v     = np.average(vt,weights = 1./et**2)
-        sverr = np.sqrt(1./np.sum(1./et**2))        
-        verr  = np.sqrt((sys_mult * sverr)**2 + sys_flr**2)   # RANDOM + SYSTEMATIC
+        v         = np.average(vt,weights = 1./et**2)
+        verr_rand = np.sqrt(1./np.sum(1./et**2))        
+        verr      = np.sqrt((sys_mult * verr_rand)**2 + sys_flr**2)   # RANDOM + SYSTEMATIC
 
 
         # USE COADD IF SINGLE COMBINED ERROR IS > 10 kms
@@ -104,21 +104,22 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
             cerr      = np.sqrt((sys_mult*cerr_rand)**2 + sys_flr**2)  # RANDOM + SYSTEMATIC COADD
 
             if (verr > 10):
-                v     = obj['coadd_v']
-                verr  = cerr
-                ncomb = nexp + 100.
+                v         = obj['coadd_v']
+                verr      = cerr
+                verr_rand = cerr_rand
+                ncomb     = nexp + 100.
 
 
     # IF NONE, THEN USE COADD 
     else:
         if (obj['coadd_good'] ==  1):
-            v     = obj['coadd_v']
-            cerr  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  
-            verr  = np.sqrt((sys_mult*cerr)**2 + sys_flr**2)  # RANDOM + SYSTEMATIC COADD
-            ncomb = nexp + 100.
+            v          = obj['coadd_v']
+            verr_rand  = (obj['coadd_v_err84']-obj['coadd_v_err16'])/2.  
+            verr       = np.sqrt((sys_mult*verr_rand)**2 + sys_flr**2)  # RANDOM + SYSTEMATIC COADD
+            ncomb      = nexp + 100.
 
 
-    return v,verr,ncomb
+    return v, verr, verr_rand, ncomb
   
 
   
@@ -147,13 +148,16 @@ def combine_exp(data_dir,slits, mask):
     if (nexp > 0):
         for i,obj in enumerate(slits):
 
-            v,verr,ncomb = combine_multiple_exp(obj,mask, nexp, sys_mask_mult, sys_mask_flr)
-            slits['dmost_v'][i]     = v
-            slits['dmost_v_err'][i] = verr
-            slits['v_nexp'][i]      = ncomb
-            slits['coadd_flag'][i]  = 0
+            v,verr,verr_rand,ncomb = combine_multiple_exp(obj,mask, nexp, sys_mask_mult, sys_mask_flr)
+            slits['dmost_v'][i]          = v
+            slits['dmost_v_err'][i]      = verr
+            slits['dmost_v_err_rand'][i] = verr_rand
+            slits['v_nexp'][i]           = ncomb
+            slits['coadd_flag'][i]       = 0
             if ncomb > 99:
-                slits['coadd_flag'][i] = 1        
+                slits['coadd_flag'][i] = 1  
+                slits['v_nexp'][i]     = ncomb - 100
+
 
     # SET FLAG IF EXPOSURE VELOCITIES ARE VARIABLE
     slits = set_short_var_flag(slits,mask,sys_exp_mult,sys_exp_flr)
