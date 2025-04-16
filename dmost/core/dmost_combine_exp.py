@@ -19,7 +19,7 @@ def set_short_var_flag(slits,mask,sys_mult,sys_exp_flr):
     
 
         m=obj['emcee_good'] == 1
-        slits['vv_short_flag'][i]  = -99
+        slits['flag_short_var'][i]  = -99
         if np.sum(m) > 1:
 
 
@@ -37,13 +37,13 @@ def set_short_var_flag(slits,mask,sys_mult,sys_exp_flr):
 
             lpv = np.log10(pv)
 
-            slits['vv_short_pval'][i]  = lpv
-            slits['vv_short_max_v'][i] = np.max(obj['emcee_v'][m]) - np.min(obj['emcee_v'][m])
-            slits['vv_short_max_t'][i] = 24*(np.max(mask['mjd'][m])-np.min(mask['mjd'][m]))
-            slits['vv_short_flag'][i]  = 0
+            slits['var_short_pval'][i]  = lpv
+            slits['var_short_max_v'][i] = np.max(obj['emcee_v'][m]) - np.min(obj['emcee_v'][m])
+            slits['var_short_max_t'][i] = 24*(np.max(mask['mjd'][m])-np.min(mask['mjd'][m]))
+            slits['flag_short_var'][i]  = 0
 
             if lpv < -4:
-                slits['vv_short_flag'][i]  = 1
+                slits['flag_short_var'][i]  = 1
 
     return slits
 
