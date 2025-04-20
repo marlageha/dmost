@@ -472,11 +472,11 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
        
 
     SNmax = 30
-    SNmin = 2.
+    SNmin = 1.5
     nexp = mask['nexp'][0]
 
 
-    m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 3)
+    m = (slits['collate1d_SN'] < SNmax) & (slits['collate1d_SN'] > SNmin) & (slits['marz_flag'] < 2)
 
     nslits = np.sum(m)
     print()
