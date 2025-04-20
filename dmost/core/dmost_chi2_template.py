@@ -369,7 +369,7 @@ def run_chi2_templates(data_dir, slits, mask, clobber=0):
     file  = data_dir+'QA/chi2_collate1d_'+mask['maskname'][0]+'.pdf'
     pdf   = matplotlib.backends.backend_pdf.PdfPages(file)
     
-    SNmin =2.0
+    SNmin =1.5
 
     # BROADCAST
     logfile      = data_dir + mask['maskname'][0]+'_dmost.log'
