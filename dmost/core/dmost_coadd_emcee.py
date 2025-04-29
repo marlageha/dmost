@@ -266,14 +266,15 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
 
     print(theta)
 
-
+    zp         = 0.1 # VELOCITY ZEROPOINT
     vhelio_avg = np.mean(mask['vhelio'])
+
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
-            slits['coadd_v'][arg]       = mcmc[1] + vhelio_avg
-            slits['coadd_v_err16'][arg] = mcmc[0] + vhelio_avg
-            slits['coadd_v_err84'][arg] = mcmc[2] + vhelio_avg
+            slits['coadd_v'][arg]       = mcmc[1] + vhelio_avg - zp 
+            slits['coadd_v_err16'][arg] = mcmc[0] + vhelio_avg - zp 
+            slits['coadd_v_err84'][arg] = mcmc[2] + vhelio_avg - zp 
             slits['coadd_v_err'][arg]   = (mcmc[2] - mcmc[0])/2.
 
         if (ii==1):
