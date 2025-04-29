@@ -309,13 +309,14 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     slits['emcee_nsamp'][arg,nexp]    = sampler.iteration
 
 
-
+    zp = 0.1 # VELOCITY ZEROPOINT
+    
     for ii in [0,1]:
         mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
         if (ii==0):
-            slits['emcee_v'][arg,nexp]       = mcmc[1] +  mask['vhelio'][nexp]
-            slits['emcee_v_err16'][arg,nexp] = mcmc[0] +  mask['vhelio'][nexp]
-            slits['emcee_v_err84'][arg,nexp] = mcmc[2] +  mask['vhelio'][nexp]
+            slits['emcee_v'][arg,nexp]       = mcmc[1] +  mask['vhelio'][nexp] - zp
+            slits['emcee_v_err16'][arg,nexp] = mcmc[0] +  mask['vhelio'][nexp] - zp
+            slits['emcee_v_err84'][arg,nexp] = mcmc[2] +  mask['vhelio'][nexp] - zp
             slits['emcee_v_err'][arg,nexp]   = (slits['emcee_v_err84'][arg,nexp] - slits['emcee_v_err16'][arg,nexp])/2.
         if (ii==1):
             slits['emcee_w'][arg,nexp]       = mcmc[1]
