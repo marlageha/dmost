@@ -220,7 +220,7 @@ def mgI_EW_fit(wvl,spec,ivar,SN):
     wline = [mgI_line-5.,mgI_line+5.] 
     mw    = (wvl > wline[0]) & (wvl < wline[1]) 
 
-    mg1_EW, mg1_EW_err    = -99, -99
+    mg1_EW, mg1_EW_err    = -99., -99.
     mgfit       = -99*wvl
     p0 =  [-99,-99,-99,-99]
        
@@ -251,8 +251,8 @@ def mgI_EW_fit(wvl,spec,ivar,SN):
         p3=p[2]
 
         if (np.abs(mg1_EW) > 10) | (mg1_EW_err == 0.) | (mg1_EW_err > 10.):
-            mg1_EW     = -99
-            mg1_EW_err = -99
+            mg1_EW     = -99.
+            mg1_EW_err = -99.
     except:
         p=p0
 
@@ -300,10 +300,10 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     wline2 = [8522, 8562]
     wline3 = [8642, 8682]
 
-    CaT, CaT_err, GL, p   = -99, -99, -99, 0
-    CaT_err_old = -99
+    CaT, CaT_err, GL, p   = -99., -99., -99, 0
+    CaT_err_old = -99.
     CaT_all = [-99.,-99.,-99.]
-    gfit    = -99*wvl
+    gfit    = -99.*wvl
 
     # FIT SIMULTANOUSLY IN THE THREE WINDOWS
     mw1  = (wvl > wline1[0]) & (wvl < wline1[1]) 
@@ -362,7 +362,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         if np.max(wvl) < 8682:
             CaT= gint1 + gint2 + + lint1 + lint2 + 0.82*(gint1 + lint1)
             CaT_err = np.sqrt(gerr1**2 + gerr2**2 + lerr1**2 + lerr2**2 + (0.82*gerr1)**2 + (0.82*lerr1)**2)
-            CaT_all[2] = -99
+            CaT_all[2] = -99.
             GL=4
 
 
@@ -371,7 +371,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
 
         if (CaT > 14.0) | ~(np.isfinite(CaT_err)):
-            CaT, CaT_err, CaT_err_old   = -99, -99, -99
+            CaT, CaT_err, CaT_err_old   = -99., -99., -99
 
 
     except:
@@ -409,7 +409,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
     wline3 = [8642, 8682]
 
 
-    CaT, CaT_err, p, chi2, GL   = -99, -99, 0, -99, -99
+    CaT, CaT_err, p, chi2, GL   = -99., -99., 0, -99, -99
     CaT_all = [-99.,-99.,-99.]
     gfit    = -99*wvl
 
@@ -554,8 +554,8 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
 
-        CaT_EW_err, CaT_chi2  = 0,0
-        CaT_EW_GL, CaT_err_GL, CaT_chi2_GL = 0,0,0
+        CaT_EW_err, CaT_chi2  = -99.,-99.
+        CaT_EW_GL, CaT_err_GL, CaT_chi2_GL = -99.,-99.,-99.
         CaT_all = [-99.,-99.,-99.]
 
         if  (slits['collate1d_SN'][arg] > 15):
