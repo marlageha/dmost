@@ -79,8 +79,8 @@ def create_slits(nslits,nexp):
 
     cols = [filled_column('objname','                ',nslits),
             filled_column('objid','                ',nslits),
-            filled_column('RA',-99.,nslits),
-            filled_column('DEC',-99.,nslits),
+            filled_column('RA',-1.,nslits),
+            filled_column('DEC',-1.,nslits),
             filled_column('slitname',['                       ']*nexp,nslits),
 
             # REDUCTION FLAG
@@ -121,23 +121,23 @@ def create_slits(nslits,nexp):
  
 
             # TELLURIC
-            filled_column('telluric_h2o',-99.*np.ones(nexp),nslits),
-            filled_column('telluric_o2',-99.*np.ones(nexp),nslits),
-            filled_column('telluric_h2o_err',-99.*np.ones(nexp),nslits),
-            filled_column('telluric_o2_err',-99.*np.ones(nexp),nslits),
-            filled_column('telluric_w',-99.*np.ones(nexp),nslits),
-            filled_column('telluric_chi2',-99.*np.ones(nexp),nslits),
+            filled_column('telluric_h2o',np.zeros(nexp),nslits),
+            filled_column('telluric_o2',np.zeros(nexp),nslits),
+            filled_column('telluric_h2o_err',np.zeros(nexp),nslits),
+            filled_column('telluric_o2_err',np.zeros(nexp),nslits),
+            filled_column('telluric_w',np.zeros(nexp),nslits),
+            filled_column('telluric_chi2',np.zeros(nexp),nslits),
 
           
 
             # CHI2 TEMPLATE
             filled_column('chi2_tfile','                                    ',nslits),
             filled_column('chi2_tgrid','      ',nslits),
-            filled_column('chi2_tchi2',-99.,nslits),
-            filled_column('chi2_v',-99.,nslits),
-            filled_column('chi2_teff',-99,nslits),
-            filled_column('chi2_logg',-99.,nslits),
-            filled_column('chi2_feh',-99.,nslits),
+            filled_column('chi2_tchi2',-1.,nslits),
+            filled_column('chi2_v',-1.,nslits),
+            filled_column('chi2_teff',-1,nslits),
+            filled_column('chi2_logg',-1.,nslits),
+            filled_column('chi2_feh',-1.,nslits),
 
             # EMCEE
             filled_column('emcee_v',-99.*np.ones(nexp),nslits),
@@ -155,7 +155,7 @@ def create_slits(nslits,nexp):
             filled_column('emcee_lnprob',-99.*np.ones(nexp),nslits),
             filled_column('emcee_skew',-99*np.ones(nexp),nslits),
             filled_column('emcee_kertosis',-99*np.ones(nexp),nslits),
-            filled_column('emcee_good',-99*np.ones(nexp),nslits),
+            filled_column('emcee_good',-1*np.ones(nexp),nslits),
 
    
             # LOW SN V
