@@ -264,7 +264,6 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
      
     theta  = [np.mean(sampler.chain[:, burnin:, i])  for i in [0,1]]
 
-    print(theta)
 
     zp         = 0.1 # VELOCITY ZEROPOINT
     vhelio_avg = np.mean(mask['vhelio'])
@@ -292,7 +291,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
     if (np.abs(slits['coadd_kertosis'][arg]) < 1) & (np.abs(slits['coadd_skew'][arg])<1) & (slits['coadd_f_acc'][arg] > 0.69):
         slits['coadd_good'][arg]  = 1
 
-    return sampler, slits, theta, burnin,vhelio_avg 
+    return sampler, slits, theta, burnin, vhelio_avg 
 
 
 ######################################################
@@ -419,7 +418,8 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     # PLOT CORNER
     labels=['v','w']
     ndim=2
-    sampler.chain[:,:,0] = sampler.chain[:,:,0]+vhelio_avg
+
+    sampler.chain[:,:,0] = sampler.chain[:,:,0] + vhelio_avg
     samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
 
@@ -497,6 +497,7 @@ def run_coadd_emcee(data_dir, slits, mask, outfile, clobber=0):
         if (slt['collate1d_SN'] < SNmax) &  (slt['collate1d_SN'] > SNmin) & (is_good_slit):# &  (do_coadd == 1):
 
             # RUN EMCEE ON COADD
+            print('coadd SN = {:0.4f}'.format(slt['collate1d_SN']))
             slits = coadd_emcee_allslits(data_dir, slits, mask, ii ,telluric,pdf)
             
             
