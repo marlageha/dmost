@@ -269,7 +269,7 @@ def run_emcee_single(data_dir, slits, mask, arg, wave, flux, ivar,\
     vhelio_avg = np.mean(mask['vhelio'])
 
     for ii in [0,1]:
-        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
+        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [15.8, 50, 84])
         if (ii==0):
             slits['coadd_v'][arg]       = mcmc[1] + vhelio_avg - zp 
             slits['coadd_v_err16'][arg] = mcmc[0] + vhelio_avg - zp 
@@ -419,9 +419,9 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     labels=['v','w']
     ndim=2
 
-    sampler.chain[:,:,0] = sampler.chain[:,:,0] #+ vhelio_avg
     samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
-    fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
+    samples[:,0]  = samples[:,0] + vhelio_avg
+    fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.158, 0.5, 0.84])
 
     pdf.savefig()
     plt.close('all')
