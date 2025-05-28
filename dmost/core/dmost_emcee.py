@@ -164,6 +164,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model, mask):
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(20,5))
 
     burnin=slits['emcee_burnin'][arg,nexp]
+    print(burnin)
 
     for ii in range(20):
         ax1.plot(sampler.chain[ii,:,0]+mask['vhelio'][nexp], color="k",linewidth=0.5,alpha=0.8)
@@ -432,6 +433,7 @@ def emcee_allslits(data_dir, slits, mask, nexp, hdu, telluric,SNmin):
 
             # PLOT STUFF
             print(nexp,arg)
+
             pdf = mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model,mask)
 
 
