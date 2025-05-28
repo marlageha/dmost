@@ -198,8 +198,6 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model, mask):
     pdf.savefig()
     plt.close(fig)
 
-    print(nexp,burnin,np.size(samples))
-
     # PLOT CORNER
     labels=['v','w']
     ndim=2
