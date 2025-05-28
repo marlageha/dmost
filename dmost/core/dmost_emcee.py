@@ -201,7 +201,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model, mask):
     # PLOT CORNER
     labels=['v','w']
     ndim=2
-    print(burning, ndim, mask['vhelio'][nexp])
+    print(burnin, ndim, mask['vhelio'][nexp])
     samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim)) + mask['vhelio'][nexp]
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
 
