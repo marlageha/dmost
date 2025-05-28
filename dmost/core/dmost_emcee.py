@@ -203,7 +203,7 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model, mask):
     ndim=2
 
     samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim)) 
-    samples[:,0]  = samples[:,0] + mask['vhelio'][nexp]
+    samples[:,0]  = samples[:,0] + mask['vhelio'][nexp] - 0.1
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.158, 0.5, 0.840])
 
     pdf.savefig()
