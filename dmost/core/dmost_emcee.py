@@ -208,7 +208,9 @@ def mk_emcee_plots(pdf, slits, nexp, arg, sampler, wave, flux, model, mask):
     sampler.chain[:,:,0] = sampler.chain[:,:,0] + mask['vhelio'][nexp]
     print(np.percentile(sampler.chain[:,:,0],0.5))
     samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim)) 
-    fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.16, 0.5, 0.84])
+    print(np.size(samples),np.shape(samples))
+    #samples[:,0]  =
+    fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.158, 0.5, 0.840])
 
     pdf.savefig()
     plt.close('all')
@@ -318,7 +320,7 @@ def run_emcee_single(data_dir, slits, mask, nexp, arg, wave, flux, ivar,\
     zp = 0.1 # VELOCITY ZEROPOINT
     
     for ii in [0,1]:
-        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [16, 50, 84])
+        mcmc = np.percentile(sampler.chain[:,burnin:, ii], [15.8, 50, 84.0])
         if (ii==0):
             slits['emcee_v'][arg,nexp]       = mcmc[1] +  mask['vhelio'][nexp] - zp
             slits['emcee_v_err16'][arg,nexp] = mcmc[0] +  mask['vhelio'][nexp] - zp
