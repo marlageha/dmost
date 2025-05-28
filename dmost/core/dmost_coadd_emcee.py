@@ -420,7 +420,7 @@ def coadd_emcee_allslits(data_dir, slits, mask, arg, telluric,pdf):
     ndim=2
 
     samples   = sampler.chain[:, burnin:, :].reshape((-1, ndim))
-    samples[:,0]  = samples[:,0] + vhelio_avg
+    samples[:,0]  = samples[:,0] + vhelio_avg - 0.1
     fig = corner.corner(samples, labels=labels,show_titles=True,quantiles=[0.158, 0.5, 0.84])
 
     pdf.savefig()
