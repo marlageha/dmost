@@ -71,7 +71,9 @@ def calc_MV_star(allspec,obj):
     m3    = gr_o > 0.7
     V[m3] = allspec['gmag_o'][m3] - 0.445*gr_o[m3] -0.062
 
-    allspec['MV_o'] = V - dmod
+    # Only update stars with matched photometry
+    m = allspec['rmag_o'] > 0
+    allspec['MV_o'][m] = V[m] - dmod
     
     return allspec
 
@@ -151,9 +153,9 @@ def CaT_to_FeH(alldata):
 
     for ii,slt in enumerate(alldata): 
 
-        alldata['ew_feh'][ii]      = -99.
-        alldata['ew_feh_err'][ii]  = -99.
-        if (slt['MV_o'] != -99) & (slt['ew_cat'] > 0.):
+        alldata['ew_feh'][ii]      = -999.
+        alldata['ew_feh_err'][ii]  = -999.
+        if (slt['MV_o'] > -99) & (slt['ew_cat'] > 0.) & (slt['MV_o'] < 3):
 
             # MAGNITUDE ERRORS
             mag     = slt['MV_o']
@@ -303,6 +305,13 @@ def match_photometry(obj,allspec):
         ls_dr10.rename_column('dered_mag_g', 'gmag')
         ls_dr10.rename_column('dered_mag_r', 'rmag')
 
+        # Hack, update
+        #if obj['Name2'] == 'Eri4':
+        #    ls_dr10['rmag'] = ls_dr10['dered_mag_i'] 
+        #    ls_dr10['flux_r'] = ls_dr10['flux_i'] 
+        #    ls_dr10['flux_ivar_r'] = ls_dr10['flux_ivar_i'] 
+
+
         # CORRECT BASS MAGNITUDES NORTHERN MAGNITUDES
         if np.median(ls_dr10['dec'] > 34.):
             ls_dr10['rmag'] =  -0.0382 * (ls_dr10['gmag'] - ls_dr10['rmag']) + 0.0108 + ls_dr10['rmag']
@@ -325,13 +334,14 @@ def match_photometry(obj,allspec):
         allspec['phot_type'][mt] = ls_dr10['type'][idx[d2d < dm*u.arcsec]] 
 
 
+
         # INCREASE FOR SERENDIPS W/O Match
         sm  = (d2d < dm_serendip*u.arcsec) & (allspec['serendip'] == 1) & (allspec['rmag_o'] < 0)
-        print('ls_dr10')
+        
 
         if np.sum(sm) > 0:
             mts = foo[sm]
-            print(allspec['rmag_o'][mts])
+            #print(allspec['rmag_o'][mts])
 
             allspec['rmag_o'][mts] = ls_dr10['rmag'][idx[sm]] 
             allspec['gmag_o'][mts] = ls_dr10['gmag'][idx[sm]] 
@@ -342,8 +352,8 @@ def match_photometry(obj,allspec):
             allspec['phot_source'][mts] = 'ls_dr10'
             allspec['phot_type'][mts] = ls_dr10['type'][idx[sm]] 
 
-            for ob in allspec[mts]:
-                print(ob['rmag_o'],ob['RA'],ob['DEC'],ob['SN'],ob['marz_flag'])
+            #for ob in allspec[mts]:
+            #    print(ob['rmag_o'],ob['RA'],ob['DEC'],ob['SN'],ob['marz_flag'])
 
 
     #####################
@@ -392,19 +402,18 @@ def match_photometry(obj,allspec):
 
        # INCREASE FOR SERENDIPS W/O Match
         sm  = (d2d < dm_serendip*u.arcsec) & (allspec['serendip'] == 1) & (allspec['rmag_o'] < 0)
-        print('munoz')
-
+        
         if np.sum(sm) > 0:
             mts = foo[sm]
-            print(allspec['rmag_o'][mts])
+            #print(allspec['rmag_o'][mts])
 
             allspec['rmag_o'][mts]   = r_decals[idx[sm]]  - Ar[mts]
             allspec['gmag_o'][mts]   = g_decals[idx[sm]]  - Ag[mts]
             allspec['rmag_err'][mts] = munozf['rerr'][idx[sm]]
             allspec['gmag_err'][mts] = munozf['gerr'][idx[sm]]
             allspec['phot_source'][mts] = 'munozf' 
-            for ob in allspec[mts]:
-                print(ob['rmag_o'],ob['RA'],ob['DEC'],ob['SN'],ob['marz_flag'])
+            #for ob in allspec[mts]:
+            #    print(ob['rmag_o'],ob['RA'],ob['DEC'],ob['SN'],ob['marz_flag'])
 
 
      
@@ -439,6 +448,7 @@ def match_photometry(obj,allspec):
     ### GC SDSS PHOTOMETRY
     # http://classic.sdss.org/dr7/products/value_added/anjohnson08_clusterphotometry.html
     if obj['Phot'] == 'sdss_gc':
+
         file = DEIMOS_RAW + '/Photometry/sdss_gc/sdss_gc_'+obj['Name2']+'.phot'
         sdss = ascii.read(file)
         
@@ -449,7 +459,17 @@ def match_photometry(obj,allspec):
         sdss.rename_column('col23', 'rmag')
         sdss.rename_column('col24', 'rmag_err')
 
-        
+        #if obj['Name2'] == 'N6791':
+        #    file = DEIMOS_RAW + '/Photometry/sdss_gc/sdss_dr14_'+obj['Name2']+'.csv'
+        #    sdss = ascii.read(file)
+        #    sdss.rename_column('ra', 'RA')
+        #    sdss.rename_column('dec', 'DEC')
+        #    sdss.rename_column('g', 'gmag')
+        #    sdss.rename_column('Err_g', 'gmag_err')
+        #    sdss.rename_column('r', 'rmag')
+        #    sdss.rename_column('Err_r', 'rmag_err')
+
+
         csdss   = SkyCoord(ra=sdss['RA']*u.degree, dec=sdss['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
  
@@ -486,9 +506,11 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
 
+        allspec, Ar, Ag = get_ebv(allspec)
+
         mt = foo[d2d < dm*u.arcsec]
-        allspec['rmag_o'][mt] = decaps['mean_mag_r'][idx[d2d < dm*u.arcsec]] 
-        allspec['gmag_o'][mt] = decaps['mean_mag_g'][idx[d2d < dm*u.arcsec]] 
+        allspec['rmag_o'][mt] = decaps['mean_mag_r'][idx[d2d < dm*u.arcsec]] - Ar[mt]
+        allspec['gmag_o'][mt] = decaps['mean_mag_g'][idx[d2d < dm*u.arcsec]] - Ag[mt]
         allspec['rmag_err'][mt] = 0.1
         allspec['gmag_err'][mt] = 0.1
 
@@ -593,9 +615,11 @@ def match_photometry(obj,allspec):
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cgaia)  
         foo = np.arange(0,np.size(idx),1)
 
+        allspec, Ar, Ag = get_ebv(allspec)
+
         mt = foo[d2d < dm*u.arcsec]
-        allspec['rmag_o'][mt]   = rmag[idx[d2d < dm*u.arcsec]] 
-        allspec['gmag_o'][mt]   = gmag[idx[d2d < dm*u.arcsec]] 
+        allspec['rmag_o'][mt]   = rmag[idx[d2d < dm*u.arcsec]] - Ar[mt]
+        allspec['gmag_o'][mt]   = gmag[idx[d2d < dm*u.arcsec]] - Ag[mt]
         allspec['rmag_err'][mt] = gaia_err[idx[d2d < dm*u.arcsec]] 
         allspec['gmag_err'][mt] = gaia_err[idx[d2d < dm*u.arcsec]] 
 
@@ -603,6 +627,9 @@ def match_photometry(obj,allspec):
 
         
 
+    # REMOVE SERENDIP STARS WITHOUT PHOTOMETRY
+    m_serendip_nophot =  (allspec['serendip'] == 1) &  (allspec['rmag_o'] < 0) 
+    allspec           = allspec[~m_serendip_nophot]
 
 
     # DETERMINE MV AND CONVERT CAT -> FEH
