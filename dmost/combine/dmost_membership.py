@@ -110,7 +110,7 @@ def membership_NaI(alldata, this_obj):
     naI_lim =  1.
 
     # OFFICIAL CRITIERIA
-    m_rmv    = ((alldata['ew_naI'] - alldata['ew_naI_err']) > naI_lim) & (alldata['MV_o'] < 4)
+    m_rmv    = ((alldata['ew_naI'] - alldata['ew_naI_err']) > naI_lim) & (alldata['MV_o'] < 4.5)
     Pmem_NaI = ~m_rmv
 
 
@@ -303,7 +303,8 @@ def membership_vdisp(alldata,this_obj,Pmem_tmp,crude_cut=25.):
         texp     = np.array(alldata['v'] - v_true)**2 / (2*(alldata['v_err']**2 + (3.*sig_true)**2))
         Pmem_v = np.exp(-1.*texp)
 
-
+    m=Pmem_v < 1e-6
+    Pmem_v[m] = 0
 
     return Pmem_v
 
