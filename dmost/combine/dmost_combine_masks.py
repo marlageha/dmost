@@ -34,22 +34,21 @@ def create_allstars(nmasks,nstars):
             filled_column('mean_mjd',-999.,nstars),
             filled_column('collate1d_filename','                                                  ',nstars),
 
-            filled_column('rproj_arcm',-999.,nstars),
-            filled_column('rproj_kpc',-999.,nstars),
-
          
+            # SN and FLAGs
+            filled_column('SN',-999.,nstars),
+            filled_column('serendip',-99,nstars),
+
+            # GALAXIES
+            filled_column('marz_flag',-99,nstars),
+            filled_column('marz_z',-999.,nstars),
+
+
             # COMBINED FINAL PROPERTIES
             filled_column('v',-999.,nstars),
             filled_column('v_err',-999.,nstars),
             filled_column('verr_rand',-999.,nstars),
             filled_column('v_chi2',-999.,nstars),
-            filled_column('SN',-999.,nstars),
-
-
-            # GALAXIES
-            filled_column('marz_z',-999.,nstars),
-            filled_column('marz_flag',-99,nstars),
-            filled_column('serendip',-99,nstars),
 
 
             # PHOTOMETRY
@@ -62,30 +61,30 @@ def create_allstars(nmasks,nstars):
             filled_column('EBV',-999.,nstars),
 
             filled_column('MV_o',-999.,nstars),
+            filled_column('rproj_arcm',-999.,nstars),
+            filled_column('rproj_kpc',-999.,nstars),
 
 
             # EQUIVALENT WIDTHS
-            filled_column('ew_cat',-999.,nstars),
-            filled_column('ew_cat_err',-999.,nstars),
-
             filled_column('ew_naI',-999.,nstars),
             filled_column('ew_naI_err',-999.,nstars),
 
             filled_column('ew_mgI',-999.,nstars),
             filled_column('ew_mgI_err',-999.,nstars),
 
+            filled_column('ew_cat',-999.,nstars),
+            filled_column('ew_cat_err',-999.,nstars),
+            
             filled_column('ew_feh',-999.,nstars),
             filled_column('ew_feh_err',-999.,nstars),
 
-            filled_column('tmpl_teff',-999.,nstars),
-            filled_column('tmpl_feh',-999.,nstars),
-
-
-            # TMP
             filled_column('ew_w1',-999.,nstars),
             filled_column('ew_w2',-999.,nstars),
             filled_column('ew_w3',-999.,nstars),
             filled_column('ew_gl',-999.,nstars),
+
+            filled_column('tmpl_teff',-999.,nstars),
+            filled_column('tmpl_feh',-999.,nstars),
 
 
             # GAIA
@@ -110,36 +109,44 @@ def create_allstars(nmasks,nstars):
             filled_column('var_pval',-999.,nstars),
             filled_column('var_max_v',-999.,nstars),
             filled_column('var_max_t',-999.,nstars),
-
-            filled_column('var_short_flag',-99,nstars),
             filled_column('var_short_max_t',-999.,nstars),
+            filled_column('flag_short_var',-99,nstars),
 
             # FLAGS AND MEMBERSHIPS 
-            filled_column('coadd_flag',-99,nstars),
+            filled_column('flag_coadd',-99,nstars),
             filled_column('flag_var',-99,nstars),
             filled_column('flag_gaia',-99,nstars),
             filled_column('flag_HB',-99,nstars),
+            filled_column('Pmem_cmd',-99.,nstars),
+            filled_column('Pmem_EW',-99.,nstars),
+            filled_column('Pmem_parallax',-99.,nstars),
+            filled_column('Pmem_pm',-99.,nstars),
+            filled_column('Pmem_feh',-99.,nstars),
+            filled_column('Pmem_v',-99.,nstars),
+
             filled_column('Pmem',-99.,nstars),
-            filled_column('Pmem_pure',-99.,nstars),
+            filled_column('Pmem_novar',-99,nstars),
 
 
             # INDIVUDAL MASK DATA
             filled_column('mask_v',-999.*np.ones(nmasks),nstars),
             filled_column('mask_v_err',-999.*np.ones(nmasks),nstars),
-            filled_column('mask_coadd_v',-99*np.ones(nmasks),nstars),
-            filled_column('mask_coadd_verr',-99*np.ones(nmasks),nstars),
-            filled_column('mask_coadd_flag',-99*np.ones(nmasks),nstars),
+            filled_column('mask_coadd_v',-999*np.ones(nmasks),nstars),
+            filled_column('mask_coadd_verr',-999*np.ones(nmasks),nstars),
+            filled_column('mask_coadd_flag',-999*np.ones(nmasks),nstars),
             filled_column('mask_nexp',-999.*np.ones(nmasks),nstars),
             filled_column('mask_SN',-999.*np.ones(nmasks),nstars),
             filled_column('mask_mjd',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_rms_arc',-999.*np.ones(nmasks),nstars),
 
             filled_column('mask_marz_z',-999.*np.ones(nmasks),nstars),
-            filled_column('mask_marz_flag',-99*np.ones(nmasks),nstars),
+            filled_column('mask_marz_flag',-999*np.ones(nmasks),nstars),
             filled_column('mask_marz_tmpl',-999.*np.ones(nmasks),nstars),
 
             filled_column('mask_teff',-999.*np.ones(nmasks),nstars),
             filled_column('mask_logg',-999.*np.ones(nmasks),nstars),
             filled_column('mask_feh',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_vchi2',-999.*np.ones(nmasks),nstars),
 
             filled_column('mask_cat',-999.*np.ones(nmasks),nstars),
             filled_column('mask_naI',-999.*np.ones(nmasks),nstars),
@@ -149,7 +156,7 @@ def create_allstars(nmasks,nstars):
             filled_column('mask_mgI_err',-999.*np.ones(nmasks),nstars),
             filled_column('mask_cat_gl',-999.*np.ones(nmasks),nstars),
 
-            filled_column('mask_var_short_flag',-999.*np.ones(nmasks),nstars),
+            filled_column('mask_flag_short_var',-999.*np.ones(nmasks),nstars),
             filled_column('mask_var_short_max_t',-999.*np.ones(nmasks),nstars)
 
 
@@ -184,7 +191,7 @@ def filled_column(name, fill_value, size):
 
 
 ######################################################
-def combine_mask_velocities(stars, sys_mult = 1.4,sys_flr=1.1):
+def combine_mask_velocities(stars):
     
     # COMBINE STARS WITH MEASURED VELOCITIES
     mgood       = stars['dmost_v_err'] > 0.
@@ -198,8 +205,9 @@ def combine_mask_velocities(stars, sys_mult = 1.4,sys_flr=1.1):
         teff  = good_stars['chi2_teff']
         feh   = good_stars['chi2_feh']
 
-        verr_rand  = good_stars['dmost_v_err']
-        verr_sys   = np.sqrt((sys_mult*verr_rand)**2 + sys_flr**2)
+        verr_rand = 0
+#        verr_rand = good_stars['dmost_v_err_rand']
+        verr_sys  = good_stars['dmost_v_err']
 
         v_chi2   = np.mean(good_stars['v_chi2'])
         t_exp    = good_stars['texp']
@@ -212,7 +220,7 @@ def combine_mask_velocities(stars, sys_mult = 1.4,sys_flr=1.1):
             tt   = np.append(tt,obj['chi2_teff'])
             ft   = np.append(ft,obj['chi2_feh'])
             et   = np.append(et,obj['dmost_v_err'])
-            ets   = np.append(ets,np.sqrt((sys_mult*obj['dmost_v_err'])**2 + sys_flr**2))
+            ets  = np.append(ets,obj['dmost_v_err_rand'])
             t_exp= t_exp + obj['texp']
 
         sum1 = np.sum(1./et**2)
@@ -222,9 +230,9 @@ def combine_mask_velocities(stars, sys_mult = 1.4,sys_flr=1.1):
         sum3 = np.sum(tt/et**2)
         sum4 = np.sum(ft/et**2)
 
-        v    = sum2/sum1                   # ONLY RANDOM ERROR TO DETERMINE WEIGHTING
-        verr_rand = np.sqrt(1./sum1) 
-        verr_sys  = np.sqrt(1./sum1s)      # COMBINE ERROR INCLUDES CORRECTIONS
+        v    = sum2/sum1                   
+        verr_sys  = np.sqrt(1./sum1)      
+        verr_rand = np.sqrt(1./sum1s)     # This isn't used, but keeping anyways
 
         teff = sum3/sum1
         feh  = sum4/sum1 
@@ -239,7 +247,7 @@ def combine_mask_velocities(stars, sys_mult = 1.4,sys_flr=1.1):
 
 #####################################
 #####################################
-def set_binary_flag(alldata,sys_mult = 1.4,sys_flr=1.1):
+def set_binary_flag(alldata):
 
 
     ns, nvar = 0,0
@@ -247,18 +255,18 @@ def set_binary_flag(alldata,sys_mult = 1.4,sys_flr=1.1):
         
 
         # FIRST SET INNER MASK VARIABLE FLAG
-        mnv = any(obj['mask_var_short_flag'] == 0)
+        mnv = any(obj['mask_flag_short_var'] == 0)
         if (np.sum(mnv) > 0):
             mxt = np.max(obj['mask_var_short_max_t'][mnv])
             alldata['var_short_max_t'][i]= mxt
-            alldata['var_short_flag'][i] = 0
+            alldata['flag_short_var'][i] = 0
         
 
-        mvs       = obj['mask_var_short_flag'] == 1
+        mvs       = obj['mask_flag_short_var'] == 1
         if  (np.sum(mvs) > 0):
             mxt = np.max(obj['mask_var_short_max_t'][mvs])
             alldata['var_short_max_t'][i]= mxt
-            alldata['var_short_flag'][i] = 1
+            alldata['flag_short_var'][i] = 1
         
 
 
@@ -269,14 +277,9 @@ def set_binary_flag(alldata,sys_mult = 1.4,sys_flr=1.1):
             ns=ns+1
 
             v_mean = np.average(obj['mask_v'][m],weights=1./(obj['mask_v_err'][m])**2)
-            chi2   = np.sum((obj['mask_v'][m] - v_mean)**2/((sys_mult * obj['mask_v_err'][m])**2 + sys_flr**2))
+            chi2   = np.sum((obj['mask_v'][m] - v_mean)**2/(obj['mask_v_err'][m]**2))
             pv     = 1 - stats.chi2.cdf(chi2, np.sum(m)-1.)
 
-
-#            if (pv < 1e-14):
-#                fig, (ax1) = plt.subplots(1, 1,figsize=(8,5))
-#                plt.errorbar(obj['mask_mjd'][m],obj['mask_v'][m],fmt='.',yerr = obj['mask_v_err'][m])
-#                plt.title('{} {} {}'.format(obj['objname'],obj['mask_SN'][m],obj['masknames']))
 
             if (pv == 0) | (pv < 1e-14):
                 pv = 1e-14
@@ -288,7 +291,10 @@ def set_binary_flag(alldata,sys_mult = 1.4,sys_flr=1.1):
             alldata['var_max_t'][i] = 24*(np.max(obj['mask_mjd'][m])-np.min(obj['mask_mjd'][m]))
             alldata['flag_var'][i]  = 0
 
-            if lpv < -4:
+
+            # SET VARIABLE THRESHOLD
+            # MAXTED suggests -4, but setting looser threshold of -1
+            if lpv < -1:
                 alldata['flag_var'][i]  = 1
                 nvar = nvar + 1
 
@@ -478,11 +484,11 @@ def read_dmost_files(masklist):
             # KEEP ONLY MASK AVERAGED QUANTITIES
             new_slits = Table([maskname, mjd,nexp,slitwidth,texp,slits['objname'],slits['RA'],slits['DEC'],slits['collate1d_filename'],\
                              slits['collate1d_SN'], slits['marz_z'],slits['marz_flag'],slits['serendip'],\
-                             slits['chi2_teff'],slits['chi2_logg'],slits['chi2_feh'],\
-                             slits['dmost_v'],slits['dmost_v_err'],slits['v_chi2'],\
+                             slits['chi2_teff'],slits['chi2_logg'],slits['chi2_feh'],slits['rms_arc'],\
+                             slits['dmost_v'],slits['dmost_v_err'],slits['dmost_v_err_rand'],slits['v_chi2'],\
                              slits['v_nexp'],slits['coadd_flag'],\
                              slits['coadd_v'],slits['coadd_v_err'],\
-                             slits['vv_short_pval'], slits['vv_short_max_v'],slits['vv_short_max_t'],slits['vv_short_flag'],\
+                             slits['var_short_pval'], slits['var_short_max_v'],slits['var_short_max_t'],slits['flag_short_var'],\
                              slits['cat'],slits['cat_err'],slits['cat_gl'],\
                              slits['naI'],slits['naI_err'],\
                              slits['mgI'],slits['mgI_err']])
@@ -576,6 +582,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
                     dmost_allstar['mask_SN'][i,j]    = robj['collate1d_SN']
                     dmost_allstar['mask_nexp'][i,j]  = robj['v_nexp']
                     dmost_allstar['mask_mjd'][i,j]   = robj['mean_mjd']
+                    dmost_allstar['mask_rms_arc'][i,j]   = robj['rms_arc']
 
 
                     dmost_allstar['mask_marz_flag'][i,j] = robj['marz_flag']
@@ -584,18 +591,20 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
                     dmost_allstar['mask_teff'][i,j]  = robj['chi2_teff']
                     dmost_allstar['mask_logg'][i,j]  = robj['chi2_logg']
                     dmost_allstar['mask_feh'][i,j]   = robj['chi2_feh']
+                    dmost_allstar['mask_vchi2'][i,j]   = robj['v_chi2']
+
 
                     dmost_allstar['mask_cat'][i,j]   = robj['cat']
                     dmost_allstar['mask_naI'][i,j]   = robj['naI']
                     dmost_allstar['mask_mgI'][i,j]   = robj['mgI']
-#                    dmost_allstar['mask_cat_gl'][i,j]   = robj['cat_gl']
+                    dmost_allstar['mask_cat_gl'][i,j]   = robj['cat_gl']
 
                     dmost_allstar['mask_cat_err'][i,j]  = robj['cat_err']
                     dmost_allstar['mask_naI_err'][i,j]  = robj['naI_err']
                     dmost_allstar['mask_mgI_err'][i,j]  = robj['mgI_err']
                   
-                    dmost_allstar['mask_var_short_flag'][i,j]  = robj['vv_short_flag']
-                    dmost_allstar['mask_var_short_max_t'][i,j] = robj['vv_short_max_t']
+                    dmost_allstar['mask_flag_short_var'][i,j]  = robj['flag_short_var']
+                    dmost_allstar['mask_var_short_max_t'][i,j] = robj['var_short_max_t']
 
 
 
@@ -610,7 +619,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
 
             dmost_allstar['nmask'][i]  = nrpt
             dmost_allstar['nexp'][i]   = np.sum(test_allslits['nexp'][m])
-            dmost_allstar['coadd_flag'][i]  = np.sum(test_allslits['coadd_flag'][m])
+            dmost_allstar['flag_coadd'][i]  = np.sum(test_allslits['coadd_flag'][m])
 
             dmost_allstar['tmpl_teff'][i]  = teff
             dmost_allstar['tmpl_feh'][i]   = feh
@@ -667,7 +676,9 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
 
 
     DEIMOS_REDUX  = os.getenv('DEIMOS_REDUX')
-    outfile       = DEIMOS_REDUX + '/dmost_alldata/dmost_alldata_'+file_create_date+'_'+object_name+'.fits'    
+    outfile       = DEIMOS_REDUX + '/dmost_alldata/dmost_alldata_'+file_create_date+'_'+object_name+'.fits'  
+    full_outfile  = DEIMOS_REDUX + '/dmost_alldata/full_dmost_alldata_'+file_create_date+'_'+object_name+'.fits'  
+
     if not ('objlist' in kwargs):
         objlist, masklist = deimos_google()
     else:
@@ -677,7 +688,8 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
 
 
     # CHECK FOR DATE LIMITS ON MASKS
-    m = masklist['DateObs'] < max_obs_date
+    m = (masklist['DateObs'] < max_obs_date) & (masklist['pypeit_redux'] != 'S')
+
     masklist=masklist[m]
 
     # PROPERTIES OF OBJECT
@@ -695,6 +707,7 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
     alldata, nrun = read_dmost_files(masklist[mobj])
     if (nrun == 0):
         print('No masks run for this object, skipping')
+        print()
         alldata=[]
         return alldata
 
@@ -706,7 +719,6 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
     # CREATE AND POPULATE FINAL DATA TABLE
     alldata  = combine_mask_quantities(nmasks, nstars, sc_gal, alldata)
 
-
     # SET BINARY FLAGS
     alldata  = set_binary_flag(alldata)
 
@@ -717,27 +729,45 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
 
 
     # MEMBERSHIP
-    Pmem, Pmem_pure, *Pother = dmost_membership.find_members(alldata,object_properties[0])
+    Pmem, Pmem_novar, Pmem_cmd, Pmem_EW,Pmem_px,Pmem_pm,Pmem_feh,\
+                      Pmem_v = dmost_membership.find_members(alldata,object_properties[0])
 
-    mthrs = 0.5
-    alldata['Pmem']      = Pmem
-    alldata['Pmem_pure'] = Pmem_pure
-    alldata['flag_HB']   = dmost_membership.flag_HB_stars(alldata,object_properties[0])
+    alldata['Pmem']          = Pmem
+    alldata['Pmem_novar']    = Pmem_novar
+
+    alldata['Pmem_cmd']      = Pmem_cmd
+    alldata['Pmem_EW']       = 1*Pmem_EW
+    alldata['Pmem_parallax'] = 1*Pmem_px
+    alldata['Pmem_pm']       = Pmem_pm
+    alldata['Pmem_feh']      = Pmem_feh
+    alldata['Pmem_v']        = Pmem_v
+
+
+    alldata['flag_HB']    = dmost_membership.flag_HB_stars(alldata,object_properties[0])
+
+
+    # ENSURE [Fe/H] IS ONLY IN CALIBRATED REGIONS
+    mhb   = alldata['flag_HB'] == 1
+    alldata['ew_feh'][mhb]     = -999.
+    alldata['ew_feh_err'][mhb] = -999.
+
+    # SET SYSTEM NAME
+    alldata['system_name'] = object_name
+
 
 
     # REMOVE MASK-LEVEL DATA, BUT WRITE OUT FULL FILE FIRST
-    full_outfile       = DEIMOS_REDUX + '/dmost_alldata/full_alldata_'+object_name+'.fits'    
     alldata.write(full_outfile, overwrite=True)
 
-    alldata.remove_columns(['mask_v','mask_v_err','mask_nexp','mask_SN','mask_mjd',\
+    alldata.remove_columns(['mask_v','mask_v_err','mask_nexp','mask_SN','mask_mjd','mask_rms_arc',\
                             'mask_marz_z','mask_marz_flag','mask_marz_tmpl','mask_coadd_v','mask_coadd_verr','mask_coadd_flag',\
-                            'mask_teff','mask_feh','mask_logg','mask_cat_gl',\
+                            'mask_teff','mask_feh','mask_logg','mask_cat_gl','mask_vchi2',\
                             'mask_cat','mask_cat_err','mask_naI','mask_naI_err','mask_mgI','mask_mgI_err',\
-                            'mask_var_short_flag','mask_var_short_max_t'])
+                            'mask_flag_short_var','mask_var_short_max_t'])
 
 
     print('{} Combined {} masks with {} unique stars, {} measured velocities'.format(object_name,nmasks,nstars,np.sum(alldata['v_err'] > 0)))
-    print('{} There are {} member stars and {} pure member stars'.format(object_name,np.sum(Pmem > mthrs),np.sum(Pmem_pure> mthrs)))
+    print('{} There are {} member stars and {} pure member stars'.format(object_name,np.sum(Pmem > 0.5),np.sum(Pmem_novar> 0)))
     print()
     alldata.write(outfile, overwrite=True)
             
