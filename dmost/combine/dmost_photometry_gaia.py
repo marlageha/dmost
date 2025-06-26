@@ -300,16 +300,20 @@ def match_photometry(obj,allspec):
     if obj['Phot'] == 'ls_dr10':
         file = DEIMOS_RAW + '/Photometry/legacy_DR10/dr10_'+obj['Name2']+'.csv'
         ls_dr10 = ascii.read(file)
-        ls_dr10 = ls_dr10[ls_dr10['dered_mag_r'] < 25]
-
+        
         ls_dr10.rename_column('dered_mag_g', 'gmag')
         ls_dr10.rename_column('dered_mag_r', 'rmag')
 
+
         # Hack, update
-        #if obj['Name2'] == 'Eri4':
-        #    ls_dr10['rmag'] = ls_dr10['dered_mag_i'] 
-        #    ls_dr10['flux_r'] = ls_dr10['flux_i'] 
-        #    ls_dr10['flux_ivar_r'] = ls_dr10['flux_ivar_i'] 
+        if obj['Name2'] == 'Eri4':
+            ls_dr10['rmag'] = ls_dr10['dered_mag_i']+0.1 
+            ls_dr10['flux_r'] = ls_dr10['flux_i'] 
+            ls_dr10['flux_ivar_r'] = ls_dr10['flux_ivar_i'] 
+
+
+        # NO DEIMOS SOURCES THIS FAINT, CUT TO REDUCE MIS-MATCHING
+        ls_dr10 = ls_dr10[ls_dr10['rmag'] < 25]
 
 
         # CORRECT BASS MAGNITUDES NORTHERN MAGNITUDES
@@ -324,6 +328,8 @@ def match_photometry(obj,allspec):
         foo = np.arange(0,np.size(idx),1)
 
         mt = foo[d2d < dm*u.arcsec]
+        print(np.size(mt))
+
         allspec['rmag_o'][mt] = ls_dr10['rmag'][idx[d2d < dm*u.arcsec]] 
         allspec['gmag_o'][mt] = ls_dr10['gmag'][idx[d2d < dm*u.arcsec]] 
 
