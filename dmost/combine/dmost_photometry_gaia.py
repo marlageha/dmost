@@ -109,8 +109,8 @@ def calculate_FeH(V0, V0err, ew_cat, ew_cat_err, use_truncnorm = True):
     Vmag0_abs = np.random.normal(loc=V0, scale=V0err, size=5000)
     
     
-    # Distribute equivalent widths as Truncated Normal (cutoff at 0.1 dex)
-    ew_cat_distrib = truncated_normal(loc=ew_cat, scale=ew_cat_err, lowerbound = 0.1, size=5000)
+    # Distribute equivalent widths as Truncated Normal (cutoff at zero)
+    ew_cat_distrib = truncated_normal(loc=ew_cat, scale=ew_cat_err, lowerbound = 0., size=5000)
     
 
     # #######Carrera 2013##########
