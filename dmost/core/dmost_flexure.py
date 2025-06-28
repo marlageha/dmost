@@ -363,8 +363,8 @@ def measure_sky_lines(slits, ii, nslits, hdu,sky):
 
 
 #######################################################
-# WRITE NEW SPEC1d FILES CORRECTED FOR FLEXURE AND HELIO
-# THESE ARE USED ONLY FOR COADDS, but maybe use for everything?
+# WRITE NEW SPEC1d FILES CORRECTED FOR FLEXURE 
+# THESE ARE USED ONLY FOR COADDS
 def write_spec1d_flexure(data_dir,slits,mask):
 
 
