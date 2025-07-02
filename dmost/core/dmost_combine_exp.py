@@ -85,16 +85,12 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
     good_exp  = np.sum(obj['emcee_good'] == 1)
     nhalf     = 1.0* good_exp / nexp
 
-    # IF NEXP = 4 or LARGER, USE COADD IF LESS THAN HALF EXPOSURES ARE OK
-    if (obj['coadd_good'] == 1) & (nexp > 3) & (nhalf <= 0.5):
+    # USE COADD IF LESS THAN HALF OF SINGLE EXPOSURES ARE GOOD
+    if (obj['coadd_good'] == 1) & (nhalf <= 0.5):
         use_coadd = 1
 
-    # IF NEXP = 3 or LESS, USE COADD IF ONLY 1 EXPOSURE IS OK
-    if (obj['coadd_good'] == 1) & (nexp <= 3) & (good_exp <2):
-        use_coadd = 1
      
-
-    if (use_coadd == 0) & (np.sum(obj['emcee_good'] == 1) > 0):
+    if (use_coadd == 0) & (np.sum(obj['emcee_good'] == 1) > 1):
         
         vt,et = [], []
         for j in np.arange(0,nexp,1):
