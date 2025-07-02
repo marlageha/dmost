@@ -103,11 +103,11 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
                 verr_exp = (obj['emcee_v_err84'][j]-obj['emcee_v_err16'][j])/2.
 
                 vt   = np.append(vt,obj['emcee_v'][j])
-                et   = np.append(et,verr_exp)
+                et   = np.append(et,verr_exp**2)
                 ncomb=ncomb+1
 
-        v         = np.average(vt,weights = 1./et**2)
-        verr_rand = np.sqrt(1./np.sum(1./et**2))        
+        v         = np.average(vt,weights = 1./et)
+        verr_rand = np.sqrt(1./np.sum(1./et))        
         verr      = np.sqrt((sys_mult * verr_rand)**2 + sys_flr**2)   # RANDOM + SYSTEMATIC
 
 
