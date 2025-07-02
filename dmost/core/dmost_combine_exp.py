@@ -94,7 +94,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
         use_coadd = 1
      
 
-    if (np.sum(obj['emcee_good'] == 1) > 1):
+    if (use_coadd == 0):
         
         vt,et = [], []
         for j in np.arange(0,nexp,1):
