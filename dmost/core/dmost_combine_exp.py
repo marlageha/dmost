@@ -94,7 +94,7 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
         use_coadd = 1
      
 
-    if (use_coadd == 0):
+    if (use_coadd == 0) & (np.sum(obj['emcee_good'] == 1) > 0):
         
         vt,et = [], []
         for j in np.arange(0,nexp,1):
@@ -106,8 +106,6 @@ def combine_multiple_exp(obj, mask, nexp, sys_mult, sys_flr):
                 et   = np.append(et,verr_exp**2)
                 ncomb=ncomb+1
 
-        print(vt)
-        print(et)
         v         = np.average(vt,weights = 1./et)
         verr_rand = np.sqrt(1./np.sum(1./et))        
         verr      = np.sqrt((sys_mult * verr_rand)**2 + sys_flr**2)   # RANDOM + SYSTEMATIC
