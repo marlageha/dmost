@@ -220,15 +220,15 @@ def match_gaia(obj,allspec):
 
         # SET NON_DETECTED BACK TO DEFAULT
         # GAIA DEFAULTS ARE ZERO (CONFUSING!)
-        m = allspec['gaia_pmra_err'] == -999.
-        allspec['gaia_pmra'][m]   = -999.
+        m = allspec['gaia_pmra_err']  == -999.
+        allspec['gaia_pmra'][m]       = -999.
         m = allspec['gaia_pmdec_err'] == -999.
-        allspec['gaia_pmdec'][m]  = -999.
+        allspec['gaia_pmdec'][m]      = -999.
         m = allspec['gaia_parallax_err'] == -999.
-        allspec['gaia_parallax'][m]  = -999.
-        mrv = allspec['gaia_rv'] == -999.
-        allspec['gaia_rv'][mrv]  = -999.
-        allspec['gaia_rv_err'][mrv]  = -999.
+        allspec['gaia_parallax'][m]   = -999.
+        mrv = allspec['gaia_rv']      == -999.
+        allspec['gaia_rv'][mrv]       = -999.
+        allspec['gaia_rv_err'][mrv]   = -999.
 
         nrv = np.sum(allspec['gaia_rv'] > -999.)
 
@@ -253,7 +253,7 @@ def legacy_mag_err(flux, flux_ivar):
     flux_err   = 1./np.sqrt(flux_ivar[m])
     mag_err[m] = (2.5/np.log(10.)) * (flux_err/flux[m])
 
-    mag_err = np.sqrt(mag_err**2 + 0.05**2)
+    mag_err = np.sqrt(mag_err**2 + 0.02**2)
 
     return mag_err
 
@@ -303,6 +303,12 @@ def match_photometry(obj,allspec):
         
         ls_dr10.rename_column('dered_mag_g', 'gmag')
         ls_dr10.rename_column('dered_mag_r', 'rmag')
+
+        # REPLACE INF VALUES
+        m = np.isfinite(ls_dr10['gmag'])
+        ls_dr10['gmag'][~m] = -999
+        m = np.isfinite(ls_dr10['rmag'])
+        ls_dr10['rmag'][~m] = -999
 
 
         # Hack, update
@@ -508,6 +514,12 @@ def match_photometry(obj,allspec):
         
         cls_dr10= SkyCoord(ra=decaps['ra_ok']*u.degree, dec=decaps['dec_ok']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+
+        # REPLACE INF VALUES
+        m = np.isfinite(decaps['mean_mag_g'])
+        decaps['mean_mag_g'][~m] = -999
+        m = np.isfinite(decaps['mean_mag_r'])
+        decaps['mean_mag_r'][~m] = -999
 
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cls_dr10)  
         foo = np.arange(0,np.size(idx),1)
