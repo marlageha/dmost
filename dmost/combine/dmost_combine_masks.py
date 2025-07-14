@@ -497,6 +497,10 @@ def read_dmost_files(masklist):
             new_slits.add_column(slits['cat_all'][:,1],name='w2')
             new_slits.add_column(slits['cat_all'][:,2],name='w3')
 
+            # UPDATE MARZ FLAG IF MISSING
+            m=slits['marz_flag'] < 1
+            slits['marz_flag'][m] = 1
+
             # CREATE OR APPEND TO ALL TABLE
             if (n==0):  allslits = new_slits
             if (n > 0): allslits = table.vstack([allslits,new_slits])
@@ -744,6 +748,8 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
 
 
     alldata['flag_HB']    = dmost_membership.flag_HB_stars(alldata,object_properties[0])
+
+
 
 
     # ENSURE [Fe/H] IS ONLY IN CALIBRATED REGIONS
