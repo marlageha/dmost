@@ -77,6 +77,10 @@ def membership_CMD(alldata,this_obj,cmd_min = 0.2):
     dist= this_obj['Dist_kpc']
     feh = this_obj['feh_guess']
 
+    # Larger CMD window for bright objects
+    if (this_obj['MV'] < -9.0) :
+        cmd_min=0.3
+
     r,gr       = plot_isochrone_parsec_decam(dist,feh)
     r_hb,gr_hb = plot_isochrone_HB(dist)
        
@@ -99,6 +103,11 @@ def membership_CMD(alldata,this_obj,cmd_min = 0.2):
     texp     = np.array(dmin)**2 / (2*(np.array(emin)**2 + cmd_min**2))
     Pmem_cmd = np.exp(-1.*texp)
  
+    # IF OBJECT HAS NO PHOTOMETRY, ALLOW IT TO CONINTUE
+    # BUT WILL REMOVE THESE FROM PMEM_NOVAR
+    m_nophot = (alldata['rmag_o'] <0) | (alldata['gmag_o'] <0)
+    Pmem_cmd[m_nophot] = 1.
+
     return Pmem_cmd
 
 
@@ -263,6 +272,9 @@ def membership_PM(alldata, this_obj, Pmem_tmp):
         Pmem_pm[m_pm] = np.exp(-1.*texp[m_pm])
 
 
+        m = np.isfinite(Pmem_pm)
+        Pmem_pm[~m] = 1
+
     return Pmem_pm
 
 
@@ -293,8 +305,13 @@ def membership_vdisp(alldata,this_obj,Pmem_tmp,crude_cut=25.):
     #  IF SUFFICIENT NUMBER OF MEMBERS, SECOND ITERATION
     Pmem_2 = Pmem_tmp * Pmem_v
 
-    P_sig_thresh = 0.75
+    P_sig_thresh = 0.6
     mnew = Pmem_2 > P_sig_thresh
+
+    if np.sum(mnew) > 25:
+        P_sig_thresh = 0.75
+        mnew = Pmem_2 > P_sig_thresh
+
     if np.sum(mnew) > 4:
         v    = alldata['v'][mnew]
         verr = alldata['v_err'][mnew]
@@ -367,6 +384,36 @@ def flag_velocity_outliers(alldata,Pmem, low=3,high=3):
     return Pmem_v
 
 
+######################################################
+# Its hard to avoid special cases when assigning 
+# membership.   Trying to avoid this as much as possible
+def special_flowers(this_obj,alldata,Pmem,m_nophot,P_thresh):
+    
+    # STAR REMOVED BY Torrealba+2016 due to logg
+    # https://arxiv.org/pdf/1605.05338
+    if this_obj['Name2'] == 'Aqr2':
+        m = (Pmem > 0.5) & (alldata['v'] > -50)
+        Pmem[m] = 0.3
+        
+    
+    # Hard to find good photometry
+    if this_obj['Name2'] == 'Pal2':
+        m_nophot = np.zeros(np.size(m_nophot), dtype=bool)
+    
+        
+    # 
+    if (this_obj['Name2'] == 'CVn2') | (this_obj['Name2'] == 'Peg4') | (this_obj['Name2'] == 'UMa2') | (this_obj['Name2'] == 'W1'):
+        P_thresh = 0.6
+    if (this_obj['Name2'] == 'K1'):
+        P_thresh = 0.75
+    if (this_obj['Name2'] == 'Eri4'):
+            P_thresh = 0.3
+    if (this_obj['Name2'] == 'UMi')| (this_obj['Name2'] == 'Dra'):
+            P_thresh = 0.4
+
+
+    return Pmem, P_thresh,m_nophot
+
 
 ######################################################
 def flag_good_data(alldata):
@@ -412,19 +459,27 @@ def find_members(alldata,this_obj):
 
     Pmem            =  all_flags2 * Pmem_v * Pmem_feh
 
+
     # SET POOR OBJECTS TO -1 
     mlow = Pmem < 0.0001
     Pmem[mlow] = 0
     mbad = flag_good == 0
     Pmem[mbad] = -1.
 
+
     # BINARY MEMBERSHIP THRESHOLD
+    # REMOVE STARS WITH NO PHOTOEMTRY
+    # UPDATE SPECIAL FLOWERS
+    m_nophot       = (alldata['rmag_o'] <0) | (alldata['gmag_o'] <0)
+
+    P_thresh = 0.5
+    Pmem,P_thresh,m_nophot = special_flowers(this_obj,alldata,Pmem,m_nophot,P_thresh)
+    
     Pmem_novar     =  Pmem * ~flag_var 
-    m  = Pmem_novar >= 0.5
+
+    m  = (Pmem_novar >= P_thresh) & ~m_nophot
     Pmem_novar[m]  = 1
     Pmem_novar[~m] = 0
-
-
 
 
     return Pmem, Pmem_novar, Pmem_cmd, Pmem_EW,Pmem_parallax,Pmem_pm,Pmem_feh,Pmem_v
