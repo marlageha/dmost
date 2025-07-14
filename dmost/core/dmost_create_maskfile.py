@@ -290,6 +290,10 @@ def add_marz(data_dir,mask,slits,log):
         slits['marz_z'][m1]    = mz_gal['SPEC_Z'][m2]  + np.mean(mask['vhelio'])/3e5
         slits['marz_tmpl'][m1] = mz_gal['TYPE'][m2]
 
+        # SET MISSING TARGETS TO STARS 
+        m_missing = slits['marz_flag'] < 1
+        slits['marz_flag'][m_missing] = 1
+
         ngal   = np.sum(mz_gal['ZQUALITY'] > 2) # GALAXIES
         printlog(log,'{} Add marz results with {} galaxies'.format(mask['maskname'][0],ngal))
 
