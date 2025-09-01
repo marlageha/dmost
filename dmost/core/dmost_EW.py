@@ -460,7 +460,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
             CaT= gint1 + gint2 + 0.82*gint1
             CaT_err = np.sqrt(gerr1**2 + gerr2**2 + (0.82*gerr1)**2)
             CaT_all[2] = -99
-            GL=3
+            GL=2
 
 
 
@@ -522,6 +522,54 @@ def CaII_normalize(wave,spec,ivar):
     
     return nwave,nspec,nivar
 
+########################################
+# In cases where one CaT line hits priors, 
+# replace with linear fits from other 2 lines
+# Fits from Heiger+23.  Works best for [Fe/H] < -2
+def fix_CaT(CaT_EW, CaT_EW_err,CaT_all, CaT_all_err,GL,CaT_chi2):
+
+    oldew  = CaT_EW
+    olderr = CaT_EW_err
+
+    # LOWER PRIOR is 0.1
+    m1 = (np.abs(CaT_all[0]-0.1) < 0.001)
+    m2 = (np.abs(CaT_all[1]-0.1) < 0.001)
+    m3 = (np.abs(CaT_all[2]-0.1) < 0.001)
+
+    merr = np.sum(np.isfinite(CaT_all_err)) > 1
+
+    # If only first line is bad
+    if (m1) & ~(m2) & ~(m3) & merr:
+
+        EW1_2 = 0.41*(CaT_all[1])+0.14
+        EW1_3 = 0.56*(CaT_all[2])+0.06
+        EW1_fix     = (EW1_2+EW1_3)/2.
+        EW1_err_fix = np.sqrt(CaT_all_err[1]**2 + CaT_all_err[2]**2) 
+
+        CaT_EW     = EW1_fix + CaT_all[1] + CaT_all[2]
+        CaT_EW_err = np.sqrt(EW1_err_fix**2 + CaT_all_err[1]**2 + CaT_all_err[2]**2)
+        CaT_all[0] = EW1_fix
+        GL=GL+1
+
+    # If only third line is bad
+    if ~(m1) & ~(m2) & (m3) & merr & (CaT_chi2 < 10):
+
+        EW3_1 = 1.80*(CaT_all[0])-0.10
+        EW3_2 = 0.76*(CaT_all[1])+0.16
+        EW3_fix     = (EW3_1+EW3_2)/2.
+        EW3_err_fix = np.sqrt(CaT_all_err[0]**2 + CaT_all_err[1]**2) 
+
+        CaT_EW     = EW3_fix + CaT_all[0] + CaT_all[1]
+        CaT_EW_err = np.sqrt(EW3_err_fix**2 + CaT_all_err[0]**2 + CaT_all_err[1]**2)
+        CaT_all[2] = EW3_fix
+        GL=GL+1
+
+
+    # Set to -99 if only single line is measured
+    if (np.sum(m1)+np.sum(m2)+np.sum(m3)) > 1:
+        CaT_EW, CaT_EW_err = -99.,-99.
+
+    return CaT_EW, CaT_EW_err,CaT_all,GL
 
 
 ######################################################
@@ -568,8 +616,16 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
             CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2, GL = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
 
+        # FIX SINGLE LINE FAILS WHICH HIT LOWER PRIOR of 0.1
+        CaT_EW, CaT_EW_err,CaT_all,GL = fix_CaT(CaT_EW, CaT_EW_err,CaT_all, CaT_all_err,GL,CaT_chi2)
+
+
+        # FLAG EW DISASTERS
         if (CaT_chi2 > 50) & (slits['collate1d_SN'][arg] < 200):
             CaT_EW_err = -99.
+        if (CaT_chi2 > 30) & (slits['collate1d_SN'][arg] < 100):
+            CaT_EW_err = -99.
+
         if (CaT_all[1]/CaT_all[2] > 2.2):
             CaT_EW_err = -99.
 
