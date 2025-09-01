@@ -349,6 +349,11 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         CaT     = gint1 + gint2 + gint3 + lint1 + lint2 + lint3
         CaT_all = [gint1+lint1, gint2+lint2, gint3+lint3]
 
+        CaT_all_err  = [np.sqrt(gint1**2+lint1**2+ 2*pcov[4,7]),\
+                        np.sqrt(gint2**2+lint2**2+ 2*pcov[5,8]),\
+                        np.sqrt(gint3**2+lint3**2+ 2*pcov[6,9])]
+
+        
         # Covarience for each line
         CaT_cov = 2*pcov[4,7] + 2*pcov[5,8] + 2*pcov[6,9]
 
