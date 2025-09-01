@@ -301,7 +301,6 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     wline3 = [8642, 8682]
 
     CaT, CaT_err, GL, p   = -99., -99., -99, 0
-#    CaT_err_old = -99.
     CaT_all = [-99.,-99.,-99.]
     gfit    = -99.*wvl
 
@@ -349,7 +348,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         CaT_all = [gint1+lint1, gint2+lint2, gint3+lint3]
 
         # Covarience for each line
-        CaT_cov = 2*pcov[4,7]**2 + 2*pcov[5,8]**2 + 2*pcov[6,9]**2
+        CaT_cov = 2*pcov[4,7] + 2*pcov[5,8] + 2*pcov[6,9]
 
 
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2 + \
@@ -358,7 +357,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
 
 
         # Fix if missing thrid line
-        GL = 2
+        GL = 3
         if np.max(wvl) < 8682:
             CaT= gint1 + gint2 + + lint1 + lint2 + 0.82*(gint1 + lint1)
             CaT_err = np.sqrt(gerr1**2 + gerr2**2 + lerr1**2 + lerr2**2 + (0.82*gerr1)**2 + (0.82*lerr1)**2)
@@ -371,7 +370,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
 
         if (CaT > 14.0) | ~(np.isfinite(CaT_err)):
-            CaT, CaT_err, CaT_err_old   = -99., -99., -99
+            CaT, CaT_err  = -99., -99.
 
 
     except:
