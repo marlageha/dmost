@@ -11,6 +11,6 @@ To run a single mask:
 3. `run_pypeit mask.pypeit -o`
 4.  Run collate1d and create marz file:  `run_collate1d_marz.py`
 5.  Identify galaxies using marz
-6. Run dmost:  flexure, telluric, template and emcee
+6.  python run_dmost.py 27StrmDRun 
 
 
