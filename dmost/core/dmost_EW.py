@@ -302,6 +302,8 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
 
     CaT, CaT_err, GL, p   = -99., -99., -99, 0
     CaT_all = [-99.,-99.,-99.]
+    CaT_all_err = [-99.,-99.,-99.]
+
     gfit    = -99.*wvl
 
     # FIT SIMULTANOUSLY IN THE THREE WINDOWS
@@ -378,7 +380,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         chi2    = -99
 
 
-    return CaT, CaT_err, gfit, CaT_all, chi2, GL
+    return CaT, CaT_err, gfit, CaT_all, CaT_all_err,chi2, GL
 
 
 ###########################################
@@ -410,6 +412,8 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
 
     CaT, CaT_err, p, chi2, GL   = -99., -99., 0, -99, -99
     CaT_all = [-99.,-99.,-99.]
+    CaT_all_err = [-99.,-99.,-99.]
+
     gfit    = -99*wvl
 
     if np.mean(spec) > 0:
@@ -451,6 +455,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         # PUT IT ALL TOGETHER
         CaT = gint1 + gint2 + gint3
         CaT_all = [gint1, gint2, gint3]
+        CaT_all_err = [gerr1, gerr2, gerr3]
         CaT_err = np.sqrt(gerr1**2 + gerr2**2 + gerr3**2)
 
 
@@ -469,7 +474,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
         
 
-    return CaT, CaT_err, gfit, CaT_all, chi2, GL
+    return CaT, CaT_err, gfit, CaT_all, CaT_all_err,chi2, GL
 
 
 ########################################
@@ -604,17 +609,16 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         CaT_EW_err, CaT_chi2  = -99.,-99.
         CaT_EW_GL, CaT_err_GL, CaT_chi2_GL = -99.,-99.,-99.
         CaT_all = [-99.,-99.,-99.]
+        CaT_all_err = [-99.,-99.,-99.]
 
         if  (slits['collate1d_SN'][arg] > 15):
-            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2, GL = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
-
+            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_all_err, CaT_chi2, GL = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
 
         mpoor  = (CaT_EW_err > 1.0)  & (slits['collate1d_SN'][arg] < 50)
         mpoor2 = CaT_all[1]/CaT_all[2] > 2.2
 
         if  (slits['collate1d_SN'][arg] <= 15) | (mpoor) | (mpoor2):
-            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_chi2, GL = CaII_EW_fit_gauss(nwave,nspec,nivar)
-
+            CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_all_err, CaT_chi2, GL = CaII_EW_fit_gauss(nwave,nspec,nivar)
 
         # FIX SINGLE LINE FAILS WHICH HIT LOWER PRIOR of 0.1
         CaT_EW, CaT_EW_err,CaT_all,GL = fix_CaT(CaT_EW, CaT_EW_err,CaT_all, CaT_all_err,GL,CaT_chi2)
@@ -676,16 +680,19 @@ def ew_sys_errors(slit):
     if slit['mgI_err'] > 0:
         slit['mgI_err'] =  np.sqrt((0.7*slit['mgI_err'])**2 + 0.05**2)
 
-    # CaT has two multiplers:  Guass and GL profiles
+    # CaT has two multiplers:  Gauss and GL profiles
     mcat    = slit['cat_err'] > 0
-    m_gauss = (slit['cat_gl'] == 1) | (slit['cat_gl'] == 3)
-    m_gl    = (slit['cat_gl'] == 2) | (slit['cat_gl'] == 4)
+    m_gauss = (slit['cat_gl'] == 1) | (slit['cat_gl'] == 2)
+    m_gl    = (slit['cat_gl'] == 3) | (slit['cat_gl'] == 4)
 
+
+    # ADD REPEAT MULTIPLER AND FLOOR
     if (mcat&m_gauss):
-        slit['cat_err'] = 1.2 * slit['cat_err']
+        slit['cat_err'] = 1.6 * slit['cat_err']
 
     if (mcat&m_gl):
-        slit['cat_err']    = np.sqrt((0.3 * slit['cat_err'])**2 + 0.05**2)
+        slit['cat_err'] = np.sqrt((1.3 * slit['cat_err'])**2 + 0.1**2)
+
 
 
     return slit
