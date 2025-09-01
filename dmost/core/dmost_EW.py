@@ -301,7 +301,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     wline3 = [8642, 8682]
 
     CaT, CaT_err, GL, p   = -99., -99., -99, 0
-    CaT_err_old = -99.
+#    CaT_err_old = -99.
     CaT_all = [-99.,-99.,-99.]
     gfit    = -99.*wvl
 
