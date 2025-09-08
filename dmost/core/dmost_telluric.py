@@ -509,6 +509,10 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu,log):
             final_h2o = 50
             final_o2  = get_o2_nodata(mask['airmass'][nexp])
 
+    if final_o2 < 1.0:
+        final_o2  = get_o2_nodata(mask['airmass'][nexp])
+
+
     # PLOT H20-- zoom in and all data
     ax1.plot(fslits2['SN'][:,nexp],fslits2['telluric_h2o'][:,nexp],'.')
     ax1.plot(fslits2['SN'][m,nexp],fslits2['telluric_h2o'][m,nexp],'r.')
