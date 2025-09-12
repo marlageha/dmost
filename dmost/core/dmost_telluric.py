@@ -574,7 +574,7 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu,log):
     round_h2o = 2. * round(final_h2o/2)
     round_o2  = 0.02*round(final_o2/0.02) 
     if round_o2 > 2.02:
-                round_h2o = 5. * round(tmp_h2o[n]/5)
+                round_h2o = 5. * round(final_h2o/5)
                 print(round_h2o)
 
     dmost_utils.printlog(log,'{} {}          H2O = {:0.0f}, O2 = {:2.2f}'.format(mask['maskname'][0],\
