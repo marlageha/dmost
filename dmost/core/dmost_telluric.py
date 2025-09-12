@@ -378,6 +378,8 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu,log):
             dir = DEIMOS_RAW + '/templates/fine_tellurics/telluric_0.02A_h2o_'
             round_h2o = 2. * round(tmp_h2o[n]/2)
             round_o2  = 0.05*round(tmp_o2[n]/0.05) 
+            if round_o2 > 2.02:
+                round_h2o = 2. * round(tmp_h2o[n]/5)
 
             final_file = dir+'{:0.0f}_o2_{:0.2f}_.fits'.format(round_h2o,round_o2)
 
