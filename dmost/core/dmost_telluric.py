@@ -379,7 +379,7 @@ def run_telluric_allslits(data_dir, slits, mask, nexp, hdu,log):
             round_h2o = 2. * round(tmp_h2o[n]/2)
             round_o2  = 0.05*round(tmp_o2[n]/0.05) 
             if round_o2 > 2.02:
-                round_h2o = 2. * round(tmp_h2o[n]/5)
+                round_h2o = 5. * round(tmp_h2o[n]/5)
 
 
             final_file = dir+'{:0.0f}_o2_{:0.2f}_.fits'.format(round_h2o,round_o2)
@@ -574,16 +574,17 @@ def final_telluric_values(data_dir, slits, mask, nexp, hdu,log):
     round_h2o = 2. * round(final_h2o/2)
     round_o2  = 0.02*round(final_o2/0.02) 
     if round_o2 > 2.02:
-                round_h2o = 2. * round(tmp_h2o[n]/5)
+                round_h2o = 5. * round(tmp_h2o[n]/5)
+                print(round_h2o)
 
-    
     dmost_utils.printlog(log,'{} {}          H2O = {:0.0f}, O2 = {:2.2f}'.format(mask['maskname'][0],\
                                                         mask['fname'][nexp],round_h2o,round_o2))
     
     str = '_h{:0.0f}_o{:2.2f}'.format(round_h2o, round_o2)
     tfile = data_dir+'/dmost/telluric_'+mask['maskname'][nexp]+'_'+mask['fname'][nexp]+str+'.fits'
     tfine = DEIMOS_RAW + '/templates/fine_tellurics/telluric_0.02A_h2o_{}_o2_{:2.2f}_.fits'.format(int(round_h2o),round_o2)
-        
+    
+
     # COPY FINE GRAIN TELLURIC TO DATA DIRECTORY
     os.system('cp '+tfine+' '+tfile)
     
