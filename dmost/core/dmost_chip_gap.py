@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import numpy as np
 import glob
 
@@ -172,9 +173,10 @@ def chip_gap_single_collate1d(data_dir, slits, mask, telluric,SNmin):
         # FIND TEMPLATES FOR GOOD NON-GALAXY SLITS
         is_good_slit = dmost_utils.is_good_slit(obj,remove_galaxies=1)
 
-        if (is_good_slit) & (obj['collate1d_SN'] > SNmin):
+        file = data_dir+'collate1d/'+obj['collate1d_filename']
+        if (is_good_slit) & (obj['collate1d_SN'] > SNmin) & (os.path.isfile(file)):
 
-            jhdu = fits.open(data_dir+'collate1d/'+obj['collate1d_filename'])
+            jhdu = fits.open(file)
 
             jwave,jflux,jivar, SN = dmost_utils.load_coadd_collate1d(obj,jhdu,chip_gap =0) 
             vexp = 0
