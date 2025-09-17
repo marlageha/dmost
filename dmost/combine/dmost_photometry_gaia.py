@@ -398,7 +398,7 @@ def match_photometry(obj,allspec):
         # TRANSFORM SDSS TO DECALS
         r_sdss = munozf['r']
         g_sdss = munozf['g']
-        r_decals,g_decals = transform_sdss2decals(r_sdss,g_sdss)
+        g_decals,r_decals = transform_sdss2decals(g_sdss,r_sdss)
 
         # Get Ar/Ag
         allspec, Ar, Ag = get_ebv(allspec)
@@ -446,7 +446,7 @@ def match_photometry(obj,allspec):
         
         r_sdss = munozf['r'][idx[d2d < dm*u.arcsec]] 
         g_sdss = munozf['g'][idx[d2d < dm*u.arcsec]] 
-        r_decals,g_decals = transform_sdss2decals(r_sdss,g_sdss)
+        g_decals,r_decals = transform_sdss2decals(g_sdss,r_sdss)
 
         allspec['rmag_o'][mt]   = r_decals - Ar[mt]
         allspec['gmag_o'][mt]   = g_decals - Ag[mt]
@@ -492,7 +492,7 @@ def match_photometry(obj,allspec):
         # TRANSFORM SDSS TO DECALS
         r_sdss = sdss['rmag'][idx[d2d < dm*u.arcsec]]
         g_sdss = sdss['gmag'][idx[d2d < dm*u.arcsec]]
-        r_decals,g_decals = transform_sdss2decals(r_sdss,g_sdss)
+        g_decals,r_decals = transform_sdss2decals(g_sdss,r_sdss)
 
         # Get Ar/Ag
         allspec, Ar, Ag = get_ebv(allspec)
@@ -644,6 +644,32 @@ def match_photometry(obj,allspec):
         allspec['phot_source'][mt] = 'gaia'
 
         
+
+    if obj['Phot'] == 'pandas':
+
+        file = DEIMOS_RAW + '/Photometry/PANDAS/PANDAS_'+obj['Name2']+'.csv'
+        pandas = ascii.read(file)
+        pandas.rename_column('g', 'gmag')
+        pandas.rename_column('i', 'rmag')          # NEED TO TRANSFORM!!!
+        pandas.rename_column('dg', 'gmag_err')
+        pandas.rename_column('di', 'rmag_err')
+
+
+
+        cpandas = SkyCoord(ra=pandas['RA']*u.degree, dec=pandas['Dec']*u.degree) 
+        cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
+        idx, d2d, d3d = cdeimos.match_to_catalog_sky(cpandas)  
+        foo = np.arange(0,np.size(idx),1)
+
+
+        mt = foo[d2d < 1.*u.arcsec]
+        allspec['rmag_o'][mt] = pandas['rmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['gmag_o'][mt] = pandas['gmag'][idx[d2d < 1.*u.arcsec]] 
+        allspec['rmag_err'][mt] = 0.01
+        allspec['gmag_err'][mt] = 0.01
+        allspec['phot_source'][mt] = 'pandas'
+
+
 
     # REMOVE SERENDIP STARS WITHOUT PHOTOMETRY
     m_serendip_nophot =  (allspec['serendip'] == 1) &  (allspec['rmag_o'] < 0) 
