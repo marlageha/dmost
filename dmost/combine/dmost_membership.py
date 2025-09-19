@@ -80,6 +80,8 @@ def membership_CMD(alldata,this_obj,cmd_min = 0.2):
     # Larger CMD window for bright objects
     if (this_obj['MV'] < -9.0) :
         cmd_min=0.3
+        if (this_obj['MV'] < -10.0) :
+            cmd_min=0.35
 
     r,gr       = plot_isochrone_parsec_decam(dist,feh)
     r_hb,gr_hb = plot_isochrone_HB(dist)
@@ -267,9 +269,23 @@ def membership_PM(alldata, this_obj, Pmem_tmp):
         pmerr = np.sqrt((alldata['gaia_pmra_err']*cos_dec)**2 + alldata['gaia_pmdec_err']**2)*u.arcsec
 
 
-        pm_min = 2.0
+        pm_min = 1.0
         texp     = np.array(diff2 / (2*(np.array(pmerr)**2 + pm_min**2)))
         Pmem_pm[m_pm] = np.exp(-1.*texp[m_pm])
+ 
+        # Relax tolerence inside effective radius
+        m= (alldata['rproj_arcm'] < this_obj['r_eff_arcm']) & (m_pm)
+        texp[m]       = np.array(diff2[m] / (2*(np.array(pmerr[m])**2 + 1.5*pm_min**2)))
+        Pmem_pm[m] = np.exp(-1.*texp[m])
+
+
+        # Relax tolerence for large or crowded systems 
+        m= (alldata['rproj_arcm'] < 2*this_obj['r_eff_arcm']) & (m_pm) & (this_obj['MV']<-9)
+        texp[m]       = np.array(diff2[m] / (2*(np.array(pmerr[m])**2 + 2.0*pm_min**2)))
+        Pmem_pm[m] = np.exp(-1.*texp[m])
+        m= (alldata['rproj_arcm'] < 3*this_obj['r_eff_arcm']) & (m_pm) & (this_obj['MV']<-7)& (this_obj['Type'] == 'GC')
+        texp[m]       = np.array(diff2[m] / (2*(np.array(pmerr[m])**2 + 2.0*pm_min**2)))
+        Pmem_pm[m] = np.exp(-1.*texp[m])
 
 
         m = np.isfinite(Pmem_pm)
@@ -280,45 +296,42 @@ def membership_PM(alldata, this_obj, Pmem_tmp):
 
 
 ######################################################
-def membership_vdisp(alldata,this_obj,Pmem_tmp,crude_cut=25.):
+def membership_vdisp(alldata,this_obj,Pmem_tmp):
     
     
-    min_v = this_obj['v_guess'] - crude_cut
-    max_v = this_obj['v_guess'] + crude_cut
-    crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v) & (Pmem_tmp > 0.5) 
+    min_v = this_obj['v_guess'] - 3*this_obj['s_guess']
+    max_v = this_obj['v_guess'] + 3*this_obj['s_guess']
+    crude_v = (alldata['v'] > min_v) & (alldata['v'] < max_v) & (Pmem_tmp > 0.5) &(alldata['flag_var'] != 1)
 
 
     # FIRST ITERATION
     v_true   = this_obj['v_guess']
     sig_true = this_obj['s_guess']
-    v    = alldata['v'][crude_v]
-    verr = alldata['v_err'][crude_v]
-
-    if np.sum(crude_v) > 5:
+    if np.sum(crude_v) > 4:
+        v    = alldata['v'][crude_v]
+        verr = alldata['v_err'][crude_v]
         v_true,sig_true = mg_wmean(v,verr)
-  
-    #  V Prob PLUS PHOTOMETRIC ERROR
     texp     = np.array(alldata['v'] - v_true)**2 / (2*(alldata['v_err']**2 + (3.*sig_true)**2))
     Pmem_v   = np.exp(-1.*texp)
  
 
-    #  IF SUFFICIENT NUMBER OF MEMBERS, SECOND ITERATION
+
+    # SECOND ITERATION,  IF SUFFICIENT NUMBER OF MEMBERS
     Pmem_2 = Pmem_tmp * Pmem_v
-
-    P_sig_thresh = 0.6
-    mnew = Pmem_2 > P_sig_thresh
-
-    if np.sum(mnew) > 25:
-        P_sig_thresh = 0.75
-        mnew = Pmem_2 > P_sig_thresh
+    mnew   = (Pmem_2 > 0.5) & (alldata['flag_var'] != 1)
 
     if np.sum(mnew) > 4:
         v    = alldata['v'][mnew]
         verr = alldata['v_err'][mnew]
         v_true,sig_true = mg_wmean(v,verr)
-
         texp     = np.array(alldata['v'] - v_true)**2 / (2*(alldata['v_err']**2 + (3.*sig_true)**2))
+
+        # Relax tolerence inside effective radius
+        m=alldata['rproj_arcm'] < this_obj['r_eff_arcm']
+        texp[m]    = np.array(alldata['v'][m] - v_true)**2 / (2*(alldata['v_err'][m]**2 + (3.5*sig_true)**2))
         Pmem_v = np.exp(-1.*texp)
+
+
 
     m=Pmem_v < 1e-6
     Pmem_v[m] = 0
@@ -401,16 +414,6 @@ def special_flowers(this_obj,alldata,Pmem,m_nophot,P_thresh):
         m_nophot = np.zeros(np.size(m_nophot), dtype=bool)
     
         
-    # 
-    if (this_obj['Name2'] == 'CVn2') | (this_obj['Name2'] == 'Peg4') | (this_obj['Name2'] == 'UMa2') | (this_obj['Name2'] == 'W1'):
-        P_thresh = 0.6
-    if (this_obj['Name2'] == 'K1'):
-        P_thresh = 0.75
-    if (this_obj['Name2'] == 'Eri4'):
-            P_thresh = 0.3
-    if (this_obj['Name2'] == 'UMi')| (this_obj['Name2'] == 'Dra'):
-            P_thresh = 0.4
-
 
     return Pmem, P_thresh,m_nophot
 
@@ -469,11 +472,10 @@ def find_members(alldata,this_obj):
 
     # BINARY MEMBERSHIP THRESHOLD
     # REMOVE STARS WITH NO PHOTOEMTRY
-    # UPDATE SPECIAL FLOWERS
     m_nophot       = (alldata['rmag_o'] <0) | (alldata['gmag_o'] <0)
 
     P_thresh = 0.5
-    Pmem,P_thresh,m_nophot = special_flowers(this_obj,alldata,Pmem,m_nophot,P_thresh)
+
     
     Pmem_novar     =  Pmem * ~flag_var 
 
