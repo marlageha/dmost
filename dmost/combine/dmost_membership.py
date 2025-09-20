@@ -119,15 +119,19 @@ def membership_CMD(alldata,this_obj,cmd_min = 0.2):
 def membership_NaI(alldata, this_obj):
 
     naI_lim =  1.
+    nstar         = np.size(alldata)
+    Pmem_NaI = np.ones(nstar)
 
     # OFFICIAL CRITIERIA
     m_rmv    = ((alldata['ew_naI'] - alldata['ew_naI_err']) > naI_lim) & (alldata['MV_o'] < 4.5)
-    Pmem_NaI = ~m_rmv
+    Pmem_NaI[m_rmv] = 0
 
 
     # REDUCE PROBABILITY FOR STARS WITH LARGE ERRORS
-    m_rmv    = (alldata['ew_naI'] > 0.7) & (alldata['MV_o'] < 1)
-    Pmem_NaI[m_rmv] = 0.8 * Pmem_NaI[m_rmv]
+    m_rmv    = (alldata['ew_naI'] > 0.75) & (alldata['MV_o'] < 1)
+    Pmem_NaI[m_rmv] = 0.7 * Pmem_NaI[m_rmv]
+    m_rmv    = (alldata['ew_naI'] > 1.25) & (alldata['MV_o'] < 4.5)
+    Pmem_NaI[m_rmv] = 0.7 * Pmem_NaI[m_rmv]
 
     return Pmem_NaI
 
@@ -291,6 +295,13 @@ def membership_PM(alldata, this_obj, Pmem_tmp):
         m = np.isfinite(Pmem_pm)
         Pmem_pm[~m] = 1
 
+
+        # NOT THE BEST PLACE TO DO THIS
+        if this_obj['Name2'] == 'UNI1':
+            Pmem_pm = 1
+            alldata['objname'] == 'best_708672' # This star is a binary
+            Pmem_pm=0
+
     return Pmem_pm
 
 
@@ -400,7 +411,7 @@ def flag_velocity_outliers(alldata,Pmem, low=3,high=3):
 ######################################################
 # Its hard to avoid special cases when assigning 
 # membership.   Trying to avoid this as much as possible
-def special_flowers(this_obj,alldata,Pmem,m_nophot,P_thresh):
+def special_flowers(this_obj,alldata,Pmem,m_nophot):
     
     # STAR REMOVED BY Torrealba+2016 due to logg
     # https://arxiv.org/pdf/1605.05338
@@ -408,14 +419,30 @@ def special_flowers(this_obj,alldata,Pmem,m_nophot,P_thresh):
         m = (Pmem > 0.5) & (alldata['v'] > -50)
         Pmem[m] = 0.3
         
+
+
+    ## NGC6715 (M54) has heavy Sgr contamination
+    # Remove more metal-rich Sgr stars 
+    if this_obj['Name2'] == 'N6715':
+        m1 = (alldata['ew_feh'] > -0.7)  & (Pmem > 0.5)
+        m2 = (alldata['rproj_arcm'] > 3.5) & (Pmem > 0.5)
+        Pmem[m1|m2] = 0.3
+
+    # REMOVE M54 STARS FROM SGR
+    if this_obj['Name2'] == 'Sgr':
+        c_M54 = SkyCoord(ra=283.7638 * u.deg, dec=  -30.4798 * u.deg, frame='icrs')
+        c_sgr = SkyCoord(ra=alldata['RA']* u.deg, dec= alldata['DEC']* u.deg, frame='icrs')
+        sep   = c_M54.separation(c_sgr)
+        m = (alldata['ew_feh'] < -0.8) & (sep.to_value(u.arcmin) < 4) & (Pmem > 0.5)
+        Pmem[m] = 0.3 
+
     
     # Hard to find good photometry
-    if this_obj['Name2'] == 'Pal2':
+    if (this_obj['Name2'] == 'Pal2') | (this_obj['Name2'] == 'Pal7'):
         m_nophot = np.zeros(np.size(m_nophot), dtype=bool)
     
-        
 
-    return Pmem, P_thresh,m_nophot
+    return Pmem,m_nophot
 
 
 ######################################################
@@ -474,11 +501,13 @@ def find_members(alldata,this_obj):
     # REMOVE STARS WITH NO PHOTOEMTRY
     m_nophot       = (alldata['rmag_o'] <0) | (alldata['gmag_o'] <0)
 
-    P_thresh = 0.5
 
+
+    Pmem,m_nophot = special_flowers(this_obj,alldata,Pmem,m_nophot)
     
     Pmem_novar     =  Pmem * ~flag_var 
 
+    P_thresh = 0.5
     m  = (Pmem_novar >= P_thresh) & ~m_nophot
     Pmem_novar[m]  = 1
     Pmem_novar[~m] = 0
