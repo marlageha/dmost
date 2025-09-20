@@ -312,7 +312,7 @@ def match_photometry(obj,allspec):
 
 
         # Hack, update
-        if obj['Name2'] == 'Eri4':
+        if (obj['Name2'] == 'Eri4') | (obj['Name2'] == 'N6254'):
             ls_dr10['rmag'] = ls_dr10['dered_mag_i']+0.1 
             ls_dr10['flux_r'] = ls_dr10['flux_i'] 
             ls_dr10['flux_ivar_r'] = ls_dr10['flux_ivar_i'] 
@@ -575,7 +575,7 @@ def match_photometry(obj,allspec):
     if obj['Phot'] == 'PanS1':
         file = DEIMOS_RAW + '/Photometry/PanS/PanS1_'+obj['Name2']+'.csv'
         pans = ascii.read(file)
-        m=(pans['rPSFMag'] != -999) & (pans['gPSFMag'] != -999)
+        m=(pans['rPSFMag'] != -999) & (pans['gPSFMag'] != -999) & (pans['rPSFMagErr'] < 0.5)& (pans['gPSFMagErr'] < 0.5)
         pans=pans[m]
         
         # TRANSFORM TO DECALS
