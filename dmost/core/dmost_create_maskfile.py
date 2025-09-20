@@ -351,12 +351,15 @@ def add_chipgap_seeing(data_dir,mask,slits,log):
         # ADD SLITWIDTH TO MASKS    
         DEIMOS_RAW = os.getenv('DEIMOS_RAW')
         rhdu       = fits.open(DEIMOS_RAW + 'rawdata_'+mask['year'][ii]+'/'+mask['rawfilename'][ii])
-        desislits  = rhdu['DesiSlits'].data
+        try:
+            desislits  = rhdu['DesiSlits'].data
 
-        mtarg = desislits['slitTyp'] != 'A'
-        median_slitwidth      = np.median(desislits['slitWid'][mtarg])
-        mask['slitwidth'][ii] = 0.01*(round(median_slitwidth/0.01))
-        
+            mtarg = desislits['slitTyp'] != 'A'
+            median_slitwidth      = np.median(desislits['slitWid'][mtarg])
+            mask['slitwidth'][ii] = 0.01*(round(median_slitwidth/0.01))
+        except:
+            mask['slitwidth'][ii] = 0.7 # Rare exception where raw files missing this extension 
+
 
         # SET LSF CORRECTION -- DETERMINED FROM FIT
         mask = set_lsf_correction(mask,ii)
