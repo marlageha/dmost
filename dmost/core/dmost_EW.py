@@ -143,9 +143,9 @@ def NaI_fit_EW(wvl,spec,ivar,SN):
     
     wline = [8172., 8210.5]
 
-    Na1_EW,Na1_EW_err     = -99, -99
+    Na1_EW,Na1_EW_err     = -99., -99.
     gfit       = -99*wvl
-    p0 = [-99,-99,-99,-99,-99]
+    p0 = [-99.,-99.,-99.,-99.,-99.]
 
 
     mw  = (wvl > wline[0]) & (wvl < wline[1]) 
@@ -184,8 +184,8 @@ def NaI_fit_EW(wvl,spec,ivar,SN):
             gfit = NaI_double_gauss(wvl,*p)
 
             if (Na1_EW > 5) | (Na1_EW_err > 5) | (Na1_EW_err == 0):
-                Na1_EW     = -99
-                Na1_EW_err = -99
+                Na1_EW     = -99.
+                Na1_EW_err = -99.
                 p=p0
         except:
             p, pcov = p0, None
@@ -222,7 +222,7 @@ def mgI_EW_fit(wvl,spec,ivar,SN):
 
     mg1_EW, mg1_EW_err    = -99., -99.
     mgfit       = -99*wvl
-    p0 =  [-99,-99,-99,-99]
+    p0 =  [-99.,-99.,-99.,-99.]
        
 
     # GAUSSIAN FIT
