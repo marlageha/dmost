@@ -313,7 +313,7 @@ def combine_mask_ew(stars):
     good_stars  = stars[mgood]
     
     cat,cat_err,naI,naI_err,mgI,mgI_err, gl,ncomb = [-99.,-99.,-99.,-99.,-99.,-99.,-99.,0]
-    w1,w2,w3 = [-99,-99,-99]
+    w1,w2,w3 = [-99.,-99.,-99.]
     if (np.size(good_stars) == 1):
         cat      = good_stars['cat']
         cat_err  = good_stars['cat_err']
@@ -732,6 +732,16 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
     alldata = dmost_photometry_gaia.match_gaia(object_properties[0],alldata)
 
 
+
+    # CATCH EW NON-DETECTIONS
+    thrs = 50
+    mn = alldata['ew_cat_err'] > thrs
+    alldata['ew_cat_err'][mn] = -99.
+    mn = alldata['ew_naI_err'] > thrs
+    alldata['ew_naI_err'][mn] = -99.    
+    mn = alldata['ew_mgI_err'] > thrs
+    alldata['ew_mgI_err'][mn] = -99.
+
     # MEMBERSHIP
     Pmem, Pmem_novar, Pmem_cmd, Pmem_EW,Pmem_px,Pmem_pm,Pmem_feh,\
                       Pmem_v = dmost_membership.find_members(alldata,object_properties[0])
@@ -756,6 +766,9 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
     mhb   = alldata['flag_HB'] == 1
     alldata['ew_feh'][mhb]     = -999.
     alldata['ew_feh_err'][mhb] = -999.
+    mcalib = (alldata['MV_o'] > 3.) | (alldata['ew_feh_err'] < 0) | (alldata['ew_cat_err'] < 0)
+    alldata['ew_feh'][mcalib]     = -999.
+    alldata['ew_feh_err'][mcalib] = -999.
 
     # SET SYSTEM NAME
     alldata['system_name'] = object_name
