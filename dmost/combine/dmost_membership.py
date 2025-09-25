@@ -78,9 +78,9 @@ def membership_CMD(alldata,this_obj,cmd_min = 0.2):
     feh = this_obj['feh_guess']
 
     # Larger CMD window for bright objects
-    if (this_obj['MV'] < -9.0) :
+    if (this_obj['MV'] < -9.0) & (this_obj['Type'] != 'GC'):
         cmd_min=0.3
-        if (this_obj['MV'] < -10.0) :
+        if (this_obj['MV'] < -10.0)& (this_obj['Type'] != 'GC') :
             cmd_min=0.35
 
     r,gr       = plot_isochrone_parsec_decam(dist,feh)
@@ -128,9 +128,9 @@ def membership_NaI(alldata, this_obj):
 
 
     # REDUCE PROBABILITY FOR STARS WITH LARGE ERRORS
-    m_rmv    = (alldata['ew_naI'] > 0.75) & (alldata['MV_o'] < 1)
+    m_rmv    = (alldata['ew_naI'] > 0.75) & (alldata['ew_naI_err'] > 0) & (alldata['MV_o'] < 1)
     Pmem_NaI[m_rmv] = 0.7 * Pmem_NaI[m_rmv]
-    m_rmv    = (alldata['ew_naI'] > 1.25) & (alldata['MV_o'] < 4.5)
+    m_rmv    = (alldata['ew_naI'] > 1.25) & (alldata['ew_naI_err'] > 0) & (alldata['MV_o'] < 4.5)
     Pmem_NaI[m_rmv] = 0.7 * Pmem_NaI[m_rmv]
 
     return Pmem_NaI
@@ -296,12 +296,6 @@ def membership_PM(alldata, this_obj, Pmem_tmp):
         Pmem_pm[~m] = 1
 
 
-        # NOT THE BEST PLACE TO DO THIS
-        if this_obj['Name2'] == 'UNI1':
-            Pmem_pm = 1
-            alldata['objname'] == 'best_708672' # This star is a binary
-            Pmem_pm=0
-
     return Pmem_pm
 
 
@@ -418,7 +412,11 @@ def special_flowers(this_obj,alldata,Pmem,m_nophot):
     if this_obj['Name2'] == 'Aqr2':
         m = (Pmem > 0.5) & (alldata['v'] > -50)
         Pmem[m] = 0.3
-        
+    
+    # STAR REMOVED BY Cerny+25, binary
+    if this_obj['Name2'] == 'UNI1':
+        m=alldata['objname'] == 'best_708672' # This star is a binary
+        Pmem[m]=0.3
 
 
     ## NGC6715 (M54) has heavy Sgr contamination
@@ -438,9 +436,16 @@ def special_flowers(this_obj,alldata,Pmem,m_nophot):
 
     
     # Hard to find good photometry
-    if (this_obj['Name2'] == 'Pal2') | (this_obj['Name2'] == 'Pal7'):
+    if (this_obj['Name2'] == 'Pal2') | (this_obj['Name2'] == 'Pal7')| (this_obj['Name2'] == 'Ter5'):
         m_nophot = np.zeros(np.size(m_nophot), dtype=bool)
     
+    # Poor photmetry, increase CaT criteria to compensate
+    if (this_obj['Name2'] == 'Ter5'):
+        nm = (alldata['ew_cat'] < 6)& (Pmem > 0.5)
+        Pmem[nm] = 0.3 
+    if (this_obj['Name2'] == 'Pal2'):
+        nm = (alldata['ew_cat'] < 3)& (Pmem > 0.5)
+        Pmem[nm] = 0.3 
 
     return Pmem,m_nophot
 
@@ -479,6 +484,8 @@ def find_members(alldata,this_obj):
     all_flags1      = flag_good * Pmem_cmd  * Pmem_EW * Pmem_parallax
     Pmem_pm         = membership_PM(alldata, this_obj, all_flags1)
 
+    if this_obj['Name2'] == 'UNI1':
+        Pmem_pm = np.ones(np.size(Pmem_pm))
 
     all_flags2      = all_flags1 * Pmem_pm
 
