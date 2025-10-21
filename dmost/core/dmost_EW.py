@@ -418,7 +418,6 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
     CaT, CaT_err, p, chi2, GL   = -99., -99., 0, -99, -99
     CaT_all = [-99.,-99.,-99.]
     CaT_all_err = [-99.,-99.,-99.]
-    chi2,GL = -99.,-99.
 
     gfit    = -99*wvl
 
@@ -442,7 +441,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
                             bounds=((0.5, 8539.5, 0.75, 0.1,0.1,0.1), (2, 8544.5, 1.5,4,4,4)))
         except:
             p, pcov = p0, None
-            return CaT, CaT_err, gfit, CaT_all, chi2
+            return CaT, CaT_err, gfit, CaT_all, CaT_all_err,chi2, GL
 
         perr = np.sqrt(np.diag(pcov))
 
