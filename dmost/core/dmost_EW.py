@@ -418,6 +418,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
     CaT, CaT_err, p, chi2, GL   = -99., -99., 0, -99, -99
     CaT_all = [-99.,-99.,-99.]
     CaT_all_err = [-99.,-99.,-99.]
+    chi2,GL = -99.,-99.
 
     gfit    = -99*wvl
 
@@ -471,8 +472,6 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
             CaT_err = np.sqrt(gerr1**2 + gerr2**2 + (0.82*gerr1)**2)
             CaT_all[2] = -99
             GL=2
-
-
 
         # CREATE FIT FOR PLOTTING
         gfit = CaT_gauss(wvl,*p)
