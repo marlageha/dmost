@@ -143,9 +143,9 @@ def NaI_fit_EW(wvl,spec,ivar,SN):
     
     wline = [8172., 8210.5]
 
-    Na1_EW,Na1_EW_err     = -99., -99.
-    gfit       = -99*wvl
-    p0 = [-99.,-99.,-99.,-99.,-99.]
+    Na1_EW,Na1_EW_err     = -999., -999.
+    gfit       = -999*wvl
+    p0 = [-999.,-999.,-999.,-999.,-999.]
 
 
     mw  = (wvl > wline[0]) & (wvl < wline[1]) 
@@ -184,8 +184,8 @@ def NaI_fit_EW(wvl,spec,ivar,SN):
             gfit = NaI_double_gauss(wvl,*p)
 
             if (Na1_EW > 5) | (Na1_EW_err > 5) | (Na1_EW_err == 0):
-                Na1_EW     = -99.
-                Na1_EW_err = -99.
+                Na1_EW     = -999.
+                Na1_EW_err = -999.
                 p=p0
         except:
             p, pcov = p0, None
@@ -220,9 +220,9 @@ def mgI_EW_fit(wvl,spec,ivar,SN):
     wline = [mgI_line-5.,mgI_line+5.] 
     mw    = (wvl > wline[0]) & (wvl < wline[1]) 
 
-    mg1_EW, mg1_EW_err    = -99., -99.
-    mgfit       = -99*wvl
-    p0 =  [-99.,-99.,-99.,-99.]
+    mg1_EW, mg1_EW_err    = -999., -999.
+    mgfit       = -999*wvl
+    p0 =  [-999.,-999.,-999.,-999.]
        
 
     # GAUSSIAN FIT
@@ -251,8 +251,8 @@ def mgI_EW_fit(wvl,spec,ivar,SN):
         p3=p[2]
 
         if (np.abs(mg1_EW) > 10) | (mg1_EW_err == 0.) | (mg1_EW_err > 10.):
-            mg1_EW     = -99.
-            mg1_EW_err = -99.
+            mg1_EW     = -999.
+            mg1_EW_err = -999.
     except:
         p=p0
 
@@ -300,11 +300,11 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
     wline2 = [8522, 8562]
     wline3 = [8642, 8682]
 
-    CaT, CaT_err, GL, p   = -99., -99., -99, 0
-    CaT_all = [-99.,-99.,-99.]
-    CaT_all_err = [-99.,-99.,-99.]
+    CaT, CaT_err, GL, p   = -999., -999., -999, 0
+    CaT_all = [-999.,-999.,-999.]
+    CaT_all_err = [-999.,-999.,-999.]
 
-    gfit    = -99.*wvl
+    gfit    = -999.*wvl
 
     # FIT SIMULTANOUSLY IN THE THREE WINDOWS
     mw1  = (wvl > wline1[0]) & (wvl < wline1[1]) 
@@ -368,7 +368,7 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         if np.max(wvl) < 8682:
             CaT= gint1 + gint2 + + lint1 + lint2 + 0.82*(gint1 + lint1)
             CaT_err = np.sqrt(gerr1**2 + gerr2**2 + lerr1**2 + lerr2**2 + (0.82*gerr1)**2 + (0.82*lerr1)**2)
-            CaT_all[2] = -99.
+            CaT_all[2] = -999.
             GL=4
 
 
@@ -377,12 +377,12 @@ def CaII_EW_fit_GL(wvl,spec,ivar, SN):
         chi2 = calc_chi2_ew(wvl,spec,ivar,mw, gfit)
 
         if (CaT > 14.0) | ~(np.isfinite(CaT_err)):
-            CaT, CaT_err  = -99., -99.
+            CaT, CaT_err  = -999., -999.
 
 
     except:
         p, pcov = p0, None
-        chi2    = -99
+        chi2    = -999
 
 
     return CaT, CaT_err, gfit, CaT_all, CaT_all_err,chi2, GL
@@ -415,11 +415,11 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
     wline3 = [8642, 8682]
 
 
-    CaT, CaT_err, p, chi2, GL   = -99., -99., 0, -99, -99
-    CaT_all = [-99.,-99.,-99.]
-    CaT_all_err = [-99.,-99.,-99.]
+    CaT, CaT_err, p, chi2, GL   = -999., -999., 0, -999, -999
+    CaT_all = [-999.,-999.,-999.]
+    CaT_all_err = [-999.,-999.,-999.]
 
-    gfit    = -99*wvl
+    gfit    = -999*wvl
 
     if np.mean(spec) > 0:
 
@@ -469,7 +469,7 @@ def CaII_EW_fit_gauss(wvl,spec,ivar):
         if np.max(wvl) < 8682:
             CaT= gint1 + gint2 + 0.82*gint1
             CaT_err = np.sqrt(gerr1**2 + gerr2**2 + (0.82*gerr1)**2)
-            CaT_all[2] = -99
+            CaT_all[2] = -999
             GL=2
 
         # CREATE FIT FOR PLOTTING
@@ -573,9 +573,9 @@ def fix_CaT(CaT_EW, CaT_EW_err,CaT_all, CaT_all_err,GL,CaT_chi2):
         GL=GL+1
 
 
-    # Set to -99 if only single line is measured
+    # Set to -999 if only single line is measured
     if (np.sum(m1)+np.sum(m2)+np.sum(m3)) > 1:
-        CaT_EW, CaT_EW_err = -99.,-99.
+        CaT_EW, CaT_EW_err = -999.,-999.
 
     return CaT_EW, CaT_EW_err,CaT_all,GL
 
@@ -609,10 +609,10 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
         # CALCULATE Ca II LINES CONTINUUM
         nwave,nspec,nivar                   = CaII_normalize(wave,flux,ivar)
 
-        CaT_EW_err, CaT_chi2  = -99.,-99.
-        CaT_EW_GL, CaT_err_GL, CaT_chi2_GL = -99.,-99.,-99.
-        CaT_all = [-99.,-99.,-99.]
-        CaT_all_err = [-99.,-99.,-99.]
+        CaT_EW_err, CaT_chi2  = -999.,-999.
+        CaT_EW_GL, CaT_err_GL, CaT_chi2_GL = -999.,-999.,-999.
+        CaT_all = [-999.,-999.,-999.]
+        CaT_all_err = [-999.,-999.,-999.]
 
         if  (slits['collate1d_SN'][arg] > 15):
             CaT_EW, CaT_EW_err, CaT_fit, CaT_all, CaT_all_err, CaT_chi2, GL = CaII_EW_fit_GL(nwave,nspec,nivar, SN)
@@ -629,12 +629,12 @@ def calc_all_EW(data_dir, slits, mask, arg, pdf):
 
         # FLAG EW DISASTERS
         if (CaT_chi2 > 50) & (slits['collate1d_SN'][arg] < 200):
-            CaT_EW_err = -99.
+            CaT_EW_err = -999.
         if (CaT_chi2 > 30) & (slits['collate1d_SN'][arg] < 100):
-            CaT_EW_err = -99.
+            CaT_EW_err = -999.
 
         if (CaT_all[1]/CaT_all[2] > 2.2):
-            CaT_EW_err = -99.
+            CaT_EW_err = -999.
 
 
 
