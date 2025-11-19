@@ -74,7 +74,29 @@ def calc_MV_star(allspec,obj):
     # Only update stars with matched photometry
     m = allspec['rmag_o'] > 0
     allspec['MV_o'][m] = V[m] - dmod
+
+
     
+    ########## FIX MISSING PHOTOMETRY #############
+
+   # GMAG ONLY
+    mg1 = (allspec['rmag_err'] <= -999.0) & (allspec['gmag_err'] >0)
+    mg2 = (allspec['rmag_o'] <= -999.0) & (allspec['gmag_o'] >0)
+    V[mg1|mg2] =  allspec['gmag_o'][mg1|mg2]   # ASSUME gr = 0.3
+    allspec['MV_o'][mg1|mg2] = V[mg1|mg2] - dmod
+
+    # RMAG ONLY
+    mr1 = (allspec['rmag_err'] > 0) & (allspec['gmag_err'] <= -999.0)
+    mr2 = (allspec['rmag_o'] > 0)   & (allspec['gmag_o'] <= -999.0)
+    V[mr1|mr2] =  allspec['rmag_o'][mr1|mr2]  + 0.3  # ASSUME gr = 0.3
+    allspec['MV_o'][mr1|mr2] = V[mr1|mr2] - dmod
+    
+   # IF NO PHOTOMETRY EXISTS
+    m = (allspec['rmag_err'] <= -999.0) & (allspec['gmag_err'] <= -999.0)
+    allspec['MV_o'][m] = -999.0
+
+
+
     return allspec
 
 ###########################################
@@ -220,13 +242,16 @@ def match_gaia(obj,allspec):
 
         # SET NON_DETECTED BACK TO DEFAULT
         # GAIA DEFAULTS ARE ZERO (CONFUSING!)
-        m = allspec['gaia_pmra_err']  == -999.
-        allspec['gaia_pmra'][m]       = -999.
-        m = allspec['gaia_pmdec_err'] == -999.
-        allspec['gaia_pmdec'][m]      = -999.
-        m = allspec['gaia_parallax_err'] == -999.
-        allspec['gaia_parallax'][m]   = -999.
-        mrv = allspec['gaia_rv']      == -999.
+        m = (allspec['gaia_pmra_err']  == -999.) | (allspec['gaia_pmra_err']  == 0.0)
+        allspec['gaia_pmra'][m]        = -999.
+        allspec['gaia_pmra_err'][m]    = -999.
+        m = (allspec['gaia_pmdec_err'] == -999.) | (allspec['gaia_pmdec_err']  == 0.0)
+        allspec['gaia_pmdec'][m]       = -999.
+        allspec['gaia_pmdec_err'][m]   = -999.
+        m = (allspec['gaia_parallax_err'] == -999.) | (allspec['gaia_parallax_err']  == 0.0)
+        allspec['gaia_parallax'][m]    = -999.
+        allspec['gaia_parallax_err'][m]     = -999.
+        mrv = (allspec['gaia_rv']      == -999.) | (allspec['gaia_rv_err'] == 0)
         allspec['gaia_rv'][mrv]       = -999.
         allspec['gaia_rv_err'][mrv]   = -999.
 
@@ -306,10 +331,11 @@ def match_photometry(obj,allspec):
 
         # REPLACE INF VALUES
         m = np.isfinite(ls_dr10['gmag'])
-        ls_dr10['gmag'][~m] = -999
+        ls_dr10['gmag'][~m] = -999.0
         m = np.isfinite(ls_dr10['rmag'])
-        ls_dr10['rmag'][~m] = -999
+        ls_dr10['rmag'][~m] = -999.0
 
+     
 
         # Hack, update
         if (obj['Name2'] == 'Eri4') | (obj['Name2'] == 'N6254'):
@@ -324,7 +350,8 @@ def match_photometry(obj,allspec):
 
         # CORRECT BASS MAGNITUDES NORTHERN MAGNITUDES
         if np.median(ls_dr10['dec'] > 34.):
-            ls_dr10['rmag'] =  -0.0382 * (ls_dr10['gmag'] - ls_dr10['rmag']) + 0.0108 + ls_dr10['rmag']
+            m = (ls_dr10['gmag'] > 0) & (ls_dr10['rmag'] > 0)
+            ls_dr10['rmag'][m] =  -0.0382 * (ls_dr10['gmag'][m] - ls_dr10['rmag'][m]) + 0.0108 + ls_dr10['rmag'][m]
 
         
         cls_dr10 = SkyCoord(ra=ls_dr10['ra']*u.degree, dec=ls_dr10['dec']*u.degree) 
@@ -471,15 +498,7 @@ def match_photometry(obj,allspec):
         sdss.rename_column('col23', 'rmag')
         sdss.rename_column('col24', 'rmag_err')
 
-        #if obj['Name2'] == 'N6791':
-        #    file = DEIMOS_RAW + '/Photometry/sdss_gc/sdss_dr14_'+obj['Name2']+'.csv'
-        #    sdss = ascii.read(file)
-        #    sdss.rename_column('ra', 'RA')
-        #    sdss.rename_column('dec', 'DEC')
-        #    sdss.rename_column('g', 'gmag')
-        #    sdss.rename_column('Err_g', 'gmag_err')
-        #    sdss.rename_column('r', 'rmag')
-        #    sdss.rename_column('Err_r', 'rmag_err')
+      
 
 
         csdss   = SkyCoord(ra=sdss['RA']*u.degree, dec=sdss['DEC']*u.degree) 
@@ -492,15 +511,21 @@ def match_photometry(obj,allspec):
         # TRANSFORM SDSS TO DECALS
         r_sdss = sdss['rmag'][idx[d2d < dm*u.arcsec]]
         g_sdss = sdss['gmag'][idx[d2d < dm*u.arcsec]]
-        g_decals,r_decals = transform_sdss2decals(g_sdss,r_sdss)
 
         # Get Ar/Ag
         allspec, Ar, Ag = get_ebv(allspec)
 
+        g_decals,r_decals = transform_sdss2decals(g_sdss,r_sdss)
         allspec['rmag_o'][mt] =  r_decals - Ar[mt]
         allspec['gmag_o'][mt] =  g_decals - Ag[mt]
         allspec['rmag_err'][mt] = sdss['rmag_err'][idx[d2d < dm*u.arcsec]]
         allspec['gmag_err'][mt] = sdss['gmag_err'][idx[d2d < dm*u.arcsec]]
+
+        # FIX NULLS
+        mr = (allspec['rmag_err'] > 9.0) | (allspec['rmag_o'] > 100)
+        mg = (allspec['gmag_err'] > 9.0) | (allspec['gmag_o'] > 100)
+        allspec['rmag_err'][mr] = -999.0
+        allspec['gmag_err'][mg] = -999.0
 
         allspec['phot_source'][mt] = 'sdss_gc'
 
@@ -674,6 +699,7 @@ def match_photometry(obj,allspec):
     # REMOVE SERENDIP STARS WITHOUT PHOTOMETRY
     m_serendip_nophot =  (allspec['serendip'] == 1) &  (allspec['rmag_o'] < 0) 
     allspec           = allspec[~m_serendip_nophot]
+
 
 
     # DETERMINE MV AND CONVERT CAT -> FEH
