@@ -118,8 +118,8 @@ def membership_CMD(alldata,this_obj,cmd_min = 0.2):
 # Criteria based on Schiavon+1997
 def membership_NaI(alldata, this_obj):
 
-    naI_lim =  1.
-    nstar         = np.size(alldata)
+    naI_lim  =  1.0
+    nstar    = np.size(alldata)
     Pmem_NaI = np.ones(nstar)
 
     # OFFICIAL CRITIERIA
@@ -128,7 +128,7 @@ def membership_NaI(alldata, this_obj):
 
 
     # REDUCE PROBABILITY FOR STARS WITH LARGE ERRORS
-    m_rmv    = (alldata['ew_naI'] > 0.75) & (alldata['ew_naI_err'] > 0) & (alldata['MV_o'] < 1)
+    m_rmv    = (alldata['ew_naI'] > 0.75) & (alldata['ew_naI_err'] > 0) & (alldata['MV_o'] < 2.5)
     Pmem_NaI[m_rmv] = 0.7 * Pmem_NaI[m_rmv]
     m_rmv    = (alldata['ew_naI'] > 1.25) & (alldata['ew_naI_err'] > 0) & (alldata['MV_o'] < 4.5)
     Pmem_NaI[m_rmv] = 0.7 * Pmem_NaI[m_rmv]
@@ -197,14 +197,14 @@ def feh_mean_guess(feh,feh_err,good_feh):
     return feh_mean, feh_sig
 
 ######################################
-def membership_feh(alldata, this_obj, Pmem_tmp):
+def membership_feh(alldata, this_obj, flag_HB,Pmem_tmp):
 
 
     Pmem_feh = np.ones(np.size(Pmem_tmp))
 
     Pv_crude = membership_v_crude(alldata, this_obj)
     good_feh = (Pmem_tmp > 0.5) & (alldata['ew_feh_err'] > 0) &  (alldata['ew_feh_err'] < 10) & \
-                                 (alldata['MV_o'] < 3.) & (alldata['tmpl_teff'] < 6500 ) & (Pv_crude == 1)
+                                 (alldata['MV_o'] < 3.) & (flag_HB != 1) & (Pv_crude == 1)
 
 
     if np.sum(good_feh) > 2:
@@ -353,7 +353,7 @@ def flag_HB_stars(alldata,this_obj):
     r_hb,gr_hb = plot_isochrone_HB(dist)
 
     i=2
-    if this_obj['feh_guess'] > -1.4:
+    if this_obj['feh_guess'] >= -1.45:
         i=1
 
     # FLAG OBJECT AS HORIZONAL BRANCH STARS VIA DIST TO ISOCHRONES
@@ -374,6 +374,8 @@ def flag_HB_stars(alldata,this_obj):
     flag_HB2 = np.array(rmin) < np.sqrt(0.5**2 + np.array(emin)**2)
 
     flag_HB = flag_HB1 | flag_HB2
+
+
 
     return 1*flag_HB
 
@@ -418,11 +420,17 @@ def special_flowers(this_obj,alldata,Pmem,m_nophot):
         m=alldata['objname'] == 'best_708672' # This star is a binary
         Pmem[m]=0.3
 
+  
+    # STAR REMOVED BY Longeard+21
+    if this_obj['Name2'] == 'Sgr2':
+        m = (Pmem > 0.5) & (alldata['v'] > -168)
+        Pmem[m] = 0.3
+
 
     ## NGC6715 (M54) has heavy Sgr contamination
     # Remove more metal-rich Sgr stars 
     if this_obj['Name2'] == 'N6715':
-        m1 = (alldata['ew_feh'] > -0.7)  & (Pmem > 0.5)
+        m1 = (alldata['ew_feh'] > -0.8)  & (Pmem > 0.5)
         m2 = (alldata['rproj_arcm'] > 3.5) & (Pmem > 0.5)
         Pmem[m1|m2] = 0.3
 
@@ -446,6 +454,10 @@ def special_flowers(this_obj,alldata,Pmem,m_nophot):
     if (this_obj['Name2'] == 'Pal2'):
         nm = (alldata['ew_cat'] < 3)& (Pmem > 0.5)
         Pmem[nm] = 0.3 
+    
+    if (this_obj['Name2'] == 'CVn2'):
+        nm = (Pmem > 0.5)& (Pmem < 0.65)
+        Pmem[nm] = Pmem[nm]*0.8
 
     return Pmem,m_nophot
 
@@ -460,7 +472,10 @@ def flag_good_data(alldata):
     m_ser2 = (alldata['objname'] == 'SERENDIP') & (alldata['rmag_o'] < 0)
 
     flag_poor = m_err | m_ser1 | m_ser2
+    alldata['Pmem'][flag_poor] = 0
+    
     flag_good = ~flag_poor
+
 
     return flag_good
 
@@ -490,7 +505,7 @@ def find_members(alldata,this_obj):
     all_flags2      = all_flags1 * Pmem_pm
 
 
-    Pmem_feh        = membership_feh(alldata, this_obj,all_flags2)
+    Pmem_feh        = membership_feh(alldata, this_obj,flag_HB,all_flags2)
     Pmem_v          = membership_vdisp(alldata,this_obj,all_flags2*Pmem_feh*~flag_var)
 
 
