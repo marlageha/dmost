@@ -540,9 +540,9 @@ def fix_CaT(CaT_EW, CaT_EW_err,CaT_all, CaT_all_err,GL,CaT_chi2):
     olderr = CaT_EW_err
 
     # LOWER PRIOR is 0.1
-    m1 = (np.abs(CaT_all[0]-0.1) < 0.001)
-    m2 = (np.abs(CaT_all[1]-0.1) < 0.001)
-    m3 = (np.abs(CaT_all[2]-0.1) < 0.001)
+    m1 = (np.abs(CaT_all[0]-0.1) < 0.001) | (CaT_all[0] == -999.0)
+    m2 = (np.abs(CaT_all[1]-0.1) < 0.001) | (CaT_all[1] == -999.0)
+    m3 = (np.abs(CaT_all[2]-0.1) < 0.001) | (CaT_all[2] == -999.0)
 
     merr = np.sum(np.isfinite(CaT_all_err)) > 1
 
