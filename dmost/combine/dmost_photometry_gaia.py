@@ -128,11 +128,11 @@ def calculate_FeH(V0, V0err, ew_cat, ew_cat_err, use_truncnorm = True):
 
     # MAG AND DISTANCE ERROR-- could improve this
     V0err     = np.sqrt(V0err**2 + 0.1**2)  # add dmod error
-    Vmag0_abs = np.random.normal(loc=V0, scale=V0err, size=5000)
+    Vmag0_abs = np.random.normal(loc=V0, scale=V0err, size=10000)
     
     
     # Distribute equivalent widths as Truncated Normal (cutoff at zero)
-    ew_cat_distrib = truncated_normal(loc=ew_cat, scale=ew_cat_err, lowerbound = 0., size=5000)
+    ew_cat_distrib = truncated_normal(loc=ew_cat, scale=ew_cat_err, lowerbound = 0., size=10000)
     
 
     # #######Carrera 2013##########
@@ -144,11 +144,19 @@ def calculate_FeH(V0, V0err, ew_cat, ew_cat_err, use_truncnorm = True):
     #e = [0.019, 0.002]
     #FeH = a[0] + b[0]* mag + c[0]*CaT + d[0]*CaT**(-1.5) + e[0]*CaT*mag
 
-    a = np.random.normal(loc=-3.45, scale=0.04, size=5000)
-    b = np.random.normal(loc=0.16,  scale=0.01, size=5000)
-    c = np.random.normal(loc=0.41,  scale=0.004,size=5000)
-    d = np.random.normal(loc=-0.53, scale=0.11, size=5000)
-    e = np.random.normal(loc=0.019, scale=0.002,size=5000)
+    #a = np.random.normal(loc=-3.45, scale=0.04, size=5000)
+    #b = np.random.normal(loc=0.16,  scale=0.01, size=5000)
+    #c = np.random.normal(loc=0.41,  scale=0.004,size=5000)
+    #d = np.random.normal(loc=-0.53, scale=0.11, size=5000)
+    #e = np.random.normal(loc=0.019, scale=0.002,size=5000)
+
+
+    # Update to Navabi+25 Coefficients
+    a = np.random.normal(loc=-3.1, scale=0.05, size=10000)
+    b = np.random.normal(loc=0.09, scale=0.02, size=10000)
+    c = np.random.normal(loc=0.33, scale=0.01, size=10000)
+    d = np.random.normal(loc=-1.01, scale=0.13, size=10000)
+    e = np.random.normal(loc=0.02, scale=0.01, size=10000)
 
     # Calculate [Fe/H]
     FeH = a + (b * Vmag0_abs) + (c * ew_cat_distrib) + (d * ew_cat_distrib**(-1.5)) + \
@@ -296,7 +304,7 @@ def transform_sdss2decals(g_sdss, r_sdss):
 def transform_ps12decals(g_ps1, r_ps1):
 
     # TRANSFORMATION FROM Dey+ 2019, Eq 1+2
-    gi = g_ps1 - r_ps1 +0.25
+    gi = g_ps1 - r_ps1 +0.2
 
     g_decals = g_ps1 + 0.00062 + 0.03604*gi + 0.01028*gi**2 - 0.00613*gi**3
     r_decals = r_ps1 + 0.00495 - 0.08435*gi + 0.03222*gi**2 - 0.01140*gi**3
@@ -418,6 +426,10 @@ def match_photometry(obj,allspec):
         cmunf   = SkyCoord(ra=munozf['RA']*u.degree, dec=munozf['DEC']*u.degree) 
         cdeimos = SkyCoord(ra=allspec['RA']*u.degree, dec=allspec['DEC']*u.degree) 
  
+         # ADDING SYSTEMATIC MAG ERROR
+        munozf['rerr'] = np.sqrt(munozf['rerr']**2 + 0.02**2)
+        munozf['gerr'] = np.sqrt(munozf['gerr']**2 + 0.02**2)
+
         idx, d2d, d3d = cdeimos.match_to_catalog_sky(cmunf)  
         foo = np.arange(0,np.size(idx),1)
 
@@ -444,15 +456,12 @@ def match_photometry(obj,allspec):
         
         if np.sum(sm) > 0:
             mts = foo[sm]
-            #print(allspec['rmag_o'][mts])
 
             allspec['rmag_o'][mts]   = r_decals[idx[sm]]  - Ar[mts]
             allspec['gmag_o'][mts]   = g_decals[idx[sm]]  - Ag[mts]
             allspec['rmag_err'][mts] = munozf['rerr'][idx[sm]]
             allspec['gmag_err'][mts] = munozf['gerr'][idx[sm]]
             allspec['phot_source'][mts] = 'munozf' 
-            #for ob in allspec[mts]:
-            #    print(ob['rmag_o'],ob['RA'],ob['DEC'],ob['SN'],ob['marz_flag'])
 
 
      
@@ -477,8 +486,10 @@ def match_photometry(obj,allspec):
 
         allspec['rmag_o'][mt]   = r_decals - Ar[mt]
         allspec['gmag_o'][mt]   = g_decals - Ag[mt]
-        allspec['rmag_err'][mt] = munozf['rerr'][idx[d2d < dm*u.arcsec]]
-        allspec['gmag_err'][mt] = munozf['gerr'][idx[d2d < dm*u.arcsec]]
+
+        # ADDING SYSTEMATIC MAG ERROR
+        allspec['rmag_err'][mt] = np.sqrt(munozf['rerr'][idx[d2d < dm*u.arcsec]]**2 + 0.02**2)
+        allspec['gmag_err'][mt] = np.sqrt(munozf['gerr'][idx[d2d < dm*u.arcsec]]**2 + 0.02**2)
         
         allspec['phot_source'][mt] = 'munoz18_2'
 
@@ -614,7 +625,6 @@ def match_photometry(obj,allspec):
 
         # GET reddening 
         allspec, Ar, Ag = get_ebv(allspec)
-
 
         # INCREASED TO 2" TO GET CENTRAL GLOBULAR CLUSTER MEMBERS
         ds = 2.25
