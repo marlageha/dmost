@@ -26,21 +26,21 @@ def create_allstars(nmasks,nstars):
 
 
             # INDIVIDUAL MASK PROPERTIES
-            filled_column('nmask',-99,nstars),
-            filled_column('nexp',-99,nstars),
-            filled_column('t_exp',-99.,nstars),
+            filled_column('nmask',-999,nstars),
+            filled_column('nexp',-999,nstars),
+            filled_column('t_exp',-999.,nstars),
             filled_column('masknames','                                                              ',nstars),
-            filled_column('slitwidth',-99.,nstars),
+            filled_column('slitwidth',-999.,nstars),
             filled_column('mean_mjd',-999.,nstars),
             filled_column('collate1d_filename','                                                  ',nstars),
 
          
             # SN and FLAGs
             filled_column('SN',-999.,nstars),
-            filled_column('serendip',-99,nstars),
+            filled_column('serendip',-999,nstars),
 
             # GALAXIES
-            filled_column('marz_flag',-99,nstars),
+            filled_column('marz_flag',-999,nstars),
             filled_column('marz_z',-999.,nstars),
 
 
@@ -110,22 +110,22 @@ def create_allstars(nmasks,nstars):
             filled_column('var_max_v',-999.,nstars),
             filled_column('var_max_t',-999.,nstars),
             filled_column('var_short_max_t',-999.,nstars),
-            filled_column('flag_short_var',-99,nstars),
+            filled_column('flag_short_var',-999,nstars),
 
             # FLAGS AND MEMBERSHIPS 
-            filled_column('flag_coadd',-99,nstars),
-            filled_column('flag_var',-99,nstars),
-            filled_column('flag_gaia',-99,nstars),
-            filled_column('flag_HB',-99,nstars),
-            filled_column('Pmem_cmd',-99.,nstars),
-            filled_column('Pmem_EW',-99.,nstars),
-            filled_column('Pmem_parallax',-99.,nstars),
-            filled_column('Pmem_pm',-99.,nstars),
-            filled_column('Pmem_feh',-99.,nstars),
-            filled_column('Pmem_v',-99.,nstars),
+            filled_column('flag_coadd',-999,nstars),
+            filled_column('flag_var',-999,nstars),
+            filled_column('flag_gaia',-999,nstars),
+            filled_column('flag_HB',-999,nstars),
+            filled_column('Pmem_cmd',-999.,nstars),
+            filled_column('Pmem_EW',-999.,nstars),
+            filled_column('Pmem_parallax',-999.,nstars),
+            filled_column('Pmem_pm',-999.,nstars),
+            filled_column('Pmem_feh',-999.,nstars),
+            filled_column('Pmem_v',-999.,nstars),
 
-            filled_column('Pmem',-99.,nstars),
-            filled_column('Pmem_novar',-99,nstars),
+            filled_column('Pmem',-999.,nstars),
+            filled_column('Pmem_novar',-999,nstars),
 
 
             # INDIVUDAL MASK DATA
@@ -198,8 +198,8 @@ def combine_mask_velocities(stars):
     good_stars  = stars[mgood]
     t_exp=0
     
-    v,verr, v_chi2, teff,feh,ncomb = [-999.,-99.,-99,-99.,-99.,0]
-    verr_rand,verr_sys = [-99.,-99.]
+    v,verr, v_chi2, teff,feh,ncomb = [-999.,-999.,-999,-999.,-999.,0]
+    verr_rand,verr_sys = [-999.,-999.]
     if (np.size(good_stars) == 1):
         v     = good_stars['dmost_v']
         teff  = good_stars['chi2_teff']
@@ -309,11 +309,11 @@ def combine_mask_ew(stars):
     
     
     # COMBINE STARS WITH MEASURED VELOCITIES
-    mgood       = stars['dmost_v_err'] > 0.
+    mgood       = (stars['dmost_v_err'] > 0.) & (stars['cat_err'] > 0.)
     good_stars  = stars[mgood]
     
-    cat,cat_err,naI,naI_err,mgI,mgI_err, gl,ncomb = [-99.,-99.,-99.,-99.,-99.,-99.,-99.,0]
-    w1,w2,w3 = [-99.,-99.,-99.]
+    cat,cat_err,naI,naI_err,mgI,mgI_err, gl,ncomb = [-999.,-999.,-999.,-999.,-999.,-999.,-999.,0]
+    w1,w2,w3 = [-999.,-999.,-999.]
     if (np.size(good_stars) == 1):
         cat      = good_stars['cat']
         cat_err  = good_stars['cat_err']
@@ -372,6 +372,8 @@ def combine_mask_ew(stars):
         w2       = obj['w2']
         w3       = obj['w3']
         gl       = obj['cat_gl']
+        if (w1 < 0) & (w1 > -500):
+            print(obj['w1'],obj['w2'],obj['w3'])
 
     return cat,cat_err,mgI,mgI_err,naI,naI_err, w1,w2,w3, gl,ncomb 
 
@@ -386,7 +388,7 @@ def combine_mask_marz(star):
   
     mset       = star['marz_flag'] > -1
     marz_obj   = star[mset]
-    marz_flag, marz_z, t_exp = -99,-99.,0
+    marz_flag, marz_z, t_exp = -999,-999.,0
 
 
 
@@ -623,7 +625,7 @@ def combine_mask_quantities(nmasks, nstars, sc_gal, allslits):
 
             dmost_allstar['nmask'][i]  = nrpt
             dmost_allstar['nexp'][i]   = np.sum(test_allslits['nexp'][m])
-            dmost_allstar['flag_coadd'][i]  = np.sum(test_allslits['coadd_flag'][m])
+            dmost_allstar['flag_coadd'][i]  = np.max(test_allslits['coadd_flag'][m])
 
             dmost_allstar['tmpl_teff'][i]  = teff
             dmost_allstar['tmpl_feh'][i]   = feh
@@ -736,11 +738,11 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
     # CATCH EW NON-DETECTIONS
     thrs = 50
     mn = alldata['ew_cat_err'] > thrs
-    alldata['ew_cat_err'][mn] = -99.
+    alldata['ew_cat_err'][mn] = -999.
     mn = alldata['ew_naI_err'] > thrs
-    alldata['ew_naI_err'][mn] = -99.    
+    alldata['ew_naI_err'][mn] = -999.    
     mn = alldata['ew_mgI_err'] > thrs
-    alldata['ew_mgI_err'][mn] = -99.
+    alldata['ew_mgI_err'][mn] = -999.
 
     # MEMBERSHIP
     Pmem, Pmem_novar, Pmem_cmd, Pmem_EW,Pmem_px,Pmem_pm,Pmem_feh,\
@@ -759,16 +761,40 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
 
     alldata['flag_HB']    = dmost_membership.flag_HB_stars(alldata,object_properties[0])
 
+    if object_name == 'Eri':
+        gr=alldata['gmag_o'] - alldata['rmag_o']
+        m=(alldata['Pmem'] > 0.5) & (gr < 0.5) & (alldata['flag_HB']==0)
+        alldata['flag_HB'][m] = 1
+        print(np.sum(m))
 
 
-
-    # ENSURE [Fe/H] IS ONLY IN CALIBRATED REGIONS
-    mhb   = alldata['flag_HB'] == 1
+    # ENSURE [Fe/H] IS ONLY IN CALIBRATED REGIONS FOR MEMBER STARS
+    mhb   = (alldata['flag_HB'] == 1) | (alldata['tmpl_teff'] >7000)
     alldata['ew_feh'][mhb]     = -999.
     alldata['ew_feh_err'][mhb] = -999.
-    mcalib = (alldata['MV_o'] > 3.) | (alldata['ew_feh_err'] < 0) | (alldata['ew_cat_err'] < 0)
+    mcalib = (alldata['MV_o'] > 3.) | (alldata['ew_feh_err'] < 0) | (alldata['ew_cat_err'] < 0)| (alldata['Pmem'] < 0.2)
     alldata['ew_feh'][mcalib]     = -999.
     alldata['ew_feh_err'][mcalib] = -999.
+
+
+    # CLEAN BAD PHOTOMETRY VALUES
+    mphot = (alldata['rmag_err'] > 2) | (alldata['rmag_o'] < -100.)| (alldata['rmag_o'] > 30.)
+    alldata['rmag_o'][mphot] = -999.
+    alldata['rmag_err'][mphot] = -999.
+    mphot = (alldata['gmag_err'] > 2) | (alldata['gmag_o'] < -100.)| (alldata['gmag_o'] > 30.)
+    alldata['gmag_o'][mphot] = -999.
+    alldata['gmag_err'][mphot] = -999.
+
+  # ENSURE GOOD VELOCITY CUT
+    mverr = alldata['v_err'] > 15
+    alldata['Pmem_novar'][mverr] = 0
+    alldata['Pmem'][mverr] = 0
+
+  # SET EXTRAGALACTIC OBJECTS
+    mg = alldata['marz_flag'] > 2
+    alldata['Pmem_novar'][mg] = 0
+    alldata['Pmem'][mg] = 0
+
 
     # SET SYSTEM NAME
     alldata['system_name'] = object_name
@@ -794,13 +820,11 @@ def combine_masks(object_name, max_obs_date = 20500101,file_create_date='',**kwa
     return alldata
 
 
-def combine_all():
-
-    objlist, masklist = deimos_google()
-    for obj in objlist:
-        
-        if obj['Phot'] != 'PanS':
-            tmp  = combine_masks(obj['Name2'])
+#def combine_all():
+#    objlist, masklist = deimos_google()
+#    for obj in objlist:       
+#        if obj['Phot'] != 'PanS':
+#            tmp  = combine_masks(obj['Name2'])
 
 
 
