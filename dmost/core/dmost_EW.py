@@ -689,12 +689,13 @@ def ew_sys_errors(slit):
     m_gl    = (slit['cat_gl'] == 3) | (slit['cat_gl'] == 4)
 
 
-    # ADD REPEAT MULTIPLER AND FLOOR
-    if (mcat&m_gauss):
-        slit['cat_err'] = 1.6 * slit['cat_err']
+ 
+#    THIS IS SYSTEMTIC IS NOW APPLIED IN COMBINED MASKS STEP
+#    if (mcat&m_gauss):
+#        slit['cat_err'] = np.sqrt((1.2 * slit['cat_err'])**2)
 
-    if (mcat&m_gl):
-        slit['cat_err'] = np.sqrt((1.3 * slit['cat_err'])**2 + 0.1**2)
+#    if (mcat&m_gl):
+#        slit['cat_err'] = np.sqrt((0.8 * slit['cat_err'])**2 + 0.05**2)
 
 
 
