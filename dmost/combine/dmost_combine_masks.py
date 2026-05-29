@@ -56,8 +56,10 @@ def create_allstars(nmasks,nstars):
             filled_column('phot_type','   ',nstars),
             filled_column('gmag_o',-999.,nstars),
             filled_column('rmag_o',-999.,nstars),
+            filled_column('imag_o',-999.,nstars),
             filled_column('gmag_err',-999.,nstars),
             filled_column('rmag_err',-999.,nstars),
+            filled_column('imag_err',-999.,nstars),
             filled_column('EBV',-999.,nstars),
 
             filled_column('MV_o',-999.,nstars),
@@ -334,7 +336,14 @@ def combine_mask_ew(stars):
             mg   = np.append(mg,obj['mgI'])
             
 
-            cterr   = np.append(cterr,obj['cat_err'])
+            # APPLY SYSTEMATIC ERROR FOR CaT HERE
+            if obj['cat_gl'] >2:
+                ctmp = np.sqrt((0.8 * obj['cat_err'])**2 + 0.05**2)
+            if obj['cat_gl'] < 3:
+                ctmp = np.sqrt((1.2 * obj['cat_err'])**2)
+            cterr   = np.append(cterr,ctmp)
+
+            # 0.05A SYSTEMATIC ALREADY APPLIED FOR THESE LINES
             naerr   = np.append(naerr,obj['naI_err'])
             mgerr   = np.append(mgerr,obj['mgI_err'])
 
